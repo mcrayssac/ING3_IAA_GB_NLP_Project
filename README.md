@@ -41,6 +41,8 @@ The repository holds planning documents for now:
 ```text
 docs/roadmap.md         active recovery schedule, task definitions and issue links
 docs/roadmap-annexe.md  execution guide and assignment coverage
+docs/code-approach.md   code layout, configs, run folders and team coding rules
+docs/interface.md       Gradio interface specs
 docs/diagrams/          active overview/Gantt and historical diagram assets
 instructions/          original project brief (French PDF)
 LICENSE                Apache License 2.0
