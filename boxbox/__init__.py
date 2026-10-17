@@ -1,0 +1,1 @@
+"""BoxBox project package."""
