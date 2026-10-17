@@ -1,0 +1,12 @@
+# Disposable LoRA feasibility run for task 1.5. It is not adapter A.
+
+[lora]
+max_steps = 30
+
+[feasibility]
+rows = 64                 # disposable dialogues built from the fixture cards
+adapter_dialogues = 400   # planned size of one adapter's corpus
+adapter_epochs = 3
+max_adapter_minutes = 60  # go rule agreed for 1.5
+max_memory_gb = 20
+reload_max_prob_diff = 0.001  # largest next-token probability gap after a fresh reload
