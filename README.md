@@ -28,21 +28,22 @@ Out of scope: live races, full race simulation, multi-stop optimisation, weather
 
 ## What the project tests
 
-The research question is whether a small language model gives fewer unjustified answers on incomplete cards when some of its training examples teach it to abstain, without refusing too often when a call is possible. Two adapted versions of the same model will be compared on the same cases. Version A learns from complete cards only. Version B has 15% of its examples replaced by incomplete cards whose expected answer is NO CALL. Negative or uncertain results will be reported as they are.
+The research question is whether a small language model gives fewer unjustified answers on incomplete cards when some of its training examples teach it to abstain, without refusing too often when a call is possible. The target study compares the unadapted baseline and two adapted versions of the same model on the same cases. Version A learns from complete cards only. Version B has 15% of its examples replaced by incomplete cards whose expected answer is NO CALL. Negative or uncertain results will be reported as they are. The recovery schedule keeps the full A/B study conditional on measured feasibility. If the team drops B to protect delivery, it will retain a baseline/A comparison and explicitly leave the A/B question unanswered.
 
 ## Current status
 
-Milestone 1 of 5, framing and design. The target users, the scope, the research plan and the data source are settled. The decision rules, the race-card fields, a first check of the tools and the team roles come next. No prototype, result or feature has been delivered yet.
+**Snapshot: 17 October 2026 — planning only, milestone 1 of 5 (framing and design).** The audience, scope and FastF1 selection were settled on 26 September. The decision rules, race-card contract, measured model feasibility and shared task-pickup workflow come next. No prototype, training run or result has been delivered. The team has 50–70 collective hours remaining, including an 8-hour reserve, until 22 October at 23:59 Paris time.
 
 ## Project structure
 
 The repository holds planning documents for now:
 
 ```text
-docs/roadmap.md    milestones and sub-milestones
-docs/diagrams/     roadmap diagram (Excalidraw source and PNG)
-instructions/     original project brief (French PDF)
-LICENSE           Apache License 2.0
+docs/roadmap.md         active recovery schedule, task definitions and issue links
+docs/roadmap-annexe.md  execution guide and assignment coverage
+docs/diagrams/          active overview/Gantt and historical diagram assets
+instructions/          original project brief (French PDF)
+LICENSE                Apache License 2.0
 ```
 
 The notebook, the shared code and the data arrive with the first prototype.
@@ -51,7 +52,7 @@ The product, interface, prompts, training examples, code, notebook explanations,
 
 ## Architecture
 
-The solution is being designed. Its architecture will be documented here with the first prototype, planned for 4 October. Milestones and the detailed checklist are in [docs/roadmap.md](docs/roadmap.md).
+The solution is being designed. Its architecture will be documented here with the first prototype, targeted for 19 October evening, subject to the feasibility and MVP gates. Milestones, task outputs and prerequisites are in [docs/roadmap.md](docs/roadmap.md).
 
 ## Data sources
 
@@ -67,9 +68,9 @@ There is nothing to install yet. Installation and run instructions will come wit
 
 ## Roadmap
 
-![BoxBox roadmap: five milestones from 26 September to 22 October 2026, with framing and design marked as the current stage](docs/diagrams/roadmap.png)
+![BoxBox recovery overview for 17–22 October 2026, with framing and design still marked as the current stage and three September decisions completed](docs/diagrams/roadmap.png)
 
-This overview shows the five milestones and their key outcomes. Colors identify phases, the red dot marks the current stage, and the dashed outline marks conditional work. Dates, budgets and the detailed checklist are in [docs/roadmap.md](docs/roadmap.md).
+This overview shows the five recovery milestones, with the red dot still on framing and design at the 17 October snapshot. Colors identify phases; green means delivery, not completion. The dashed callout describes the research-scope fallback. Target the MVP on 19 October evening, freeze retained versions by 20 October at 18:00, and have the package ready on 22 October at 12:00 for submission by 23:59 Paris time. The detailed Gantt, dependencies, capacity assumptions and task links are in [docs/roadmap.md](docs/roadmap.md); [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers and reviews.
 
 ## Team
 
@@ -77,7 +78,7 @@ This overview shows the five milestones and their key outcomes. Colors identify 
 - [Paul Pitiot](https://github.com/Paul-Pitiot-Cytech-Grp7-Mi)
 - [Matthieu Brault](https://github.com/Matthieu92b)
 
-The three planned responsibilities are data and protocol, model and notebook, and evaluation and demo, each reviewed by another member. Who takes which one is still to be decided.
+D/M/E/T label data/protocol, model/notebook, evaluation/demo and team coordination work. Anyone available may claim a ready task; one person leads it and another available teammate reviews. These categories do not reserve tasks to particular people. All recovery issues start unassigned.
 
 ## License
 
