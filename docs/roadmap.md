@@ -1,16 +1,16 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 17 October 2026 — planning only; milestone 1 is in progress.** Audience, scope and FastF1 selection (1.1–1.3) are done. No prototype, training run or result has been delivered. All other work is unstarted; repeat runs and V2 (3.4) are deferred.
+**Snapshot: 17 October 2026 — milestone 1 is in progress.** Audience, scope and FastF1 selection (1.1–1.3), and the race-card contract and rules (1.4), are done. No model prototype, training run or result has been delivered. Other tasks are unstarted; repeat runs and V2 (3.4) are deferred.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
 The product, interface, prompts, training examples, code, notebook explanations, run guide and project documentation use **English**. The report, video and other teacher-facing presentation documents use **French**. The executed notebook and `README.txt` remain English; the original [assignment PDF](../instructions/mini_projet_2_agent_conversationnel.pdf) remains French.
 
-![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; only three September decisions are complete](diagrams/roadmap-gantt.png)
+![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; tasks 1.1–1.4 are complete](diagrams/roadmap-gantt.png)
 
 [Full-size schedule](diagrams/roadmap-gantt.png) · [Editable Excalidraw source](diagrams/roadmap-gantt.excalidraw)
 
-The README retains the separate business overview. The Gantt groups tasks by milestone; IDs match the tables. Bars are proposed work windows, not full-time allocations or measured runtimes. Only selected major hand-offs are drawn; all prerequisites are listed below. The red line dates this snapshot, checkmarks identify completed September decisions, and diamonds identify deadlines. Dashed B bars mean the full research path remains conditional on the decision gates, not that it is already abandoned. Colors identify work categories, not owners or progress.
+The README retains the separate business overview. The Gantt groups tasks by milestone; IDs match the tables. Bars are proposed work windows, not full-time allocations or measured runtimes. Only selected major hand-offs are drawn; all prerequisites are listed below. The red line dates this snapshot, checkmarks identify completed tasks, and diamonds identify deadlines. Dashed B bars mean the full research path remains conditional on the decision gates, not that it is already abandoned. Colors identify work categories, not owners or progress.
 
 ## Capacity and priorities
 
@@ -73,7 +73,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md) for claim, review and handover details.
 
-Initially ready and unassigned: **[1.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) race-card contract and rules, [1.5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) model feasibility and observations, [1.6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) agree task pickup and review, [5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft french report and video outline**. Ready means claimable; none has started. The queue contains 28 unfinished tasks. The three completed decisions and deferred 3.4 do not need new issues.
+Ready and unassigned in this snapshot: **[1.5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) model feasibility and observations, [1.6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) agree task pickup and review, [5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable; these tasks have not started. The queue contains 27 unfinished tasks. The four completed tasks (1.1–1.4) and deferred 3.4 do not need new issues.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -100,7 +100,7 @@ Windows include implementation, checks and hand-off review; they are not effort 
 | 1.1 | **Audience and need.** Define F1 content creators and analysts as the audience and historical pit-stop explanation as the need. | T | 26 Sep (completed) | — | done | — |
 | 1.2 | **Scope and research question.** Define the narrow historical scope and the A/B question on justified abstention. | T | 26 Sep (completed) | — | done | — |
 | 1.3 | **FastF1 selection.** Select FastF1; retain OpenF1 only as an optional cross-check. Access and reconstruction still need testing. | D | 26 Sep (completed) | — | done | — |
-| 1.4 | **Race-card contract and rules.** Fix card fields, units, thresholds and BOX/STAY OUT/NO CALL policy; provide a deterministic reference and five expected conversations. | D | 17 Oct, remaining day | 1.2, 1.3 | ready | [#3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) |
+| 1.4 | **Race-card contract and rules.** Fix card fields, units, thresholds and BOX/STAY OUT/NO CALL policy; provide a deterministic reference and five expected conversations. | D | 17 Oct, remaining day | 1.2, 1.3 | done | [#3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) |
 | 1.5 | **Model feasibility and observations.** Load a compact instruction model, document the required model observations and verify a short, reloadable adaptation on available hardware. | M | 17 Oct, remaining day | 1.2 | ready | [#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) |
 | 1.6 | **Agree task pickup and review.** Confirm daily availability, the shared claim/review workflow and the submission channel; assign no permanent task owners. | T | 17 Oct, remaining day | — | ready | [#5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) |
 
