@@ -14,7 +14,7 @@ boxbox/                    Python package
   model/                   model loading, observation helpers, chat engine (1.5, 2.5a)
   training/                LoRA training, selection and reload (2.6, 3.2)
   evaluation/              scores, rubric sheets, paired statistics (2.3b, 4.x)
-  app/                     Gradio interface (2.4)
+  app/                     Gradio interface (2.4), specs in docs/interface.md
 configs/                   one TOML file per experiment
 scripts/rebuild_data.py    rebuilds the race data from the command line
 tests/                     pytest tests for deterministic code
