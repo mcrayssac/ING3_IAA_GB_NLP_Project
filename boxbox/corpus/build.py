@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import random
 from collections import Counter, defaultdict
+from itertools import product
 from typing import Any
 
 from boxbox.rules import TYRE_LIMITS, decide
@@ -19,6 +20,7 @@ PATHS = (
     "stay_gap_ahead",
     "stay_rejoin",
 )
+COMPOUNDS = ("SOFT", "MEDIUM", "HARD")
 PER_RACE_DRIVER = 2  # neighbouring laps of one stint must not dominate
 # fields the rule needs on each path; removing one gives NO CALL
 REQUIRED = {
@@ -82,28 +84,71 @@ def _race_driver(record: dict[str, Any]) -> str:
     return record["card_id"].rsplit("-", 1)[0]
 
 
+def _take(pool: list[dict[str, Any]], used: Counter) -> dict[str, Any] | None:
+    """Pop the next card whose race and driver is still under the cap."""
+    while pool:
+        record = pool.pop()
+        if used[_race_driver(record)] < PER_RACE_DRIVER:
+            used[_race_driver(record)] += 1
+            return record
+    return None
+
+
+def _shares(total: int, capacity: dict) -> Counter:
+    """Split total over the keys one at a time, as evenly as their capacities allow."""
+    share = Counter()
+    while sum(share.values()) < total and any(
+        share[k] < c for k, c in capacity.items()
+    ):
+        for key, room in capacity.items():
+            if share[key] < room and sum(share.values()) < total:
+                share[key] += 1
+    return share
+
+
+def _quotas(
+    pools: dict, used: Counter, total: int
+) -> list[tuple[tuple[str, str], int]]:
+    """Cards per (path, compound), balanced over paths then compounds, scarcest pool first."""
+    room = {}
+    for key in product(PATHS, COMPOUNDS):
+        pairs = Counter(_race_driver(record) for record in pools[key])
+        room[key] = sum(
+            min(n, PER_RACE_DRIVER - used[pair]) for pair, n in pairs.items()
+        )
+    paths = _shares(total, {p: sum(room[(p, c)] for c in COMPOUNDS) for p in PATHS})
+    quota = Counter()
+    for path in PATHS:
+        quota.update(
+            _shares(paths[path], {(path, c): room[(path, c)] for c in COMPOUNDS})
+        )
+    # scarce pools pick first, so large pools do not use up their race and driver pairs
+    return sorted(quota.items(), key=lambda item: room[item[0]])
+
+
 def select_cards(
-    records: list[dict[str, Any]], total: int, rng: random.Random
+    records: list[dict[str, Any]], total: int, rng: random.Random, used: Counter
 ) -> list[dict]:
-    """Complete cards balanced over the rule paths, at most 2 per race and driver."""
+    """Complete cards balanced over rule paths, then compounds, at most 2 per race and driver.
+
+    `used` counts the cards each race and driver already gave, so calls can share the cap.
+    """
     pools = defaultdict(list)
     for record in sorted(records, key=lambda r: r["card_id"]):
         path = path_of(record["card"]) if complete(record["card"]) else None
         if path:
-            pools[path].append(record)
+            pools[(path, record["card"]["compound"])].append(record)
     for pool in pools.values():
         rng.shuffle(pool)
-    chosen, used = [], Counter()
-    while len(chosen) < total and any(pools.values()):
-        for path in PATHS:  # one card per path per round keeps the paths balanced
-            while pools[path] and len(chosen) < total:
-                record = pools[path].pop()
-                if used[_race_driver(record)] < PER_RACE_DRIVER:
-                    used[_race_driver(record)] += 1
-                    chosen.append({**record, "path": path})
-                    break
-    if len(chosen) < total:
-        raise ValueError(f"only {len(chosen)} cards for {total} items")
+    chosen = []
+    while len(chosen) < total:  # a second pass fills what the cap took from a quota
+        before = len(chosen)
+        for key, count in _quotas(pools, used, total - len(chosen)):
+            for _ in range(count):
+                if record := _take(pools[key], used):
+                    chosen.append({**record, "path": key[0]})
+        if len(chosen) == before:
+            raise ValueError(f"only {len(chosen)} cards for {total} items")
     return chosen
 
 
@@ -116,6 +161,7 @@ def _item(
         "card_id": record["card_id"],
         "card": record["card"],
         "messages": messages,
+        "scope": None,
         "swap_field": None,
     }
 
@@ -188,11 +234,17 @@ def scope_item(record: dict[str, Any], turn: int, rng: random.Random) -> dict[st
     question = rng.choice(T.SCOPE[category][0]).format(
         car=card["driver_number"], other=other
     )
-    return _item(
+    item = _item(
         record,
         "out_of_scope",
         _turns((question, T.scope_answer(category, card, other))),
     )
+    return {**item, "scope": category}
+
+
+def track_item(record: dict[str, Any], rng: random.Random) -> dict[str, Any]:
+    """A call question under a safety car or VSC, which the rule answers with NO CALL."""
+    return {**call_item(record, "out_of_scope", rng), "scope": "track_status"}
 
 
 def removed_item(

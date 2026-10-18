@@ -19,7 +19,14 @@ from pathlib import Path
 from typing import Any
 
 from boxbox.config import RunConfig
-from boxbox.corpus import EVAL_KINDS, check_corpus_a, check_set, corpus_a, eval_set
+from boxbox.corpus import (
+    EVAL_KINDS,
+    TRACK_ITEMS,
+    check_corpus_a,
+    check_set,
+    corpus_a,
+    eval_set,
+)
 from boxbox.data import load_cards, load_splits
 from boxbox.rules import POLICY_VERSION
 
@@ -48,6 +55,13 @@ def _jsonl(items: list[dict[str, Any]]) -> str:
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
+
+
+def _cards_sha256() -> str:
+    """Hash of the per-race card files the corpus can read, without the build time."""
+    races = json.loads(CARDS_MANIFEST.read_text(encoding="utf-8"))["races"]
+    hashes = {race: v["sha256"] for race, v in races.items() if v["split"] != "final"}
+    return _sha256(json.dumps(hashes, sort_keys=True))
 
 
 def _summary(card: dict[str, Any]) -> str:
@@ -110,7 +124,11 @@ def _sets(seed: int) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     for split in ("validation", "mini_test"):
         sets[split] = eval_set(load_cards(split, config), split, seed)
         errors += check_set(
-            sets[split], EVAL_KINDS[split], set(splits[split]), EVAL_CAP
+            sets[split],
+            EVAL_KINDS[split],
+            set(splits[split]),
+            EVAL_CAP,
+            TRACK_ITEMS[split],
         )
     return sets, errors
 
@@ -136,23 +154,25 @@ def cmd_build(args: argparse.Namespace) -> int:
         "seed": seed,
         "policy_version": POLICY_VERSION,
         "splits_document_sha256": load_splits()["document_sha256"],
-        "cards_manifest_sha256": _sha256(CARDS_MANIFEST.read_text(encoding="utf-8")),
+        "cards_sha256": _cards_sha256(),
         "files": files,
     }
     (CORPUS_DIR / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
     )
+    if _write_review(rows) is None:
+        return 1
     pending = sum(not row["verdict"] for row in rows)
     print(json.dumps({"files": files, "rows_to_review": pending}, indent=2))
     return 0
 
 
-def cmd_review(args: argparse.Namespace) -> int:
-    rows = list(_read_sheet().values())
+def _write_review(rows: list[dict[str, str]]) -> dict[str, Any] | None:
+    """Write the current sheet counts for both build and review commands."""
     bad = [r["id"] for r in rows if r["verdict"] not in ("", "ok", "fix")]
     if bad:
         print(f"verdicts must be ok or fix: {bad[:5]}", file=sys.stderr)
-        return 1
+        return None
     reviewed = [r for r in rows if r["verdict"]]
     automatic = sum(r["note"].startswith("automatic:") for r in reviewed)
     confirmed = sum(r["note"].startswith("confirmed:") for r in reviewed)
@@ -171,6 +191,13 @@ def cmd_review(args: argparse.Namespace) -> int:
     (CORPUS_DIR / "review.json").write_text(
         json.dumps(review, indent=2) + "\n", encoding="utf-8"
     )
+    return review
+
+
+def cmd_review(args: argparse.Namespace) -> int:
+    review = _write_review(list(_read_sheet().values()))
+    if review is None:
+        return 1
     print(json.dumps({k: v if k != "fix" else len(v) for k, v in review.items()}))
     return 0
 
