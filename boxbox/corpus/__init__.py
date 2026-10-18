@@ -8,6 +8,7 @@ from .sets import (
     TRACK_ITEMS,
     check_corpus_a,
     check_set,
+    check_unseen,
     corpus_a,
     eval_set,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "TRACK_ITEMS",
     "check_corpus_a",
     "check_set",
+    "check_unseen",
     "complete",
     "corpus_a",
     "eval_set",

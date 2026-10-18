@@ -96,7 +96,12 @@ def _pick(records, keep, count, rng, used) -> list[dict[str, Any]]:
 
 
 def _neutral(card: dict[str, Any]) -> bool:
-    return card["track_status"] != "GREEN"
+    """A safety car or VSC card whose decision fields are all known, so only rule 1 decides."""
+    known = (
+        complete({**card, "track_status": "GREEN"})
+        and card["tyre_age_laps"] is not None
+    )
+    return card["track_status"] != "GREEN" and known
 
 
 def corpus_a(records: list[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
@@ -110,10 +115,10 @@ def corpus_a(records: list[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
     neutral = _pick(rest, _neutral, TRACK_ITEMS["train"], rng, used)
     rng.shuffle(calls)  # selection order groups the pools; swaps and styles must not
     rng.shuffle(follows)
-    items = [call_item(r, "complete", rng) for r in calls]
-    items += [multi_item(r, i, rng) for i, r in enumerate(follows)]
-    items += [scope_item(r, i, rng) for i, r in enumerate(requests)]
-    items += [track_item(r, rng) for r in neutral]
+    items = [call_item(r, "complete", rng, "train") for r in calls]
+    items += [multi_item(r, i, rng, "train") for i, r in enumerate(follows)]
+    items += [scope_item(r, i, rng, "train") for i, r in enumerate(requests)]
+    items += [track_item(r, rng, "train") for r in neutral]
     tag_swaps(items[: A_KINDS["complete"]], SWAPS)
     return _numbered(items, "A", "train")
 
@@ -123,7 +128,8 @@ def _natural(records, used, wanted, rng, count) -> list[dict[str, Any]]:
     rest = [r for r in records if r["card_id"] not in used]
 
     def keep(card):
-        return not complete(card) and not _neutral(card) and wanted(decide(card))
+        green = card["track_status"] == "GREEN"
+        return green and not complete(card) and wanted(decide(card))
 
     return _pick(rest, keep, count, rng, Counter())
 
@@ -141,7 +147,8 @@ def _irrelevant(records, used, rng, count) -> list[dict[str, Any]]:
     items = []
     for i, record in enumerate(pool[:count]):
         fields = IRRELEVANT[record["path"]]
-        items.append(removed_item(record, "decidable", fields[i % len(fields)], rng))
+        field = fields[i % len(fields)]
+        items.append(removed_item(record, "decidable", field, rng, "eval"))
     return items
 
 
@@ -157,21 +164,22 @@ def eval_set(
     cards = select_cards(records, n, rng, capped)
     rng.shuffle(cards)
     a, b, c = kinds["complete"], kinds["complete"] + kinds["multi"], n - syn_missing
-    items = [call_item(r, "complete", rng) for r in cards[:a]]
-    items += [multi_item(r, i, rng) for i, r in enumerate(cards[a:b])]
-    items += [scope_item(r, i, rng) for i, r in enumerate(cards[b:c])]
+    items = [call_item(r, "complete", rng, "eval") for r in cards[:a]]
+    items += [multi_item(r, i, rng, "eval") for i, r in enumerate(cards[a:b])]
+    items += [scope_item(r, i, rng, "eval") for i, r in enumerate(cards[b:c])]
     for i, record in enumerate(cards[c:]):
         fields = REQUIRED[record["path"]]
-        items.append(removed_item(record, "missing", fields[i % len(fields)], rng))
+        field = fields[i % len(fields)]
+        items.append(removed_item(record, "missing", field, rng, "eval"))
     neutral = _pick(_rest(records, cards), _neutral, TRACK_ITEMS[split], rng, capped)
-    items += [track_item(r, rng) for r in neutral]
+    items += [track_item(r, rng, "eval") for r in neutral]
     used = {r["card_id"] for r in cards + neutral}
     items += _irrelevant(records, used, rng, syn_decidable)
     used |= {item["card_id"] for item in items}
     missing = _natural(
         records, used, lambda d: "missing" in d[1], rng, kinds["missing"] - syn_missing
     )
-    items += [call_item(r, "missing", rng) for r in missing]
+    items += [call_item(r, "missing", rng, "eval") for r in missing]
     used |= {r["card_id"] for r in missing}
     decided = _natural(
         records,
@@ -180,7 +188,7 @@ def eval_set(
         rng,
         kinds["decidable"] - syn_decidable,
     )
-    items += [call_item(r, "decidable", rng) for r in decided]
+    items += [call_item(r, "decidable", rng, "eval") for r in decided]
     return _numbered(items, {"validation": "V", "mini_test": "M"}[split], split)
 
 
@@ -193,9 +201,17 @@ def _answer_errors(item: dict[str, Any]) -> list[str]:
             errors.append("answer is not two CALL/WHY lines")
         elif not why.endswith(".") or re.search(r"\.\s+[A-Z]", why):
             errors.append("WHY is not one sentence")
+    rule = format_answer(item["card"])
     by_rule = item["kind"] != "out_of_scope" or item["scope"] == "track_status"
-    if by_rule and item["messages"][1]["content"] != format_answer(item["card"]):
+    if by_rule and item["messages"][1]["content"] != rule:
         errors.append("first answer is not the rule's answer")
+    if (
+        item["follow_up"] in ("why", "stated")
+        and item["messages"][3]["content"] != rule
+    ):
+        errors.append(
+            f"{item['follow_up']} follow-up is not the rule's answer on the card"
+        )
     return errors
 
 
@@ -253,3 +269,20 @@ def check_corpus_a(items: list[dict[str, Any]], races: set[str]) -> list[str]:
         if decide(remove_field(i["card"], i["swap_field"]))[0] != "NO CALL"
     ]
     return errors
+
+
+def _wording(text: str) -> str:
+    return re.sub(r"\d+(\.\d+)?", "#", text)  # car numbers, laps and seconds aside
+
+
+def check_unseen(
+    train: list[dict[str, Any]], *evaluation: list[dict[str, Any]]
+) -> list[str]:
+    """Evaluation items with a question whose wording, numbers aside, is also in corpus A."""
+    seen = {_wording(m["content"]) for i in train for m in i["messages"][0::2]}
+    return [
+        f"{i['id']}: question wording also in corpus A"
+        for items in evaluation
+        for i in items
+        if any(_wording(m["content"]) in seen for m in i["messages"][0::2])
+    ]

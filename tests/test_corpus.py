@@ -16,12 +16,12 @@ from boxbox.corpus import (
     TRACK_ITEMS,
     check_corpus_a,
     check_set,
+    check_unseen,
     corpus_a,
     eval_set,
     load_corpus,
 )
 from boxbox.corpus.build import path_of, remove_field
-from boxbox.corpus.templates import what_if_answer
 from boxbox.rules import decide
 from boxbox.rules.decision import article, laps
 
@@ -135,10 +135,37 @@ def test_wording() -> None:
         "a",
     ]
     assert (laps(1), laps(3)) == ("1 lap", "3 laps")
-    answer = what_if_answer(records()[0]["card"], 8.0)
-    assert answer.startswith(
-        "CALL: STAY OUT\nWHY: Assuming an 8.0-second gap behind, with MEDIUM tyres"
+
+
+def test_a_gap_stated_in_the_message_keeps_the_card_answer() -> None:
+    items = corpus_a(records(), 2026)
+    stated = [i for i in items if i["follow_up"] == "stated"]
+    assert len(stated) == 20
+    assert all(i["messages"][3] == i["messages"][1] for i in stated)
+    stated[0]["messages"][3]["content"] = (
+        "CALL: BOX\nWHY: The stated gap allows a stop."
     )
+    errors = check_corpus_a(items, {r["card_id"].rsplit("-", 2)[0] for r in records()})
+    assert any("stated follow-up is not the rule's answer" in e for e in errors)
+
+
+def test_evaluation_questions_are_worded_apart_from_corpus_a() -> None:
+    train = corpus_a(records(), 2026)
+    validation = eval_set(records(), "validation", 2026)
+    assert check_unseen(train, validation) == []
+    validation[0]["messages"][0] = train[0]["messages"][0]
+    assert check_unseen(train, validation) == [
+        f"{validation[0]['id']}: question wording also in corpus A"
+    ]
+
+
+def test_track_status_cards_need_every_other_field_known() -> None:
+    items = eval_set(records(), "validation", 2026)
+    races = {r["card_id"].rsplit("-", 2)[0] for r in records()}
+    track = next(i for i in items if i["scope"] == "track_status")
+    track["card"] = remove_field(track["card"], "pit_loss_seconds")
+    errors = check_set(items, EVAL_KINDS["validation"], races, 6, 4)
+    assert any("track status items" in e for e in errors)
 
 
 def test_build_never_opens_the_final_split(monkeypatch, tmp_path) -> None:
