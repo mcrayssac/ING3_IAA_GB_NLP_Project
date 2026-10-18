@@ -60,11 +60,18 @@ def splits_sha256(splits: dict[str, list[str]]) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
+def document_sha256(document: dict[str, Any]) -> str:
+    """Fingerprint of the whole manifest (races, session keys, settings), minus itself."""
+    content = {k: v for k, v in document.items() if k != "document_sha256"}
+    return splits_sha256(content)
+
+
 def freeze_splits(document: dict[str, Any], path: Path = SPLITS_FILE) -> None:
     """Write the split manifest once; an existing file is never overwritten."""
     if path.exists():
         raise FileExistsError(f"{path} is frozen")
     document = {**document, "splits_sha256": splits_sha256(document["splits"])}
+    document["document_sha256"] = document_sha256(document)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
@@ -75,6 +82,8 @@ def load_splits(path: Path = SPLITS_FILE) -> dict[str, Any]:
     """Read the frozen manifest; refuse overlapping splits or a hand-edited file."""
     document = json.loads(path.read_text(encoding="utf-8"))
     check_disjoint(document["splits"])
-    if document.get("splits_sha256") != splits_sha256(document["splits"]):
+    if document.get("splits_sha256") != splits_sha256(
+        document["splits"]
+    ) or document.get("document_sha256") != document_sha256(document):
         raise ValueError(f"{path} was edited by hand (fingerprint mismatch)")
     return document

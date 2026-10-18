@@ -7,6 +7,7 @@ on disk, so a rebuild from the cache needs no network.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import time
 import urllib.error
@@ -28,27 +29,30 @@ class DataUnavailableError(RuntimeError):
     """A source could not be reached or returned unusable data."""
 
 
-def _download(url: str) -> bytes:
+def _download(url: str, empty_on_404: bool) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": "boxbox-rebuild"})
     for attempt in range(RETRIES):
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 return response.read()
         except urllib.error.HTTPError as error:
-            if error.code == 404:  # OpenF1 answers 404 when a query has no results
+            if error.code == 404 and empty_on_404:  # OpenF1's answer for "no results"
                 return b"[]"
             if error.code != 429 or attempt == RETRIES - 1:
                 raise DataUnavailableError(f"{url}: HTTP {error.code}") from error
             time.sleep(60)
-        except (urllib.error.URLError, TimeoutError) as error:
-            raise DataUnavailableError(f"{url}: {error}") from error
+        except (
+            OSError,
+            http.client.HTTPException,
+        ) as error:  # resets, timeouts, cut reads
+            raise DataUnavailableError(f"{url}: {error!r}") from error
     raise DataUnavailableError(url)
 
 
-def fetch_json(url: str, cache_file: Path) -> Any:
-    """Read `url` through the disk cache; a failure raises DataUnavailableError."""
+def fetch_json(url: str, cache_file: Path, empty_on_404: bool = False) -> Any:
+    """Read `url` through the disk cache; a failure raises and caches nothing."""
     if not cache_file.exists():
-        body = _download(url)
+        body = _download(url, empty_on_404)
         time.sleep(PAUSE_SECONDS)
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         cache_file.write_bytes(body)
@@ -76,17 +80,20 @@ def season_races(season: int, cache_dir: Path = CACHE_DIR) -> list[dict[str, Any
             if not s.get("is_cancelled")
             and abs((date.fromisoformat(s["date_start"][:10]) - day).days) <= 1
         ]
-        if len(matches) == 1:  # a local race date can be the next day in UTC
-            round_number = int(official["round"])
-            races.append(
-                {
-                    "race_id": f"{season}-{round_number:02d}",
-                    "season": season,
-                    "round": round_number,
-                    "event": official["raceName"],
-                    "session_key": matches[0]["session_key"],
-                }
+        round_number = int(official["round"])
+        if len(matches) != 1:  # a local race date can be the next day in UTC
+            raise DataUnavailableError(
+                f"{season} round {round_number}: {len(matches)} OpenF1 Race sessions"
             )
+        races.append(
+            {
+                "race_id": f"{season}-{round_number:02d}",
+                "season": season,
+                "round": round_number,
+                "event": official["raceName"],
+                "session_key": matches[0]["session_key"],
+            }
+        )
     return races
 
 
@@ -104,7 +111,9 @@ def raw_sha256(race: dict[str, Any], cache_dir: Path = CACHE_DIR) -> dict[str, s
 
 def _endpoint(name: str, session_key: int, cache_dir: Path) -> list[dict[str, Any]]:
     url = f"{OPENF1}/{name}?session_key={session_key}"
-    return fetch_json(url, cache_dir / str(session_key) / f"{name}.json")
+    # only the pit endpoint may be empty: it is for 2023 rounds 1 to 6
+    empty = name == "pit"
+    return fetch_json(url, cache_dir / str(session_key) / f"{name}.json", empty)
 
 
 def lap_status(messages: list[dict[str, Any]], total_laps: int) -> dict[int, str]:
@@ -115,12 +124,18 @@ def lap_status(messages: list[dict[str, Any]], total_laps: int) -> dict[int, str
     VSC, which gets no "in this lap" message then. Sector yellow flags do not
     neutralise the race, so they stay GREEN.
     """
+    if not messages:
+        raise DataUnavailableError("no race-control messages, so no track status")
     status = {lap: "GREEN" for lap in range(1, total_laps + 1)}
     started: dict[str, int] = {}
     red_laps = []
     for message in sorted(messages, key=lambda m: m["date"]):
         text, lap = (message.get("message") or "").upper(), message.get("lap_number")
         if lap is None:
+            if "SAFETY CAR" in text or message.get("flag") == "RED":
+                raise DataUnavailableError(
+                    f"race-control message without a lap: {text}"
+                )
             continue
         kind = "VSC" if "VIRTUAL" in text else "SC"
         if "SAFETY CAR DEPLOYED" in text:

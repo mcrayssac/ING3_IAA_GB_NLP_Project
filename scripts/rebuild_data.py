@@ -33,9 +33,9 @@ from boxbox.data import (
     race_table,
     season_races,
 )
-from boxbox.data.cards import SCHEMA_VERSION
+from boxbox.data.cards import SCHEMA_VERSION, timing_gaps
 from boxbox.data.openf1 import raw_sha256
-from boxbox.data.splits import FRACTIONS
+from boxbox.data.splits import FRACTIONS, SPLITS_FILE
 from boxbox.rules import decide
 
 CARDS_DIR = Path("data/cards")
@@ -62,11 +62,18 @@ def _versions() -> dict[str, str]:
 
 
 def cmd_splits(args: argparse.Namespace) -> int:
-    races = {
-        race["race_id"]: race
-        for season in args.seasons
-        for race in season_races(season)
-    }
+    if SPLITS_FILE.exists():
+        print(f"{SPLITS_FILE} is frozen; it is never overwritten", file=sys.stderr)
+        return 1
+    try:
+        races = {
+            race["race_id"]: race
+            for season in args.seasons
+            for race in season_races(season)
+        }
+    except DataUnavailableError as error:
+        print(f"data unavailable: {error}", file=sys.stderr)
+        return 2
     splits = make_splits(list(races), args.seed, FRACTIONS, args.min_eval_races)
     freeze_splits(
         {
@@ -123,6 +130,7 @@ def _rebuild_race(race: dict[str, Any], split: str) -> tuple[dict[str, Any], Cou
         "sha256": _sha256(text),
         "timed_lap_share": _timed_share(table),
         "raw_sha256": raw_sha256(race),
+        "timing_gaps": timing_gaps(table),  # must be 0, see boxbox.data.cards
     }
     return entry, Counter(call for call, _ in answers)
 

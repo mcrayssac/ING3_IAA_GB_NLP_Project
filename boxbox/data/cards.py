@@ -110,6 +110,20 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
     )
 
 
+def timing_gaps(table: pd.DataFrame) -> int:
+    """Times a car lacks timing for two laps in a row and then reappears.
+
+    The cutoff check only sees a car missing on one lap, so a longer gap would hide a
+    running car from the order. The rebuild reports this count, which must be 0.
+    """
+    timed = table[table["end_s"].notna()]
+    count = 0
+    for _, laps in timed.groupby("driver_number"):
+        holes = laps["lap"].sort_values().diff().dropna()
+        count += int((holes > 2).sum())
+    return count
+
+
 def _gap(facts: CutoffFacts, driver: str, offset: int, own_lap: float | None) -> dict:
     """Gap object to the neighbour `offset` places away in running order."""
     if not facts.order_complete:

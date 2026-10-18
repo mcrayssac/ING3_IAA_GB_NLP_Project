@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import urllib.error
 
@@ -18,7 +19,7 @@ from boxbox.data import (
     make_splits,
     openf1,
 )
-from boxbox.data.cards import cutoff_facts, pit_loss
+from boxbox.data.cards import cutoff_facts, pit_loss, timing_gaps
 from boxbox.rules import decide
 
 RACE = {
@@ -292,7 +293,14 @@ def test_in_lap_comes_from_the_out_lap_when_pit_data_is_missing(tmp_path) -> Non
         "laps": laps,
         "stints": stints,
         "pit": [],
-        "race_control": [],
+        "race_control": [
+            {
+                "date": "1",
+                "lap_number": 1,
+                "message": "GREEN LIGHT - PIT EXIT OPEN",
+                "flag": "GREEN",
+            }
+        ],
     }.items():
         (tmp_path / "7" / f"{name}.json").parent.mkdir(exist_ok=True)
         (tmp_path / "7" / f"{name}.json").write_text(json.dumps(rows), encoding="utf-8")
@@ -373,9 +381,103 @@ def test_line_time_is_the_next_lap_start(tmp_path) -> None:
         "laps": laps,
         "stints": [],
         "pit": [],
-        "race_control": [],
+        "race_control": [
+            {
+                "date": "1",
+                "lap_number": 1,
+                "message": "GREEN LIGHT - PIT EXIT OPEN",
+                "flag": "GREEN",
+            }
+        ],
     }.items():
         (tmp_path / "8").mkdir(exist_ok=True)
         (tmp_path / "8" / f"{name}.json").write_text(json.dumps(rows), encoding="utf-8")
     end_s = list(openf1.race_table({"session_key": 8}, tmp_path)["end_s"])
     assert end_s == [60.5, 120.5, 240.0]  # lap 3 is missing, so lap 2 uses its duration
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [ConnectionResetError("reset"), http.client.IncompleteRead(b"")],
+)
+def test_every_network_failure_is_explicit(monkeypatch, tmp_path, failure) -> None:
+    def broken(*args, **kwargs):
+        raise failure
+
+    monkeypatch.setattr(openf1.urllib.request, "urlopen", broken)
+    with pytest.raises(DataUnavailableError):
+        openf1.fetch_json("https://example.invalid/laps", tmp_path / "laps.json")
+    assert not (tmp_path / "laps.json").exists()
+
+
+def test_only_the_pit_endpoint_may_be_empty(monkeypatch, tmp_path) -> None:
+    def not_found(url, *args, **kwargs):
+        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(openf1.urllib.request, "urlopen", not_found)
+    assert openf1._endpoint("pit", 9, tmp_path) == []
+    with pytest.raises(DataUnavailableError):
+        openf1._endpoint("laps", 9, tmp_path)
+    assert not (tmp_path / "9" / "laps.json").exists()
+
+
+def test_missing_race_control_fails_instead_of_green() -> None:
+    with pytest.raises(DataUnavailableError):
+        openf1.lap_status([], 10)
+    with pytest.raises(DataUnavailableError):
+        openf1.lap_status(
+            [{"date": "1", "lap_number": None, "message": "SAFETY CAR DEPLOYED"}], 10
+        )
+
+
+def test_an_unmatched_race_fails(tmp_path) -> None:
+    schedule = {
+        "MRData": {
+            "RaceTable": {
+                "Races": [{"round": "1", "raceName": "A GP", "date": "2024-03-02"}]
+            }
+        }
+    }
+    (tmp_path / "jolpica_2024.json").write_text(json.dumps(schedule), encoding="utf-8")
+    (tmp_path / "sessions_2024.json").write_text("[]", encoding="utf-8")
+    with pytest.raises(DataUnavailableError, match="0 OpenF1 Race sessions"):
+        openf1.season_races(2024, tmp_path)
+
+
+def test_edited_race_details_are_refused(tmp_path) -> None:
+    path = tmp_path / "splits.json"
+    races = {"2024-01": {"session_key": 1}}
+    freeze_splits({"races": races, "splits": {"train": ["2024-01"]}}, path)
+    edited = json.loads(path.read_text(encoding="utf-8"))
+    edited["races"]["2024-01"]["session_key"] = 2
+    path.write_text(json.dumps(edited), encoding="utf-8")
+    with pytest.raises(ValueError, match="edited by hand"):
+        load_splits(path)
+
+
+def test_timing_gaps_count_only_holes_of_two_laps_or_more() -> None:
+    laps = table(pits={})
+    one_hole = laps[~((laps["driver_number"] == "3") & (laps["lap"] == 10))]
+    two_holes = one_hole[
+        ~((one_hole["driver_number"] == "3") & (one_hole["lap"] == 11))
+    ]
+    assert (timing_gaps(laps), timing_gaps(one_hole), timing_gaps(two_holes)) == (
+        0,
+        0,
+        1,
+    )
+
+
+def test_the_splits_command_refuses_a_frozen_file(monkeypatch, tmp_path) -> None:
+    from scripts import rebuild_data
+
+    frozen = tmp_path / "splits.json"
+    frozen.write_text("{}", encoding="utf-8")
+
+    def no_network(season):
+        raise AssertionError("must not fetch anything")
+
+    monkeypatch.setattr(rebuild_data, "SPLITS_FILE", frozen)
+    monkeypatch.setattr(rebuild_data, "season_races", no_network)
+    assert rebuild_data.main(["splits", "--seasons", "2024", "--seed", "1"]) == 1
+    assert frozen.read_text(encoding="utf-8") == "{}"
