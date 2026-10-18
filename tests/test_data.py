@@ -347,3 +347,35 @@ def test_a_red_flag_ends_an_open_safety_car() -> None:
         "GREEN",
         "GREEN",
     ]
+
+
+def test_line_time_is_the_next_lap_start(tmp_path) -> None:
+    laps = [
+        {
+            "driver_number": 1,
+            "lap_number": 1,
+            "date_start": "2024-03-02T15:00:00+00:00",
+        },
+        {
+            "driver_number": 1,
+            "lap_number": 2,
+            "date_start": "2024-03-02T15:01:00.5+00:00",
+        },
+        {
+            "driver_number": 1,
+            "lap_number": 4,
+            "date_start": "2024-03-02T15:03:00+00:00",
+        },
+    ]
+    for lap in laps:
+        lap.update(lap_duration=60.0, is_pit_out_lap=False)
+    for name, rows in {
+        "laps": laps,
+        "stints": [],
+        "pit": [],
+        "race_control": [],
+    }.items():
+        (tmp_path / "8").mkdir(exist_ok=True)
+        (tmp_path / "8" / f"{name}.json").write_text(json.dumps(rows), encoding="utf-8")
+    end_s = list(openf1.race_table({"session_key": 8}, tmp_path)["end_s"])
+    assert end_s == [60.5, 120.5, 240.0]  # lap 3 is missing, so lap 2 uses its duration

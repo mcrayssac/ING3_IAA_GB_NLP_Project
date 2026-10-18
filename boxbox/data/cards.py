@@ -19,6 +19,7 @@ PIT_LOSS_BOUNDS = (5.0, 60.0)  # data-cleaning bounds, not F1 truths
 MIN_PIT_STOPS = 3
 PACE_LAPS, MIN_PACE_LAPS = 5, 2
 MIN_REFERENCE_LAPS = 5
+DECIMALS = 1  # lap timestamps agree with official intervals to about 0.1 s
 
 
 class CardNotEligible(ValueError):
@@ -77,7 +78,7 @@ def pit_loss(hist: pd.DataFrame) -> tuple[float | None, int | None, int]:
                 latest = max(latest or 0, in_lap + 1)
     if len(losses) < MIN_PIT_STOPS:
         return None, None, len(losses)
-    return round(float(median(losses)), 3), latest, len(losses)
+    return round(float(median(losses)), DECIMALS), latest, len(losses)
 
 
 def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
@@ -102,7 +103,7 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
         pit_loss=loss,
         pit_loss_lap=loss_lap,
         pit_loss_stops=stops,
-        reference_lap=round(float(median(clean)), 3)
+        reference_lap=round(float(median(clean)), DECIMALS)
         if len(clean) >= MIN_REFERENCE_LAPS
         else None,
         reference_laps=len(clean),
@@ -117,12 +118,16 @@ def _gap(facts: CutoffFacts, driver: str, offset: int, own_lap: float | None) ->
     if not 0 <= index < len(facts.order):
         return {"state": "NONE", "seconds": None}
     other = facts.order[index]
-    seconds = round(
-        float(abs(facts.end_s[driver] - facts.end_s[other])), 3
+    seconds = float(
+        abs(facts.end_s[driver] - facts.end_s[other])
     )  # plain float for decide
     if own_lap is None or pd.isna(own_lap) or seconds >= own_lap:  # a lap or more apart
         return {"state": "UNKNOWN", "seconds": None, "driver_number": other}
-    return {"state": "KNOWN", "seconds": seconds, "driver_number": other}
+    return {
+        "state": "KNOWN",
+        "seconds": round(seconds, DECIMALS),
+        "driver_number": other,
+    }
 
 
 def _driver_lap(table: pd.DataFrame, driver: str, lap: int) -> pd.Series:
@@ -130,6 +135,16 @@ def _driver_lap(table: pd.DataFrame, driver: str, lap: int) -> pd.Series:
     if rows.empty or pd.isna(rows["end_s"].iloc[0]):
         raise CardNotEligible("no timing at the cutoff")
     return rows.iloc[0]
+
+
+def _check_scope(mine: pd.Series, facts: CutoffFacts) -> None:
+    """Raise CardNotEligible for a situation BoxBox does not cover."""
+    if mine["pit_in"]:
+        raise CardNotEligible("starts the lap in the pit lane")
+    if facts.status == "RED":
+        raise CardNotEligible("red flag at the cutoff")
+    if facts.wet:
+        raise CardNotEligible("wet running by the cutoff")
 
 
 def build_card(
@@ -145,12 +160,7 @@ def build_card(
         raise CardNotEligible("first or final lap")
     facts = facts or cutoff_facts(table, lap - 1)
     mine = _driver_lap(table, driver, lap - 1)
-    if mine["pit_in"]:
-        raise CardNotEligible("starts the lap in the pit lane")
-    if facts.status == "RED":
-        raise CardNotEligible("red flag at the cutoff")
-    if facts.wet:
-        raise CardNotEligible("wet running by the cutoff")
+    _check_scope(mine, facts)
     age = mine["tyre_age_end"]
     card = {
         "schema_version": SCHEMA_VERSION,

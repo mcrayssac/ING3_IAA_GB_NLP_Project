@@ -26,7 +26,7 @@ The race-level splits are frozen in data/splits.json (committed). The cards are
 rebuilt from OpenF1 and Jolpica. Responses are cached in data/cache/openf1/ and
 cards written to data/cards/; neither is committed. Without a cache the
 rebuild makes 286 requests, one every 2.1 s at OpenF1's free rate, so at least
-10 minutes. From the cache it took 69 s on an M3 Max.
+10 minutes. From the cache it took 77 s on an M3 Max.
 
     .venv/bin/python -m scripts.rebuild_data cards
     .venv/bin/python -m scripts.rebuild_data card --race 2024-01 --driver 1 --lap 20
