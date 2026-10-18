@@ -6,6 +6,7 @@ on disk, so a rebuild from the cache needs no network.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 import urllib.error
@@ -89,6 +90,18 @@ def season_races(season: int, cache_dir: Path = CACHE_DIR) -> list[dict[str, Any
     return races
 
 
+ENDPOINTS = ("laps", "stints", "pit", "race_control")
+
+
+def raw_sha256(race: dict[str, Any], cache_dir: Path = CACHE_DIR) -> dict[str, str]:
+    """SHA-256 of each cached OpenF1 response of a race, to detect source revisions."""
+    folder = cache_dir / str(race["session_key"])
+    return {
+        name: hashlib.sha256((folder / f"{name}.json").read_bytes()).hexdigest()
+        for name in ENDPOINTS
+    }
+
+
 def _endpoint(name: str, session_key: int, cache_dir: Path) -> list[dict[str, Any]]:
     url = f"{OPENF1}/{name}?session_key={session_key}"
     return fetch_json(url, cache_dir / str(session_key) / f"{name}.json")
@@ -98,11 +111,13 @@ def lap_status(messages: list[dict[str, Any]], total_laps: int) -> dict[int, str
     """Track status at the end of each lap from race-control messages.
 
     SC and VSC run from the lap they are deployed until the lap they come in, so the
-    end of that last lap is green again. A red flag marks its lap. Sector yellow
-    flags do not neutralise the race, so they stay GREEN.
+    end of that last lap is green again. A red flag marks its lap and ends any SC or
+    VSC, which gets no "in this lap" message then. Sector yellow flags do not
+    neutralise the race, so they stay GREEN.
     """
     status = {lap: "GREEN" for lap in range(1, total_laps + 1)}
     started: dict[str, int] = {}
+    red_laps = []
     for message in sorted(messages, key=lambda m: m["date"]):
         text, lap = (message.get("message") or "").upper(), message.get("lap_number")
         if lap is None:
@@ -113,9 +128,13 @@ def lap_status(messages: list[dict[str, Any]], total_laps: int) -> dict[int, str
         elif ("SAFETY CAR ENDING" in text or "IN THIS LAP" in text) and kind in started:
             status.update(dict.fromkeys(range(started.pop(kind), lap), kind))
         elif message.get("flag") == "RED" and message.get("scope") == "Track":
-            status[lap] = "RED"
+            for open_kind, first in started.items():
+                status.update(dict.fromkeys(range(first, lap), open_kind))
+            started.clear()
+            red_laps.append(lap)
     for kind, first in started.items():
         status.update(dict.fromkeys(range(first, total_laps + 1), kind))
+    status.update(dict.fromkeys(red_laps, "RED"))
     return status
 
 
@@ -150,6 +169,15 @@ def race_table(race: dict[str, Any], cache_dir: Path = CACHE_DIR) -> pd.DataFram
     stints = _endpoint("stints", key, cache_dir)
     pits = {
         (p["driver_number"], p["lap_number"]) for p in _endpoint("pit", key, cache_dir)
+    }
+    # the pit endpoint is empty for some 2023 races, so a lap followed by an out-lap
+    # is an in-lap too; the car is in the pit lane when that lap ends
+    pits |= {
+        (driver, lap - 1)
+        for driver, lap, out in zip(
+            laps["driver_number"], laps["lap_number"], laps["is_pit_out_lap"]
+        )
+        if out
     }
     status = lap_status(
         _endpoint("race_control", key, cache_dir), int(laps["lap_number"].max())

@@ -34,10 +34,12 @@ from boxbox.data import (
     season_races,
 )
 from boxbox.data.cards import SCHEMA_VERSION
+from boxbox.data.openf1 import raw_sha256
 from boxbox.data.splits import FRACTIONS
 from boxbox.rules import decide
 
 CARDS_DIR = Path("data/cards")
+CLOSED_SPLITS = {"final"}  # call counts stay unread until the final test opens
 CONTRACT_ERRORS = (
     "The card schema",
     "The card identity",
@@ -99,9 +101,16 @@ def cmd_card(args: argparse.Namespace) -> int:
     return 0
 
 
+def _timed_share(table) -> float:
+    """Timed laps over drivers x race laps; lapped cars and retirements also lower it."""
+    expected = table["driver_number"].nunique() * table["lap"].max()
+    return round(float(table["end_s"].notna().sum() / expected), 3)
+
+
 def _rebuild_race(race: dict[str, Any], split: str) -> tuple[dict[str, Any], Counter]:
     """Write one race's cards and return its manifest entry and label counts."""
-    records, skipped = build_race_cards(race_table(race), race)
+    table = race_table(race)
+    records, skipped = build_race_cards(table, race)
     text = "".join(_canonical({**record, "split": split}) + "\n" for record in records)
     (CARDS_DIR / f"{race['race_id']}.jsonl").write_text(text, encoding="utf-8")
     answers = [decide(record["card"]) for record in records]
@@ -112,6 +121,8 @@ def _rebuild_race(race: dict[str, Any], split: str) -> tuple[dict[str, Any], Cou
         "skipped": dict(skipped),
         "contract_errors": sum(why.startswith(CONTRACT_ERRORS) for _, why in answers),
         "sha256": _sha256(text),
+        "timed_lap_share": _timed_share(table),
+        "raw_sha256": raw_sha256(race),
     }
     return entry, Counter(call for call, _ in answers)
 
@@ -139,7 +150,8 @@ def cmd_cards(args: argparse.Namespace) -> int:
                 manifest["failures"][race_id] = str(error)
                 continue
             labels.update(counts)
-        manifest["labels"][split] = dict(labels)
+        if split not in CLOSED_SPLITS:
+            manifest["labels"][split] = dict(labels)
     (CARDS_DIR / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
     )

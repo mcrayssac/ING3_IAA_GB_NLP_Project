@@ -274,3 +274,76 @@ def test_frozen_splits_refuse_overwrite_and_hand_edits(tmp_path) -> None:
     path.write_text(json.dumps(edited), encoding="utf-8")
     with pytest.raises(ValueError, match="edited by hand"):
         load_splits(path)
+
+
+def test_in_lap_comes_from_the_out_lap_when_pit_data_is_missing(tmp_path) -> None:
+    laps = [
+        {
+            "driver_number": 1,
+            "lap_number": lap,
+            "date_start": f"2024-03-02T15:{lap:02d}:00+00:00",
+            "lap_duration": 60.0,
+            "is_pit_out_lap": lap == 4,
+        }
+        for lap in range(1, 7)
+    ]
+    stints = [{"driver_number": 1, "lap_start": 1, "lap_end": 6, "compound": "HARD"}]
+    for name, rows in {
+        "laps": laps,
+        "stints": stints,
+        "pit": [],
+        "race_control": [],
+    }.items():
+        (tmp_path / "7" / f"{name}.json").parent.mkdir(exist_ok=True)
+        (tmp_path / "7" / f"{name}.json").write_text(json.dumps(rows), encoding="utf-8")
+    laps_table = openf1.race_table({"session_key": 7}, tmp_path)
+    assert list(laps_table.loc[laps_table["pit_in"], "lap"]) == [3]
+
+
+def test_a_car_missing_at_the_cutoff_makes_the_gaps_unknown() -> None:
+    laps = table(pits={})
+    laps = laps[~((laps["driver_number"] == "3") & (laps["lap"] == 19))]
+    card = card_at(laps, "2")
+    assert (
+        card["gap_ahead"] == card["gap_behind"] == {"state": "UNKNOWN", "seconds": None}
+    )
+
+
+def test_final_call_counts_stay_closed(monkeypatch, tmp_path) -> None:
+    from scripts import rebuild_data
+
+    races = {rid: {**RACE, "race_id": rid} for rid in ("2024-01", "2024-02")}
+    splits = {"train": ["2024-01"], "final": ["2024-02"]}
+    monkeypatch.setattr(
+        rebuild_data,
+        "load_splits",
+        lambda: {"splits": splits, "races": races, "splits_sha256": "x"},
+    )
+    monkeypatch.setattr(rebuild_data, "race_table", lambda race: table())
+    monkeypatch.setattr(rebuild_data, "raw_sha256", lambda race: {})
+    monkeypatch.setattr(rebuild_data, "CARDS_DIR", tmp_path)
+    assert rebuild_data.main(["cards"]) == 0
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert set(manifest["labels"]) == {"train"}
+    assert manifest["races"]["2024-02"]["cards"] > 0
+
+
+def test_a_red_flag_ends_an_open_safety_car() -> None:
+    messages = [
+        {"date": "1", "lap_number": 1, "message": "SAFETY CAR DEPLOYED"},
+        {
+            "date": "2",
+            "lap_number": 2,
+            "message": "RED FLAG",
+            "flag": "RED",
+            "scope": "Track",
+        },
+    ]
+    status = openf1.lap_status(messages, 5)
+    assert [status[lap] for lap in range(1, 6)] == [
+        "SC",
+        "RED",
+        "GREEN",
+        "GREEN",
+        "GREEN",
+    ]

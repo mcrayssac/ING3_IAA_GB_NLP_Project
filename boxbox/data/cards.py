@@ -31,6 +31,7 @@ class CutoffFacts:
 
     lap: int
     order: list[str]
+    order_complete: bool
     end_s: dict[str, float]
     status: str
     wet: bool
@@ -84,12 +85,17 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
     hist = table[table["lap"] <= cutoff]
     at_cutoff = hist[(hist["lap"] == cutoff) & hist["end_s"].notna()]
     at_cutoff = at_cutoff.sort_values(["end_s", "driver_number"])
+    timed_before = hist.loc[
+        (hist["lap"] == cutoff - 1) & hist["end_s"].notna(), "driver_number"
+    ]
     clean = hist[_clean(hist)]["lap_seconds"]
     loss, loss_lap, stops = pit_loss(hist)
     statuses = hist.loc[hist["lap"] == cutoff, "status"]
     return CutoffFacts(
         lap=cutoff,
         order=list(at_cutoff["driver_number"]),
+        # a car timed on the previous lap but not on this one has an unknown place
+        order_complete=set(timed_before) <= set(at_cutoff["driver_number"]),
         end_s=dict(zip(at_cutoff["driver_number"], at_cutoff["end_s"])),
         status=statuses.iloc[0] if len(statuses) else "UNKNOWN",
         wet=bool(hist["compound"].isin(WET_COMPOUNDS).any()),
@@ -105,6 +111,8 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
 
 def _gap(facts: CutoffFacts, driver: str, offset: int, own_lap: float | None) -> dict:
     """Gap object to the neighbour `offset` places away in running order."""
+    if not facts.order_complete:
+        return {"state": "UNKNOWN", "seconds": None}
     index = facts.order.index(driver) + offset
     if not 0 <= index < len(facts.order):
         return {"state": "NONE", "seconds": None}
