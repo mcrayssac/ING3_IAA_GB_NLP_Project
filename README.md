@@ -43,6 +43,8 @@ docs/roadmap.md         active recovery schedule, task definitions and issue lin
 docs/roadmap-annexe.md  execution guide and assignment coverage
 docs/code-approach.md   code layout, configs, run folders and team coding rules
 docs/interface.md       Gradio interface specs
+docs/data-protocol.md   race data source, card reconstruction and splits
+data/splits.json        frozen race-level splits
 docs/diagrams/          active overview/Gantt and historical diagram assets
 instructions/          original project brief (French PDF)
 LICENSE                Apache License 2.0
@@ -58,11 +60,9 @@ The solution is being designed. Its architecture will be documented here with th
 
 ## Data sources
 
-Race data will come from [FastF1](https://docs.fastf1.dev/), chosen on 26 September 2026. FastF1 is an open-source Python library (MIT licence) that reads Formula 1 timing data. For each lap of a race it gives the tyre compound and its age, the positions, the lap times from which gaps can be computed, pit entries and exits, and the track status, including safety car and virtual safety car periods. It caches downloads on disk and also reads the [Jolpica-F1](https://github.com/jolpica/jolpica-f1) API, the successor of Ergast, for schedules and results.
+Race data comes from [OpenF1](https://openf1.org/) since 18 October 2026. [FastF1](https://docs.fastf1.dev/) was chosen on 26 September, but the live-timing files it reads now answer 401 for historical races. OpenF1 gives, from the 2023 season onwards, the lap times from which gaps are computed, the stints with compound and tyre age, the pit stops and the race-control messages, including safety car and virtual safety car periods. The [Jolpica-F1](https://github.com/jolpica/jolpica-f1) API, the successor of Ergast, gives the official round numbers and event names.
 
-[OpenF1](https://openf1.org/) offers similar data from the 2023 season onwards. Its licence (CC BY-NC-SA 4.0) excludes commercial use and its free access is limited to 30 requests per minute, so it stays an optional cross-check. Jolpica-F1 alone has no tyre or safety-car data, which the race card needs.
-
-FastF1 and OpenF1 are unofficial projects, and the timing data belongs to the Formula 1 companies. BoxBox uses it for non-commercial academic work and plans to share a script that rebuilds its dataset instead of raw timing files. A commercial service would need a data licence. Pit-loss estimates will only use information available before the lap being evaluated.
+OpenF1's licence (CC BY-NC-SA 4.0) excludes commercial use, and its free access is limited to 30 requests per minute, so the rebuild caches every response on disk. OpenF1 and Jolpica are unofficial projects, and the timing data belongs to the Formula 1 companies. BoxBox uses it for non-commercial academic work and shares a script that rebuilds its dataset instead of raw timing files. A commercial service would need a data licence. Every card value uses only laps completed before the lap being evaluated. The method is in [docs/data-protocol.md](docs/data-protocol.md).
 
 ## Installation
 
@@ -84,6 +84,6 @@ D/M/E/T label data/protocol, model/notebook, evaluation/demo and team coordinati
 
 ## License
 
-The code and documentation in this repository are released under the [Apache License 2.0](LICENSE). Third-party material keeps its own terms. Race data obtained through FastF1 (or OpenF1, if used) is not covered by this licence, and the base language model, once chosen, keeps its own licence.
+The code and documentation in this repository are released under the [Apache License 2.0](LICENSE). Third-party material keeps its own terms. Race data obtained through OpenF1 and Jolpica is not covered by this licence, and the base language model, once chosen, keeps its own licence.
 
 BoxBox is an unofficial student project with no link to the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V.
