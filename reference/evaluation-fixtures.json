@@ -1,0 +1,4743 @@
+{
+  "note": "Synthetic / illustrative / expected scores only. No model, training, experiment, human rating, independent review or performance evidence. Race objects are invented calibration inputs, never reserved historical races.",
+  "protocol": {
+    "id": "boxbox-eval",
+    "version": "1.1.0",
+    "status": "proposed"
+  },
+  "annotation_kind": "synthetic_expected",
+  "rater_id": null,
+  "layout": "Resolve cases.card_id to cards, and responses.case_id to cases; fields are the evaluation envelope proposed in docs/evaluation-protocol.md. Scores for non-applicable axes are the string N/A, never null. Linked synthetic variants may change policy inputs for boundary probes; they are not real missing-field reconstructions.",
+  "cards": [
+    {
+      "card_id": "syn:card:equality",
+      "race_id": "syn:race:1",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 1,
+          "event": "Synthetic Calibration Race 1",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:young",
+      "race_id": "syn:race:2",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 2,
+          "event": "Synthetic Calibration Race 2",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 11,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "pit_loss_seconds": null,
+        "pit_loss_as_of_completed_lap": null,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:blocking",
+      "race_id": "syn:race:1",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 1,
+          "event": "Synthetic Calibration Race 1",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:age12",
+      "race_id": "syn:race:2",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 2,
+          "event": "Synthetic Calibration Race 2",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 12,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 2.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:age17-above",
+      "race_id": "syn:race:3",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 3,
+          "event": "Synthetic Calibration Race 3",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 2.01
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:old-below",
+      "race_id": "syn:race:3",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 3,
+          "event": "Synthetic Calibration Race 3",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 22.99
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:ahead-unknown",
+      "race_id": "syn:race:3",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 3,
+          "event": "Synthetic Calibration Race 3",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:ahead-none",
+      "race_id": "syn:race:3",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 3,
+          "event": "Synthetic Calibration Race 3",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "NONE",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:no-follower",
+      "race_id": "syn:race:4",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 4,
+          "event": "Synthetic Calibration Race 4",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "NONE",
+          "seconds": null
+        },
+        "pit_loss_seconds": null,
+        "pit_loss_as_of_completed_lap": null,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:known-zero",
+      "race_id": "syn:race:4",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 4,
+          "event": "Synthetic Calibration Race 4",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 12,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 0
+        },
+        "pit_loss_seconds": 0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:bad-none",
+      "race_id": "syn:race:4",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 4,
+          "event": "Synthetic Calibration Race 4",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 11,
+        "gap_ahead": {
+          "state": "NONE"
+        },
+        "gap_behind": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "pit_loss_seconds": null,
+        "pit_loss_as_of_completed_lap": null,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:display-missing",
+      "race_id": "syn:race:5",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 5,
+          "event": "Synthetic Calibration Race 5",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29
+      }
+    },
+    {
+      "card_id": "syn:card:future-cutoff",
+      "race_id": "syn:race:5",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 5,
+          "event": "Synthetic Calibration Race 5",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 30,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:null-pit",
+      "race_id": "syn:race:3",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 3,
+          "event": "Synthetic Calibration Race 3",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": null,
+        "pit_loss_as_of_completed_lap": null,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:absent-ahead",
+      "race_id": "syn:race:5",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 5,
+          "event": "Synthetic Calibration Race 5",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:ahead-below",
+      "race_id": "syn:race:5",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 5,
+          "event": "Synthetic Calibration Race 5",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 1.99
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.01
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:behind-below",
+      "race_id": "syn:race:5",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 5,
+          "event": "Synthetic Calibration Race 5",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 2.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 22.99
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:soft-age7",
+      "race_id": "syn:race:6",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 6,
+          "event": "Synthetic Calibration Race 6",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "SOFT",
+        "tyre_age_laps": 7,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:soft-age8",
+      "race_id": "syn:race:6",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 6,
+          "event": "Synthetic Calibration Race 6",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "SOFT",
+        "tyre_age_laps": 8,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:soft-age13",
+      "race_id": "syn:race:6",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 6,
+          "event": "Synthetic Calibration Race 6",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "SOFT",
+        "tyre_age_laps": 13,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:soft-age14",
+      "race_id": "syn:race:6",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 6,
+          "event": "Synthetic Calibration Race 6",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "SOFT",
+        "tyre_age_laps": 14,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:hard-age17",
+      "race_id": "syn:race:7",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 7,
+          "event": "Synthetic Calibration Race 7",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "HARD",
+        "tyre_age_laps": 17,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:hard-age18",
+      "race_id": "syn:race:7",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 7,
+          "event": "Synthetic Calibration Race 7",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "HARD",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:hard-age23",
+      "race_id": "syn:race:7",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 7,
+          "event": "Synthetic Calibration Race 7",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "HARD",
+        "tyre_age_laps": 23,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:hard-age24",
+      "race_id": "syn:race:7",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 7,
+          "event": "Synthetic Calibration Race 7",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "GREEN",
+        "compound": "HARD",
+        "tyre_age_laps": 24,
+        "gap_ahead": {
+          "state": "UNKNOWN",
+          "seconds": null
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:sc-generic",
+      "race_id": "syn:race:8",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 8,
+          "event": "Synthetic Calibration Race 8",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "SC",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    },
+    {
+      "card_id": "syn:card:vsc-generic",
+      "race_id": "syn:race:8",
+      "card": {
+        "schema_version": "1.0",
+        "race": {
+          "season": 2022,
+          "round": 8,
+          "event": "Synthetic Calibration Race 8",
+          "completed": true
+        },
+        "lap": 30,
+        "total_laps": 60,
+        "driver_number": "44",
+        "as_of_completed_lap": 29,
+        "surface": "DRY",
+        "track_status": "VSC",
+        "compound": "MEDIUM",
+        "tyre_age_laps": 18,
+        "gap_ahead": {
+          "state": "KNOWN",
+          "seconds": 3.0
+        },
+        "gap_behind": {
+          "state": "KNOWN",
+          "seconds": 23.0
+        },
+        "pit_loss_seconds": 21.0,
+        "pit_loss_as_of_completed_lap": 29,
+        "reference_lap_seconds": 90.0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "syn:case:equality",
+      "card_id": "syn:card:equality",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:equality",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0",
+          "23.0 >= 21.0 + 2.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:young",
+      "card_id": "syn:card:young",
+      "race_id": "syn:race:2",
+      "scenario_id": "syn:scenario:race2-linked",
+      "variant_id": "syn:variant:young",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows MEDIUM tyres aged 11 laps, below the 12-lap trigger for MEDIUM tyres, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "The 11-lap tyres are below the 12-lap trigger, so missing gaps and pit loss do not prevent STAY OUT.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=11",
+          "11 < 12"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:blocking",
+      "card_id": "syn:card:blocking",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:blocking",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car behind, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The opportunity exists at age 18 but the gap behind is unknown, preventing a rejoin decision.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.state=UNKNOWN"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:age12",
+      "card_id": "syn:card:age12",
+      "race_id": "syn:race:2",
+      "scenario_id": "syn:scenario:race2-linked",
+      "variant_id": "syn:variant:age12",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 12 laps and a 2.0-second gap ahead, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At exactly 12 laps the 2.0-second ahead gap qualifies, and the 23.0-second gap behind meets the 23.0-second rejoin threshold.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=12",
+          "gap_ahead.seconds=2.0",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:age17-above",
+      "card_id": "syn:card:age17-above",
+      "race_id": "syn:race:3",
+      "scenario_id": "syn:scenario:race3-linked",
+      "variant_id": "syn:variant:age17-above",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows a 2.01-second gap ahead, above the 2.0-second opportunity threshold, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "At 17 laps on MEDIUM tyres the 2.01-second gap ahead exceeds the 2.0-second opportunity threshold.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=17",
+          "gap_ahead.seconds=2.01",
+          "2.01 > 2.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:old-below",
+      "card_id": "syn:card:old-below",
+      "race_id": "syn:race:3",
+      "scenario_id": "syn:scenario:race3-linked",
+      "variant_id": "syn:variant:old-below",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 22.99-second gap behind is below the 21.0-second pit loss plus the 2.0-second margin, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "At 18 laps on MEDIUM tyres the unknown ahead gap is irrelevant, but the 22.99-second gap behind is below 21.0 plus 2.0 seconds.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.seconds=22.99",
+          "pit_loss_seconds=21.0",
+          "22.99 < 23.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:ahead-unknown",
+      "card_id": "syn:card:ahead-unknown",
+      "race_id": "syn:race:3",
+      "scenario_id": "syn:scenario:race3-linked",
+      "variant_id": "syn:variant:ahead-unknown",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car ahead, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "At 17 laps on MEDIUM tyres an unknown ahead gap prevents assessing the opportunity.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=17",
+          "gap_ahead.state=UNKNOWN"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:ahead-none",
+      "card_id": "syn:card:ahead-none",
+      "race_id": "syn:race:3",
+      "scenario_id": "syn:scenario:race3-linked",
+      "variant_id": "syn:variant:ahead-none",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows MEDIUM tyres aged 17 laps and no car ahead, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "At 17 laps on MEDIUM tyres a verified absence of a car ahead gives no opportunity under the policy.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=17",
+          "gap_ahead.state=NONE",
+          "gap_ahead.seconds=null"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:no-follower",
+      "card_id": "syn:card:no-follower",
+      "race_id": "syn:race:4",
+      "scenario_id": "syn:scenario:race4-linked",
+      "variant_id": "syn:variant:no-follower",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "The card shows MEDIUM tyres aged 18 laps and no car behind, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 18 laps on MEDIUM tyres there is an opportunity and no following car, so pit loss is unnecessary for the policy.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.state=NONE",
+          "gap_behind.seconds=null"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:known-zero",
+      "card_id": "syn:card:known-zero",
+      "race_id": "syn:race:4",
+      "scenario_id": "syn:scenario:race4-linked",
+      "variant_id": "syn:variant:known-zero",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "With MEDIUM tyres aged 12 laps and a 0.0-second gap ahead, the 0.0-second gap behind is below the 0.0-second pit loss plus the 2.0-second margin, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "At 12 laps on MEDIUM tyres the known zero ahead gap qualifies, but a known zero behind gap cannot cover zero pit loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=12",
+          "gap_ahead.seconds=0",
+          "gap_behind.seconds=0",
+          "pit_loss_seconds=0",
+          "0 < 0 + 2.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:bad-none",
+      "card_id": "syn:card:bad-none",
+      "race_id": "syn:race:4",
+      "scenario_id": "syn:scenario:race4-linked",
+      "variant_id": "syn:variant:bad-none",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "malformed_none"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card has an incomplete gap_ahead absence claim, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The supplied NONE ahead gap lacks seconds:null and is invalid even on young tyres.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "gap_ahead.state=NONE",
+          "gap_ahead.seconds key absent"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:display-missing",
+      "card_id": "syn:card:display-missing",
+      "race_id": "syn:race:5",
+      "scenario_id": "syn:scenario:race5-linked",
+      "variant_id": "syn:variant:display-missing",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "display_only_missing"
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0",
+          "23.0 >= 21.0 + 2.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:future-cutoff",
+      "card_id": "syn:card:future-cutoff",
+      "race_id": "syn:race:5",
+      "scenario_id": "syn:scenario:race5-linked",
+      "variant_id": "syn:variant:future-cutoff",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "future_derived"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card does not provide a valid pre-lap pit-loss cutoff, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The used pit-loss estimate declares lap 30, beyond the card's completed-lap cutoff of 29.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "pit_loss_as_of_completed_lap=30",
+          "as_of_completed_lap=29",
+          "30 > 29"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:null-pit",
+      "card_id": "syn:card:null-pit",
+      "race_id": "syn:race:3",
+      "scenario_id": "syn:scenario:race3-linked",
+      "variant_id": "syn:variant:null-pit",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing a valid pit-loss estimate, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "An opportunity and a known follower require a pit-loss estimate, which is null rather than zero.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.state=KNOWN",
+          "pit_loss_seconds=null"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:absent-ahead",
+      "card_id": "syn:card:absent-ahead",
+      "race_id": "syn:race:5",
+      "scenario_id": "syn:scenario:race5-linked",
+      "variant_id": "syn:variant:absent-ahead",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0",
+          "23.0 >= 21.0 + 2.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:ahead-below",
+      "card_id": "syn:card:ahead-below",
+      "race_id": "syn:race:5",
+      "scenario_id": "syn:scenario:race5-linked",
+      "variant_id": "syn:variant:ahead-below",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 17 laps and a 1.99-second gap ahead, the 23.01-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 17 laps on MEDIUM tyres the 1.99-second ahead gap qualifies and the 23.01-second behind gap exceeds the 23.0-second threshold.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=17",
+          "gap_ahead.seconds=1.99",
+          "gap_behind.seconds=23.01",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:behind-below",
+      "card_id": "syn:card:behind-below",
+      "race_id": "syn:race:5",
+      "scenario_id": "syn:scenario:race5-linked",
+      "variant_id": "syn:variant:behind-below",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "complete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "With MEDIUM tyres aged 17 laps and a 2.0-second gap ahead, the 22.99-second gap behind is below the 21.0-second pit loss plus the 2.0-second margin, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "At 17 laps on MEDIUM tyres the 2.0-second ahead gap qualifies but 22.99 seconds behind is less than the 23.0-second threshold.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=17",
+          "gap_ahead.seconds=2.0",
+          "gap_behind.seconds=22.99",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:follow-explain",
+      "card_id": "syn:card:age12",
+      "race_id": "syn:race:2",
+      "scenario_id": "syn:scenario:race2-linked",
+      "variant_id": "syn:variant:follow-explain",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "Why can we box?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: BOX\nWHY: The 2.0-second gap ahead creates an opportunity and the 23.0-second gap behind covers the 21.0-second pit loss plus margin."
+        }
+      ],
+      "message": "Why does the first of those two conditions matter?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": true,
+        "history_sensitive": true,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "follow_up",
+      "reference": {
+        "oracle": "policy_with_follow_up_annotation",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 12 laps and a 2.0-second gap ahead, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "The first condition refers to the ahead gap: at age 12, its 2.0 seconds satisfies the opportunity threshold, and the rejoin threshold is also met.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=12",
+          "gap_ahead.seconds=2.0",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": "Resolve 'first' as the ahead-gap opportunity condition; explain why it matters for 12-lap tyres.",
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": true,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:history-false",
+      "card_id": "syn:card:equality",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:history-false",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "The gap behind is 30.0 seconds, right?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: BOX\nWHY: The 30.0-second gap behind clears the threshold."
+        }
+      ],
+      "message": "Was that gap figure correct, and does the correction change the call?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": true,
+        "history_sensitive": true,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "follow_up",
+      "reference": {
+        "oracle": "policy_with_follow_up_annotation",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "The earlier 30.0-second assertion is false: the current card says 23.0, which still equals the 21.0-second pit loss plus margin at age 18.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "current gap_behind.seconds=23.0",
+          "old 30.0 is an assertion, not a measurement",
+          "tyre_age_laps=18",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": "Explicitly correct the false prior 30.0 to the current card's 23.0; do not trust the prior assistant assertion.",
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": true,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:follow-blocking",
+      "card_id": "syn:card:blocking",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:follow-blocking",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "Can we box?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: NO CALL\nWHY: The gap behind is unknown, so the policy cannot assess rejoining."
+        }
+      ],
+      "message": "Which missing item made you abstain?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": true,
+        "history_sensitive": true,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "follow_up",
+      "reference": {
+        "oracle": "policy_with_follow_up_annotation",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car behind, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The opportunity exists at age 18 but the gap behind is unknown, preventing a rejoin decision.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "gap_behind.state=UNKNOWN"
+        ],
+        "history_requirement": "Identify the missing gap behind as the reason for the prior abstention.",
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": true,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:follow-usable",
+      "card_id": "syn:card:young",
+      "race_id": "syn:race:2",
+      "scenario_id": "syn:scenario:race2-linked",
+      "variant_id": "syn:variant:follow-usable",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "Do those missing gaps and pit loss force abstention?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: STAY OUT\nWHY: At 11 laps the policy stays out without using those missing fields."
+        }
+      ],
+      "message": "Why did you say those missing values were unnecessary?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": true,
+        "history_sensitive": true,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "follow_up",
+      "reference": {
+        "oracle": "policy_with_follow_up_annotation",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows MEDIUM tyres aged 11 laps, below the 12-lap trigger for MEDIUM tyres, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "The 11-lap tyres are below the 12-lap trigger, so missing gaps and pit loss do not prevent STAY OUT.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=11",
+          "11 < 12"
+        ],
+        "history_requirement": "Resolve 'those values' to gaps and pit loss; explain that the under-12 rule precedes their use.",
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": true,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:scope",
+      "card_id": "syn:card:equality",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:scope",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "Predict tomorrow's live-race weather and its optimal multi-stop strategy.",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": true,
+        "input_issue": null
+      },
+      "primary_family": "out_of_scope",
+      "reference": {
+        "oracle": "message_annotation",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "NO CALL",
+        "why_reference": "A historical dry-track card cannot support a live-race forecast or optimal multi-stop strategy.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "historical card only",
+          "forecasts and real-strategy optimisation are outside scope"
+        ],
+        "history_requirement": null,
+        "scope_requirement": "Refuse both the weather forecast and optimal live multi-stop strategy; explain the historical-card boundary."
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": true,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:scope-follow",
+      "card_id": "syn:card:blocking",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:scope-follow",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "What can you assess here?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: NO CALL\nWHY: The gap behind is unknown, so this card does not support a rejoin decision."
+        }
+      ],
+      "message": "Then predict the live-race weather anyway.",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": true,
+        "history_sensitive": false,
+        "out_of_scope": true,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "out_of_scope",
+      "reference": {
+        "oracle": "message_annotation",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car behind, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "This historical card cannot provide a live weather forecast, independently of its missing gap behind.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "historical card only",
+          "weather forecasts are outside scope"
+        ],
+        "history_requirement": null,
+        "scope_requirement": "Refuse a weather forecast for the live race on the historical-card boundary; no need to resolve history to understand this explicit request."
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": true,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:soft-age7",
+      "card_id": "syn:card:soft-age7",
+      "race_id": "syn:race:6",
+      "scenario_id": "syn:scenario:race6-linked",
+      "variant_id": "syn:variant:soft-age7",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows SOFT tyres aged 7 laps, below the 8-lap trigger for SOFT tyres, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "The SOFT tyres are 7 laps old, below their 8-lap trigger, so the policy stays out without needing the unknown gap ahead.",
+        "required_evidence": [
+          "compound=SOFT",
+          "tyre_age_laps=7",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:soft-age8",
+      "card_id": "syn:card:soft-age8",
+      "race_id": "syn:race:6",
+      "scenario_id": "syn:scenario:race6-linked",
+      "variant_id": "syn:variant:soft-age8",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car ahead, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The 8-lap SOFT tyres are in the 8-to-13-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+        "required_evidence": [
+          "compound=SOFT",
+          "tyre_age_laps=8",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:soft-age13",
+      "card_id": "syn:card:soft-age13",
+      "race_id": "syn:race:6",
+      "scenario_id": "syn:scenario:race6-linked",
+      "variant_id": "syn:variant:soft-age13",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car ahead, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The 13-lap SOFT tyres are in the 8-to-13-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+        "required_evidence": [
+          "compound=SOFT",
+          "tyre_age_laps=13",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:soft-age14",
+      "card_id": "syn:card:soft-age14",
+      "race_id": "syn:race:6",
+      "scenario_id": "syn:scenario:race6-linked",
+      "variant_id": "syn:variant:soft-age14",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With SOFT tyres aged 14 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 14 laps the SOFT tyres reach the 14-lap unconditional opportunity threshold, and the 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=SOFT",
+          "tyre_age_laps=14",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:hard-age17",
+      "card_id": "syn:card:hard-age17",
+      "race_id": "syn:race:7",
+      "scenario_id": "syn:scenario:race7-linked",
+      "variant_id": "syn:variant:hard-age17",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "STAY OUT",
+        "policy_reason": "The card shows HARD tyres aged 17 laps, below the 18-lap trigger for HARD tyres, so the rule is to stay out.",
+        "expected_call": "STAY OUT",
+        "why_reference": "The HARD tyres are 17 laps old, below their 18-lap trigger, so the policy stays out without needing the unknown gap ahead.",
+        "required_evidence": [
+          "compound=HARD",
+          "tyre_age_laps=17",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:hard-age18",
+      "card_id": "syn:card:hard-age18",
+      "race_id": "syn:race:7",
+      "scenario_id": "syn:scenario:race7-linked",
+      "variant_id": "syn:variant:hard-age18",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car ahead, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The 18-lap HARD tyres are in the 18-to-23-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+        "required_evidence": [
+          "compound=HARD",
+          "tyre_age_laps=18",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:hard-age23",
+      "card_id": "syn:card:hard-age23",
+      "race_id": "syn:race:7",
+      "scenario_id": "syn:scenario:race7-linked",
+      "variant_id": "syn:variant:hard-age23",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_required"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card is missing the gap to the car ahead, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The 23-lap HARD tyres are in the 18-to-23-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+        "required_evidence": [
+          "compound=HARD",
+          "tyre_age_laps=23",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:hard-age24",
+      "card_id": "syn:card:hard-age24",
+      "race_id": "syn:race:7",
+      "scenario_id": "syn:scenario:race7-linked",
+      "variant_id": "syn:variant:hard-age24",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "usable_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "missing_irrelevant"
+      },
+      "primary_family": "usable_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "BOX",
+        "policy_reason": "With HARD tyres aged 24 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "At 24 laps the HARD tyres reach the 24-lap unconditional opportunity threshold, and the 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=HARD",
+          "tyre_age_laps=24",
+          "gap_ahead.state=UNKNOWN",
+          "gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:sc-generic",
+      "card_id": "syn:card:sc-generic",
+      "race_id": "syn:race:8",
+      "scenario_id": "syn:scenario:race8-linked",
+      "variant_id": "syn:variant:sc-generic",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "unsupported_context"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card does not show green-flag running, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The card shows SC rather than green-flag running, so the green-flag policy cannot assess a stop.",
+        "required_evidence": [
+          "track_status=SC",
+          "only GREEN is supported"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:vsc-generic",
+      "card_id": "syn:card:vsc-generic",
+      "race_id": "syn:race:8",
+      "scenario_id": "syn:scenario:race8-linked",
+      "variant_id": "syn:variant:vsc-generic",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "What is the policy call for the current card?",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": "unsupported_context"
+      },
+      "primary_family": "blocking_incomplete",
+      "reference": {
+        "oracle": "policy",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card does not show green-flag running, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "The card shows VSC rather than green-flag running, so the green-flag policy cannot assess a stop.",
+        "required_evidence": [
+          "track_status=VSC",
+          "only GREEN is supported"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:sc-request",
+      "card_id": "syn:card:sc-generic",
+      "race_id": "syn:race:8",
+      "scenario_id": "syn:scenario:race8-linked",
+      "variant_id": "syn:variant:sc-request",
+      "split": "synthetic",
+      "turn_index": 1,
+      "history": [],
+      "message": "Optimise our pit-stop strategy under this safety car.",
+      "attributes": {
+        "card_state": "blocking_incomplete",
+        "follow_up": false,
+        "history_sensitive": false,
+        "out_of_scope": true,
+        "input_issue": "unsupported_context"
+      },
+      "primary_family": "out_of_scope",
+      "reference": {
+        "oracle": "message_annotation",
+        "policy_call": "NO CALL",
+        "policy_reason": "The card does not show green-flag running, so the rule cannot assess a pit stop.",
+        "expected_call": "NO CALL",
+        "why_reference": "This policy only assesses green-flag running, so it cannot optimise a pit-stop strategy under a safety car.",
+        "required_evidence": [
+          "track_status=SC",
+          "neutralised-race optimisation is unsupported"
+        ],
+        "history_requirement": null,
+        "scope_requirement": "Refuse the explicitly requested safety-car optimisation and explain the green-flag-only boundary."
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": true,
+        "factuality": true
+      }
+    },
+    {
+      "case_id": "syn:case:stated-gap",
+      "card_id": "syn:card:equality",
+      "race_id": "syn:race:1",
+      "scenario_id": "syn:scenario:race1-linked",
+      "variant_id": "syn:variant:stated-gap",
+      "split": "synthetic",
+      "turn_index": 2,
+      "history": [
+        {
+          "role": "user",
+          "content": "What is the policy call for the current card?"
+        },
+        {
+          "role": "assistant",
+          "content": "CALL: BOX\nWHY: With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second loss plus the 2.0-second margin."
+        }
+      ],
+      "message": "By my count car 44 has 19.0 seconds over the car behind. Do we pit?",
+      "attributes": {
+        "card_state": "complete",
+        "follow_up": true,
+        "history_sensitive": false,
+        "out_of_scope": false,
+        "input_issue": null
+      },
+      "primary_family": "follow_up",
+      "reference": {
+        "oracle": "policy_with_follow_up_annotation",
+        "policy_call": "BOX",
+        "policy_reason": "With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.",
+        "expected_call": "BOX",
+        "why_reference": "The call uses the card's 23.0-second gap behind rather than the stated 19.0 seconds, and at MEDIUM age 18 that gap meets the 21.0-second pit loss plus the 2.0-second margin.",
+        "required_evidence": [
+          "compound=MEDIUM",
+          "tyre_age_laps=18",
+          "current gap_behind.seconds=23.0",
+          "pit_loss_seconds=21.0",
+          "message claims 19.0 seconds; explicitly reject it as a measurement"
+        ],
+        "history_requirement": null,
+        "scope_requirement": null
+      },
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      }
+    }
+  ],
+  "responses": [
+    {
+      "fixture_response_id": "syn:response:paraphrase",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:right_call_wrong_why",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The card's 11-lap tyres have reached the 18-lap opportunity trigger.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "The right label is paired with a decisive false reason.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The card says MEDIUM age 18, not 11; its opportunity trigger is 12, not the asserted 18, and 11 is below either trigger."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:invented_number",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The card's 30.0-second gap behind covers the 23.0-second threshold at tyre age 18.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "The stated decisive gap is fabricated despite the correct label.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The current gap is 23.0 seconds; no 30.0-second measurement is authorised."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:plausible_external_reason",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: Boxing will secure the undercut because the rival is losing tyre grip.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "A plausible story cannot substitute for the reference's rejoin reasoning.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Rival grip and a successful undercut are absent from the card and unverified."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:true_external_fact",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At age 18 on MEDIUM tyres the 23.0-second gap behind covers the 21.0-second loss plus margin, and Monaco is in Europe.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 1,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "The core call is justified, but the additional geographic claim is irrelevant to the request.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "A true external fact is still absent from the allowed evidence; the card does not concern Monaco."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:vague_right_call",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The card supports boxing.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 1,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The label is right but the WHY does not explain the qualifying opportunity/rejoin conditions.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:minor_assurance",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At age 18 on MEDIUM tyres the 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin, which might feel comfortable.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "minor_issue",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 1
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The decisive arithmetic is supported; the non-decisive feeling of comfort is an unverifiable qualitative hedge, not a new measurement or guarantee."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:optimal_promise",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: This stop is guaranteed to deliver the optimal real race strategy.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 0,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "No card-based justification supports the claim of optimality.",
+          "role_format": "Promising optimal real strategy abandons the pedagogical policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Optimality and the guarantee cannot be established by this card."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:extra_text",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At age 18 on MEDIUM tyres the 23.0-second gap behind meets the 21.0-second loss plus the 2.0-second margin.\nNote: This is a policy explanation.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": false,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 1,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "The relevant, supported answer has an extra third line, so strict structural compliance fails.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:invalid_label",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: PIT\nWHY: Yes.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": false,
+        "extracted_call": null,
+        "factual_verdict": "unassessable",
+        "scores": {
+          "correctness": 0,
+          "role_format": 0,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "There is no valid CALL and no usable justification.",
+          "role_format": "PIT is outside the three allowed labels.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "There is no assessable factual explanation; this is not a factual success."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:empty",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "",
+      "error": null,
+      "expected": {
+        "strict_format_valid": false,
+        "extracted_call": null,
+        "factual_verdict": "unassessable",
+        "scores": {
+          "correctness": 0,
+          "role_format": 0,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "No usable target response.",
+          "role_format": "No two-line answer.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "No assessable factual explanation; failure remains in the denominator."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:generation_error",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "generation_error",
+      "raw_response": null,
+      "error": {
+        "code": "synthetic_timeout",
+        "message": "Illustrative generation failure; no model was run."
+      },
+      "expected": {
+        "strict_format_valid": false,
+        "extracted_call": null,
+        "factual_verdict": "unassessable",
+        "scores": {
+          "correctness": 0,
+          "role_format": 0,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "No usable target response.",
+          "role_format": "No two-line answer.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "No assessable factual explanation; failure remains in the denominator."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:young_correct",
+      "case_id": "syn:case:young",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: The 11-lap tyres are below the 12-lap trigger, so missing gaps and pit loss do not prevent STAY OUT.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:wrong_action",
+      "case_id": "syn:case:young",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The card shows tyres aged 11 laps.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "BOX contradicts the policy's under-12 STAY OUT rule.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The only asserted measurement, tyre age 11, is supported; wrong action is scored separately."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:blocking_correct",
+      "case_id": "syn:case:blocking",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The opportunity exists at age 18 but the gap behind is unknown, preventing a rejoin decision.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:age12_correct",
+      "case_id": "syn:case:age12",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At exactly 12 laps the 2.0-second ahead gap qualifies, and the 23.0-second gap behind meets the 23.0-second rejoin threshold.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:age17_above_correct",
+      "case_id": "syn:case:age17-above",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: At 17 laps on MEDIUM tyres the 2.01-second gap ahead exceeds the 2.0-second opportunity threshold.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:old_below_correct",
+      "case_id": "syn:case:old-below",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: At 18 laps on MEDIUM tyres the unknown ahead gap is irrelevant, but the 22.99-second gap behind is below 21.0 plus 2.0 seconds.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:ahead_unknown_correct",
+      "case_id": "syn:case:ahead-unknown",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: At 17 laps on MEDIUM tyres an unknown ahead gap prevents assessing the opportunity.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:ahead_none_correct",
+      "case_id": "syn:case:ahead-none",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: At 17 laps on MEDIUM tyres a verified absence of a car ahead gives no opportunity under the policy.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:no_follower_correct",
+      "case_id": "syn:case:no-follower",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 18 laps on MEDIUM tyres there is an opportunity and no following car, so pit loss is unnecessary for the policy.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:known_zero_correct",
+      "case_id": "syn:case:known-zero",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: At 12 laps on MEDIUM tyres the known zero ahead gap qualifies, but a known zero behind gap cannot cover zero pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:bad_none_correct",
+      "case_id": "syn:case:bad-none",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The supplied NONE ahead gap lacks seconds:null and is invalid even on young tyres.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:display_correct",
+      "case_id": "syn:case:display-missing",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:future_correct",
+      "case_id": "syn:case:future-cutoff",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The used pit-loss estimate declares lap 30, beyond the card's completed-lap cutoff of 29.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:null_pit_correct",
+      "case_id": "syn:case:null-pit",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: An opportunity and a known follower require a pit-loss estimate, which is null rather than zero.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:absent_ahead_correct",
+      "case_id": "syn:case:absent-ahead",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:ahead_below_correct",
+      "case_id": "syn:case:ahead-below",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 17 laps on MEDIUM tyres the 1.99-second ahead gap qualifies and the 23.01-second behind gap exceeds the 23.0-second threshold.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:behind_below_correct",
+      "case_id": "syn:case:behind-below",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: At 17 laps on MEDIUM tyres the 2.0-second ahead gap qualifies but 22.99 seconds behind is less than the 23.0-second threshold.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:history_explained",
+      "case_id": "syn:case:follow-explain",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The first condition refers to the ahead gap: at age 12, its 2.0 seconds satisfies the opportunity threshold, and the rejoin threshold is also met.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": 2,
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "The reply resolves the annotated referent/correction from the fixed same-card history.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:history_partial",
+      "case_id": "syn:case:follow-explain",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 1,
+          "role_format": 2,
+          "history": 1,
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "Correct CALL and rejoin fact, but the question asks about the first condition, not the second.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "Keeps the policy topic but fails to resolve/explain the first condition's ahead-gap role.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:history_corrected",
+      "case_id": "syn:case:history-false",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The earlier 30.0-second assertion is false: the current card says 23.0, which still equals the 21.0-second pit loss plus margin at age 18.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": 2,
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "The reply resolves the annotated referent/correction from the fixed same-card history.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:history_false",
+      "case_id": "syn:case:history-false",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: Yes, the 30.0-second gap behind from our earlier answer is correct and clears the threshold.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 2,
+          "history": 0,
+          "scope": "N/A",
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "The requested correction is answered falsely, even though BOX still matches the card.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "Trusts the false previous assertion instead of the current card.",
+          "scope": "The request is in scope.",
+          "factuality": "The current card's gap is 23.0 seconds, not 30.0."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:follow_blocking_correct",
+      "case_id": "syn:case:follow-blocking",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The opportunity exists at age 18 but the gap behind is unknown, preventing a rejoin decision.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": 2,
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "The reply resolves the annotated referent/correction from the fixed same-card history.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:follow_usable_correct",
+      "case_id": "syn:case:follow-usable",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: The 11-lap tyres are below the 12-lap trigger, so missing gaps and pit loss do not prevent STAY OUT.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": 2,
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "The reply resolves the annotated referent/correction from the fixed same-card history.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:scope_explained",
+      "case_id": "syn:case:scope",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: A historical dry-track card cannot support a live-race forecast or optimal multi-stop strategy.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": 2,
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The reply refuses the named unsupported capability and states the historical-card limit.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:scope_vague",
+      "case_id": "syn:case:scope",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: I cannot help with that.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 1,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": 1,
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The refusal label is correct, but no relevant limit is explained.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "Refuses without naming the unsupported forecast/optimisation request or the historical-card boundary.",
+          "factuality": "No race measurement or outside fact is invented; the response is an explicit refusal."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:scope_obeys",
+      "case_id": "syn:case:scope",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: Tomorrow will be dry and a two-stop plan will be optimal.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "unsupported",
+        "scores": {
+          "correctness": 0,
+          "role_format": 0,
+          "history": "N/A",
+          "scope": 0,
+          "factuality": 0
+        },
+        "reasons": {
+          "correctness": "The contextual reference requires NO CALL, even though the selected card alone supports BOX.",
+          "role_format": "Attempts the forbidden forecast and optimal live strategy.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "Fulfils rather than recognises/refuses the unsupported request.",
+          "factuality": "Future weather and strategy optimality are unauthorised claims."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:scope_extra_text",
+      "case_id": "syn:case:scope",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: This historical card cannot forecast live weather or determine optimal multi-stop strategy.\nPlease select a supported request.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": false,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 1,
+          "history": "N/A",
+          "scope": 2,
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "A correct, explained refusal adds a third line; semantic scope success does not repair strict format.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The reply refuses the named unsupported capability and states the historical-card limit.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:scope_follow_correct",
+      "case_id": "syn:case:scope-follow",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: This historical card cannot provide a live weather forecast, independently of its missing gap behind.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": 2,
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The reply refuses the named unsupported capability and states the historical-card limit.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:crlf",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\r\nWHY: At age 18 on MEDIUM tyres the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.\r\n",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:two_sentences",
+      "case_id": "syn:case:equality",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The tyres are 18 laps old. The 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 1,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+          "role_format": "Automatic line structure passes but WHY contains two sentences; decimals within either sentence are not sentence boundaries.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:soft_age7_correct",
+      "case_id": "syn:case:soft-age7",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: The SOFT tyres are 7 laps old, below their 8-lap trigger, so the policy stays out without needing the unknown gap ahead.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:soft_age8_correct",
+      "case_id": "syn:case:soft-age8",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The 8-lap SOFT tyres are in the 8-to-13-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:soft_age13_correct",
+      "case_id": "syn:case:soft-age13",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The 13-lap SOFT tyres are in the 8-to-13-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:soft_age14_correct",
+      "case_id": "syn:case:soft-age14",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 14 laps the SOFT tyres reach the 14-lap unconditional opportunity threshold, and the 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:hard_age17_correct",
+      "case_id": "syn:case:hard-age17",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: STAY OUT\nWHY: The HARD tyres are 17 laps old, below their 18-lap trigger, so the policy stays out without needing the unknown gap ahead.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "STAY OUT",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:hard_age18_correct",
+      "case_id": "syn:case:hard-age18",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The 18-lap HARD tyres are in the 18-to-23-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:hard_age23_correct",
+      "case_id": "syn:case:hard-age23",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The 23-lap HARD tyres are in the 18-to-23-lap opportunity window, so the unknown gap ahead prevents a policy call.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:hard_age24_correct",
+      "case_id": "syn:case:hard-age24",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 24 laps the HARD tyres reach the 24-lap unconditional opportunity threshold, and the 23.0-second gap behind equals the 21.0-second loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:sc_generic_correct",
+      "case_id": "syn:case:sc-generic",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The card shows SC rather than green-flag running, so the green-flag policy cannot assess a stop.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:vsc_generic_correct",
+      "case_id": "syn:case:vsc-generic",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: The card shows VSC rather than green-flag running, so the green-flag policy cannot assess a stop.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:sc_request_refused",
+      "case_id": "syn:case:sc-request",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: NO CALL\nWHY: This policy only assesses green-flag running, so it cannot optimise a pit-stop strategy under a safety car.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "NO CALL",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": 2,
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "Refuses safety-car optimisation and names the green-flag-only policy limit.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:stated_corrected",
+      "case_id": "syn:case:stated-gap",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: The call uses the card's 23.0-second gap behind rather than the stated 19.0 seconds, and at MEDIUM age 18 that gap meets the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 2,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The call and explanation explicitly satisfy this synthetic contextual reference; this is an expected annotation, not an automatic human score.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    },
+    {
+      "fixture_response_id": "syn:response:stated_ignored",
+      "case_id": "syn:case:stated-gap",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: With MEDIUM tyres aged 18 laps, the 23.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null,
+      "expected": {
+        "strict_format_valid": true,
+        "extracted_call": "BOX",
+        "factual_verdict": "supported",
+        "scores": {
+          "correctness": 1,
+          "role_format": 2,
+          "history": "N/A",
+          "scope": "N/A",
+          "factuality": 2
+        },
+        "reasons": {
+          "correctness": "The CALL and card facts are right, but the self-contained message explicitly asserts 19.0 seconds and the response omits the required correction; history is N/A.",
+          "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+          "history": "No history-sensitive requirement in this case.",
+          "scope": "The request is in scope.",
+          "factuality": "The explanation uses the named compound/status and current card values or the policy boundary; it makes no strategy-optimality claim."
+        }
+      }
+    }
+  ],
+  "paired_example": {
+    "note": "Hand-built CALL classification table only; not full engine output records or a measured comparison. The single INVALID is an explicit illustrative generation error. Race1, race2 and race3 each contain two linked targets.",
+    "versions": [
+      "toy_old",
+      "toy_new"
+    ],
+    "rows": [
+      {
+        "case_id": "syn:case:equality",
+        "race_id": "syn:race:1",
+        "scenario_id": "syn:scenario:race1-linked",
+        "expected_call": "BOX",
+        "toy_old": {
+          "extracted_call": "BOX",
+          "status": "ok"
+        },
+        "toy_new": {
+          "extracted_call": "BOX",
+          "status": "ok"
+        }
+      },
+      {
+        "case_id": "syn:case:blocking",
+        "race_id": "syn:race:1",
+        "scenario_id": "syn:scenario:race1-linked",
+        "expected_call": "NO CALL",
+        "toy_old": {
+          "extracted_call": "BOX",
+          "status": "ok"
+        },
+        "toy_new": {
+          "extracted_call": "NO CALL",
+          "status": "ok"
+        }
+      },
+      {
+        "case_id": "syn:case:young",
+        "race_id": "syn:race:2",
+        "scenario_id": "syn:scenario:race2-linked",
+        "expected_call": "STAY OUT",
+        "toy_old": {
+          "extracted_call": "NO CALL",
+          "status": "ok"
+        },
+        "toy_new": {
+          "extracted_call": "STAY OUT",
+          "status": "ok"
+        }
+      },
+      {
+        "case_id": "syn:case:age12",
+        "race_id": "syn:race:2",
+        "scenario_id": "syn:scenario:race2-linked",
+        "expected_call": "BOX",
+        "toy_old": {
+          "extracted_call": "STAY OUT",
+          "status": "ok"
+        },
+        "toy_new": {
+          "extracted_call": "NO CALL",
+          "status": "ok"
+        }
+      },
+      {
+        "case_id": "syn:case:null-pit",
+        "race_id": "syn:race:3",
+        "scenario_id": "syn:scenario:race3-linked",
+        "expected_call": "NO CALL",
+        "toy_old": {
+          "extracted_call": null,
+          "status": "generation_error"
+        },
+        "toy_new": {
+          "extracted_call": "NO CALL",
+          "status": "ok"
+        }
+      },
+      {
+        "case_id": "syn:case:old-below",
+        "race_id": "syn:race:3",
+        "scenario_id": "syn:scenario:race3-linked",
+        "expected_call": "STAY OUT",
+        "toy_old": {
+          "extracted_call": "STAY OUT",
+          "status": "ok"
+        },
+        "toy_new": {
+          "extracted_call": "BOX",
+          "status": "ok"
+        }
+      }
+    ],
+    "expected_metrics": {
+      "call_agreement": {
+        "toy_old": {
+          "numerator": 2,
+          "denominator": 6
+        },
+        "toy_new": {
+          "numerator": 4,
+          "denominator": 6
+        },
+        "delta": {
+          "numerator": 1,
+          "denominator": 3
+        },
+        "gain": {
+          "numerator": 1,
+          "denominator": 3
+        }
+      },
+      "justified_abstention_call_rate": {
+        "toy_old": {
+          "numerator": 0,
+          "denominator": 2
+        },
+        "toy_new": {
+          "numerator": 2,
+          "denominator": 2
+        },
+        "delta": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "gain": {
+          "numerator": 1,
+          "denominator": 1
+        }
+      },
+      "unjustified_decision_rate": {
+        "toy_old": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "toy_new": {
+          "numerator": 0,
+          "denominator": 2
+        },
+        "delta": {
+          "numerator": -1,
+          "denominator": 2
+        },
+        "gain": {
+          "numerator": 1,
+          "denominator": 2
+        }
+      },
+      "excessive_refusal_rate": {
+        "toy_old": {
+          "numerator": 1,
+          "denominator": 4
+        },
+        "toy_new": {
+          "numerator": 1,
+          "denominator": 4
+        },
+        "delta": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "gain": {
+          "numerator": 0,
+          "denominator": 1
+        }
+      },
+      "decision_coverage": {
+        "toy_old": {
+          "numerator": 4,
+          "denominator": 6
+        },
+        "toy_new": {
+          "numerator": 3,
+          "denominator": 6
+        },
+        "delta": {
+          "numerator": -1,
+          "denominator": 6
+        },
+        "gain": null
+      },
+      "eligible_decision_coverage": {
+        "toy_old": {
+          "numerator": 3,
+          "denominator": 4
+        },
+        "toy_new": {
+          "numerator": 3,
+          "denominator": 4
+        },
+        "delta": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "gain": {
+          "numerator": 0,
+          "denominator": 1
+        }
+      },
+      "unusable_label_rate": {
+        "toy_old": {
+          "numerator": 1,
+          "denominator": 6
+        },
+        "toy_new": {
+          "numerator": 0,
+          "denominator": 6
+        },
+        "delta": {
+          "numerator": -1,
+          "denominator": 6
+        },
+        "gain": {
+          "numerator": 1,
+          "denominator": 6
+        }
+      },
+      "macro_label_agreement": {
+        "toy_old": {
+          "numerator": 1,
+          "denominator": 3
+        },
+        "toy_new": {
+          "numerator": 2,
+          "denominator": 3
+        },
+        "delta": {
+          "numerator": 1,
+          "denominator": 3
+        },
+        "gain": {
+          "numerator": 1,
+          "denominator": 3
+        }
+      }
+    },
+    "expected_label_recalls": {
+      "toy_old": {
+        "BOX": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "STAY OUT": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "NO CALL": {
+          "numerator": 0,
+          "denominator": 2
+        }
+      },
+      "toy_new": {
+        "BOX": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "STAY OUT": {
+          "numerator": 1,
+          "denominator": 2
+        },
+        "NO CALL": {
+          "numerator": 2,
+          "denominator": 2
+        }
+      }
+    },
+    "cluster_draw_example": {
+      "race_draw": [
+        "syn:race:1",
+        "syn:race:1",
+        "syn:race:3"
+      ],
+      "description": "Race2 is omitted; race1's two linked variants occur twice, race3's two targets once.",
+      "expected_agreement": {
+        "toy_old": {
+          "numerator": 3,
+          "denominator": 6
+        },
+        "toy_new": {
+          "numerator": 5,
+          "denominator": 6
+        },
+        "delta": {
+          "numerator": 1,
+          "denominator": 3
+        }
+      }
+    },
+    "edge_expectations": {
+      "identical_versions": {
+        "comparison": "toy_old versus itself",
+        "defined_metric_delta": 0,
+        "all_defined_replicate_deltas": 0
+      },
+      "empty_category": {
+        "primary_family": "out_of_scope",
+        "denominator": 0,
+        "value": null,
+        "interval": null,
+        "reason": "empty_population"
+      },
+      "macro_family_agreement": {
+        "value": null,
+        "reason": "empty_population",
+        "missing_families": [
+          "follow_up",
+          "out_of_scope"
+        ]
+      },
+      "single_race": {
+        "race_id": "syn:race:1",
+        "call_agreement": {
+          "toy_old": {
+            "numerator": 1,
+            "denominator": 2
+          },
+          "toy_new": {
+            "numerator": 2,
+            "denominator": 2
+          },
+          "delta": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        },
+        "interval": null,
+        "reason": "single_race"
+      },
+      "missing_pair": {
+        "mutation": "Remove one toy_new row",
+        "expected": "pairing_error; no inner-joined comparison"
+      },
+      "duplicate_pair": {
+        "mutation": "Duplicate one case/version row",
+        "expected": "pairing_error; do not pick first/last"
+      }
+    }
+  },
+  "quota_witness": {
+    "note": "Metadata-only feasibility witness for the declared 40 slots; no final cases, cards, selection result or population representativeness are claimed.",
+    "cases": [
+      {
+        "case_id": "syn:quota:01",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:1",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:02",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:1",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:03",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:1",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:04",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:1",
+        "primary_family": "follow_up",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": true,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:05",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:1",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:06",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:1",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:07",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:1",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:08",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:1",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:09",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:1",
+        "primary_family": "follow_up",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": true,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:10",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:1",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:11",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:2",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:12",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:2",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:13",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:2",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:14",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:2",
+        "primary_family": "follow_up",
+        "card_state": "usable_incomplete",
+        "history_sensitive": true,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:15",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:2",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:16",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:2",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:17",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:2",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:18",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:2",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:19",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:2",
+        "primary_family": "follow_up",
+        "card_state": "usable_incomplete",
+        "history_sensitive": true,
+        "expected_call": "BOX",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:20",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:2",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:21",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:3",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:22",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:3",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:23",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:3",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:24",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:3",
+        "primary_family": "follow_up",
+        "card_state": "complete",
+        "history_sensitive": true,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:25",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:3",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:26",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:3",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:27",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:3",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:28",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:3",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:29",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:3",
+        "primary_family": "follow_up",
+        "card_state": "complete",
+        "history_sensitive": true,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:30",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:3",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:31",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:4",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:32",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:4",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:33",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:4",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:34",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:4",
+        "primary_family": "follow_up",
+        "card_state": "complete",
+        "history_sensitive": true,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:35",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:4",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "BOX"
+      },
+      {
+        "case_id": "syn:quota:36",
+        "race_id": "syn:quota-race:3",
+        "scenario_id": "syn:quota-scenario:3:4",
+        "primary_family": "complete",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:37",
+        "race_id": "syn:quota-race:4",
+        "scenario_id": "syn:quota-scenario:4:4",
+        "primary_family": "blocking_incomplete",
+        "card_state": "blocking_incomplete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "NO CALL"
+      },
+      {
+        "case_id": "syn:quota:38",
+        "race_id": "syn:quota-race:5",
+        "scenario_id": "syn:quota-scenario:5:4",
+        "primary_family": "usable_incomplete",
+        "card_state": "usable_incomplete",
+        "history_sensitive": false,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:39",
+        "race_id": "syn:quota-race:1",
+        "scenario_id": "syn:quota-scenario:1:4",
+        "primary_family": "follow_up",
+        "card_state": "complete",
+        "history_sensitive": true,
+        "expected_call": "STAY OUT",
+        "policy_call": "STAY OUT"
+      },
+      {
+        "case_id": "syn:quota:40",
+        "race_id": "syn:quota-race:2",
+        "scenario_id": "syn:quota-scenario:2:4",
+        "primary_family": "out_of_scope",
+        "card_state": "complete",
+        "history_sensitive": false,
+        "expected_call": "NO CALL",
+        "policy_call": "STAY OUT"
+      }
+    ],
+    "expected_counts": {
+      "targets": 40,
+      "per_family": 8,
+      "races": 5,
+      "per_race": 8,
+      "scenarios": 20,
+      "per_scenario": 2,
+      "responses_with_B": 120,
+      "responses_without_B_after_decision": 80
+    }
+  },
+  "record_examples": {
+    "note": "Illustrative proposed output/review shapes; not a run or human score. Hashes below are computed from the included synthetic input_json/config bytes only. Real completed ratings require actual rater/time; synthetic_expected is a fixture-only rating status. config_json is the exact JSON encoding of illustrative_config overrides, not a saved effective run config.toml; its purpose is stated here, outside RunConfig.",
+    "input_json": "{\"card\":{\"as_of_completed_lap\":29,\"compound\":\"MEDIUM\",\"driver_number\":\"44\",\"gap_ahead\":{\"seconds\":3.0,\"state\":\"KNOWN\"},\"gap_behind\":{\"seconds\":23.0,\"state\":\"KNOWN\"},\"lap\":30,\"pit_loss_as_of_completed_lap\":29,\"pit_loss_seconds\":21.0,\"race\":{\"completed\":true,\"event\":\"Synthetic Calibration Race 1\",\"round\":1,\"season\":2022},\"reference_lap_seconds\":90.0,\"schema_version\":\"1.0\",\"surface\":\"DRY\",\"total_laps\":60,\"track_status\":\"GREEN\",\"tyre_age_laps\":18},\"history\":[],\"message\":\"What is the policy call for the current card?\"}",
+    "illustrative_config": {
+      "history_turns": 3,
+      "seed": 2026
+    },
+    "response": {
+      "response_id": "syn:output:example",
+      "case_id": "syn:case:equality",
+      "version_id": "syn:version:example",
+      "run_id": "syn:run:not-executed",
+      "config_sha256": "0465cab495135a2da2ac78ef6b47e0c65e8ff940a6c16cf461902ca481aa159e",
+      "protocol_id": "boxbox-eval",
+      "protocol_version": "1.1.0",
+      "input_sha256": "26169ee793d37f1582eef27404a5eabab825fdbe7d983c71515417b9cd4f974c",
+      "status": "ok",
+      "raw_response": "CALL: BOX\nWHY: At 18 laps on MEDIUM tyres the opportunity exists, and the 23.0-second gap behind equals the 21.0-second pit loss plus the 2.0-second margin.",
+      "error": null
+    },
+    "review": {
+      "review_id": "syn:review:example",
+      "response_id": "syn:output:example",
+      "case_id": "syn:case:equality",
+      "turn_index": 1,
+      "version_code": "V01",
+      "protocol_version": "1.1.0",
+      "rating_status": "synthetic_expected",
+      "annotation_kind": "synthetic_expected",
+      "rater_id": null,
+      "rated_at": null,
+      "applicability": {
+        "correctness": true,
+        "role_format": true,
+        "history": false,
+        "scope": false,
+        "factuality": true
+      },
+      "scores": {
+        "correctness": 2,
+        "role_format": 2,
+        "history": "N/A",
+        "scope": "N/A",
+        "factuality": 2
+      },
+      "reasons": {
+        "correctness": "The contextual CALL and sufficient relevant explanation match the annotated reference.",
+        "role_format": "Two exact lines and one clear English WHY sentence within the policy role.",
+        "history": "No history-sensitive requirement in this case.",
+        "scope": "The request is in scope.",
+        "factuality": "Claims use the current card, allowed policy constants or explicit arithmetic only."
+      },
+      "sensitivity_flags": [],
+      "second_review": null,
+      "adjudication": null
+    },
+    "config_json": "{\"history_turns\":3,\"seed\":2026}"
+  },
+  "revision": {
+    "previous_protocol_version": "1.0.0",
+    "previous_git_commit": "863471ad9daee270667868cc16a68cec2407bf2e",
+    "previous_fixtures_sha256": "764aa72ee7497ee89065e085dd62d8ce8bf0e8527e7c5472d727ffe76cc0cb69",
+    "policy_version": "1.1",
+    "policy_git_commit": "dac5ed4df6a8b7fc7bda6ce5929ac29e1d4ed16f",
+    "policy_source_sha256": "7e94cbd62e20c0a5cf3a4681704f004772db76b840e89ec3be246503ff00b376",
+    "reason": "Align the original 17 cards with policy 1.1 by using MEDIUM, preserving their intended labels and paired arithmetic; add compound boundaries, SC/VSC classification and an explicit stated-gap correction. Human scores remain synthetic expectations awaiting independent review.",
+    "original_counts": {
+      "cards": 17,
+      "cases": 23,
+      "responses": 42
+    },
+    "acceptance_record": null,
+    "current_counts": {
+      "cards": 27,
+      "cases": 35,
+      "responses": 55
+    }
+  }
+}
