@@ -42,9 +42,11 @@ def test_five_conversation_fixtures_and_output_shape() -> None:
     document = (ROOT / "docs/race-card-contract.md").read_text(encoding="utf-8")
     for case in CONVERSATIONS:
         card = case["card"]
+        assert all(set(message) == {"role", "content"} for message in case["messages"])
         roles = [message["role"] for message in case["messages"]]
         assert roles == ["user", "assistant"] * (len(roles) // 2)
-        for answer in case["messages"][1::2]:
+        answers = case["messages"][1::2]
+        for answer, card_policy in zip(answers, case["card_policy"], strict=True):
             expected = answer["content"]
             lines = expected.splitlines()
             assert len(lines) == 2
@@ -52,7 +54,7 @@ def test_five_conversation_fixtures_and_output_shape() -> None:
             assert lines[1].startswith("WHY: ")
             assert lines[1].endswith(".")
             assert expected.replace("\n", "\n   ") in document
-            if answer["card_policy"]:
+            if card_policy:
                 assert format_answer(card) == expected
             elif case["id"] == "medium_safe":
                 assert lines[0] == "CALL: " + call(card)
@@ -253,6 +255,7 @@ def test_scope_identity_and_malformed_card() -> None:
     assert call(changed(compound=[])) == "NO CALL"
     assert call(changed(tyre_age_laps=True)) == "NO CALL"
     assert call(changed(tyre_age_laps=-1)) == "NO CALL"
+    assert call(changed(tyre_age_laps=18.0)) == "NO CALL"  # reconstruction must send 18
     assert call(changed(as_of_completed_lap=30)) == "NO CALL"
     assert (
         call(changed(race={**CARDS["box_old"]["race"], "completed": False}))

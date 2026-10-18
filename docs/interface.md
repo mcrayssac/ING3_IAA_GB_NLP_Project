@@ -14,4 +14,4 @@ The circle is one lap measured in time. It shows where the card's car would rejo
 - Without `reference_lap_seconds` the circle is not drawn, and without `pit_loss_seconds` it has no rejoin point. The missing field is named in both cases.
 - A line under the circle states its assumption: the pit loss is fixed and the other cars keep their pace.
 - The circle is a polar chart in `gr.Plot`, redrawn when the card changes.
-- Tests check the angles and the rejoin point on hand-written cards, including an unknown gap and a missing lap time.
+- The interface implementation must include tests of the angles and the rejoin point on hand-written cards, including an unknown gap and a missing lap time.
