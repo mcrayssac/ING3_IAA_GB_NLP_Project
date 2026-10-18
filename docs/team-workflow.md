@@ -10,19 +10,19 @@ Each member confirms their own slots and usable human hours, including implement
 |---|---|---|---|---|---|
 | 18 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 18 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
-| 18 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 18 October | Matthieu Brault | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 17:36 +0200 | Matthieu Brault, PR #39 |
 | 19 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 19 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
-| 19 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 19 October | Matthieu Brault | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 17:36 +0200 | Matthieu Brault, PR #39 |
 | 20 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 20 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
-| 20 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 20 October | Matthieu Brault | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 17:36 +0200 | Matthieu Brault, PR #39 |
 | 21 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 21 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
-| 21 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 21 October | Matthieu Brault | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 17:36 +0200 | Matthieu Brault, PR #39 |
 | 22 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 22 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
-| 22 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 22 October | Matthieu Brault | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 17:36 +0200 | Matthieu Brault, PR #39 |
 
 Reassess remaining hours at each daily check-in and after a material availability change. Date the assessment and retain the superseded confirmation reference. The 22 October slots must end by the submission cutoff and include an available submitter and correction/review cover. The 8-hour reserve must be backed by actual available slots, especially after the planned noon package check; it is not an extra row of invented hours.
 
@@ -47,6 +47,6 @@ The acknowledgment must identify the reviewed document revision or exact shared 
 |---|---|---|---|---|
 | Maxime CRAYSSAC | Confirmed | Confirmed | 18 October 2026, 15:48 +0200 | PR #39 at 04b2353 |
 | Paul PITIOT | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
-| Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| Matthieu Brault | Confirmed | Confirmed | 18 October 2026, 17:36 +0200 | PR #39 at f559eed |
 
 Record separate dates/references if the two acknowledgments are supplied at different times. An acknowledgment can link the capacity decision above. Issue assignment alone confirms neither availability nor agreement.
