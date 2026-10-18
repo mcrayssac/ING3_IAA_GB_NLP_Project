@@ -41,7 +41,8 @@ the existing file:
 
 Corpus A, validation and mini-test dialogues are committed in data/corpus/
 (CC BY-NC-SA 4.0, see data/corpus/NOTICE). They are rebuilt from the cards in
-about 2 s, and the review sheet summary is written with the second command:
+about 2 s. Build also refreshes the review summary; use the second command
+to refresh it after editing verdicts or notes:
 
     .venv/bin/python -m scripts.build_corpus build
     .venv/bin/python -m scripts.build_corpus review
