@@ -1,0 +1,20 @@
+{
+  "seed": 2026,
+  "policy_version": "1.1",
+  "splits_document_sha256": "c2a91c43076c34cc588c9877a375f6bde4905d1253fb23d06aa7a413ac27cc39",
+  "cards_manifest_sha256": "30b505b2ce3404e9e8247e078de7be01ae4ebecf6b1933fea548cca5ea76d26e",
+  "files": {
+    "A_train.jsonl": {
+      "items": 400,
+      "sha256": "f3f5e085b4a55b9e0c972327a894d335253330eaa1205fca00b2051406bf371c"
+    },
+    "validation.jsonl": {
+      "items": 100,
+      "sha256": "d514af07df317edb696cb8b044ffde2a289256055202edc647a7ba860f4ef3cd"
+    },
+    "mini_test.jsonl": {
+      "items": 40,
+      "sha256": "83a0a9cd5c8dab68c576a1387f4572b7901c8aebd1faf8216d1d98516b983fb8"
+    }
+  }
+}

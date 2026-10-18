@@ -44,7 +44,9 @@ docs/roadmap-annexe.md  execution guide and assignment coverage
 docs/code-approach.md   code layout, configs, run folders and team coding rules
 docs/interface.md       Gradio interface specs
 docs/data-protocol.md   race data source, card reconstruction and splits
+docs/corpus.md          training and evaluation dialogues and their review
 data/splits.json        frozen race-level splits
+data/corpus/            corpus A, validation and mini-test (CC BY-NC-SA 4.0)
 docs/diagrams/          active overview/Gantt and historical diagram assets
 instructions/          original project brief (French PDF)
 LICENSE                Apache License 2.0
