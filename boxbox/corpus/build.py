@@ -204,8 +204,8 @@ def multi_item(
 ) -> dict[str, Any]:
     """A call, then one follow-up: why, a field, a gap stated in the message or out of scope.
 
-    A gap stated in the message still gets the rule's answer on the card: the card is the
-    only source of race numbers.
+    A gap stated in the message gets the rule's answer on the card, and the WHY says the card
+    decides: the card is the only source of race numbers.
     """
     card, questions = record["card"], T.QUESTIONS[use]
     first = (_call_question(card, rng, use), T.call_answer(card))
@@ -220,7 +220,7 @@ def multi_item(
         question = rng.choice(questions["stated"])
         second = (
             question.format(car=card["driver_number"], seconds=seconds),
-            T.call_answer(card),
+            T.stated_answer(card, seconds),
         )
     else:
         category = ("weather", "live_race", "championship", "multi_stop")[turn // 4 % 4]
