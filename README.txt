@@ -27,21 +27,42 @@ process and prints GO or NO-GO. It is not adapter A.
 
     .venv/bin/python -m scripts.feasibility configs/feasibility.toml
 
-It writes runs/<date>_feasibility/ with config.toml, manifest.json,
-metrics.json and the adapter. Delete that folder before running it again on
-the same day.
+It writes runs/<date>_<config name>/ with a reloadable config.toml, the
+manifest (git commit and dirty state, source fingerprint, device, dtype,
+hardware and library versions), metrics.json with every check, and the
+adapter. A failed stage is recorded there as a NO-GO reason. Delete the folder
+before running the same config again on the same day.
 
-Measured on 17 October 2026 on an Apple M3 Max (36 GB, MPS), with bf16 LoRA
-(r 16, all linear layers, batch 4) and the MPS memory capped at 20 GB:
+If it prints NO-GO, run the fallback with SmolLM2-1.7B-Instruct:
 
-    3.68 s per step after warm-up, 13.44 GB peak memory
-    30.2 M trainable parameters out of 3.11 B, base weight unchanged
-    fresh-process reload: same argmax, probabilities within 0.00016
-    one adapter (400 dialogues, 3 epochs, 300 steps): about 18.4 min
-    decision: GO (limits: 60 min and 20 GB per adapter)
+    .venv/bin/python -m scripts.feasibility configs/feasibility-smollm2.toml
 
-The estimate assumes examples as long as the disposable ones, about 290
-tokens each. Multi-turn dialogues are longer and will take more time per step.
+Only MPS with bf16 has been measured. On CUDA the code uses bf16 when the GPU
+supports it and fp16 otherwise, and fp32 on CPU, but none of these was tested.
+
+Measured on 18 October 2026 at commit 94aa4ca (clean tree) on an Apple M3 Max
+(38.7 GB, MPS, bf16), LoRA r 16 on all linear layers, batch 4, 30 steps, MPS
+memory capped at 20 GB:
+
+                                       SmolLM3-3B    SmolLM2-1.7B
+    seconds per step (median, step 4+)       3.82            2.48
+    max memory at a step end (GB)           12.37            8.90
+    trainable / total parameters        30.2 M/3.11 B  18.1 M/1.73 B
+    all base weights unchanged                yes             yes
+    reload: same adapter file and argmax      yes             yes
+    reload: largest probability gap      0.000033        0.00097
+    reload: smallest gap to the base         0.21            0.45
+    one adapter, extrapolated (min)          19.1            12.4
+
+Step time is measured between synchronised step boundaries. Memory is the
+Metal driver allocation read at the end of each step, so it can miss a peak
+inside a step. The reload compares eight prompts in a fresh process with the
+same memory cap.
+
+The decision is GO for this disposable workload. The time for 400 dialogues
+over 3 epochs (300 steps) is extrapolated from 30 steps on examples of about
+304 tokens; it was not measured. Task 2.6 must measure it on the real corpus,
+whose multi-turn dialogues are longer.
 
 4. Notebook
 -----------
