@@ -17,7 +17,7 @@ python -m scripts.build_corpus review
 
 The rule writes every policy answer: `format_answer(card)` from `boxbox.rules`. The other answers are fixed templates in `boxbox/corpus/templates.py`:
 
-- A follow-up asks why (the same answer again), asks for a field of the card ("The card shows ..., and the call for this lap stays ..."), or states a gap in the message ("The gap behind is X seconds now. Should car N box?"). A stated gap gets the rule's answer on the card, because the contract takes race numbers only from the card. The stated gap sits on the other side of the rejoin threshold, so an answer built on it would change the call wherever the gap behind matters: 11 of the 20 items in A, and all of them in validation and the mini-test.
+- A follow-up asks why (the same answer again), asks for a field of the card ("The card shows ..., and the call for this lap stays ..."), or states a gap in the message ("The gap behind is X seconds now. Should car N box?"). A stated gap gets the rule's call on the card, because the contract takes race numbers only from the card, and its WHY corrects the claim first ("The call uses the card, not the stated X-second gap behind, and ..."). The stated gap sits on the other side of the rejoin threshold, so an answer built on it would change the call wherever the gap behind matters: 11 of the 20 items in A, and all of them in validation and the mini-test.
 - An out-of-scope request gets NO CALL and one fixed sentence per category: weather, a live or future race, betting, the championship, team radio, a car not on the card, a multi-stop plan, or an unrelated topic.
 - A call question on a card under a safety car or VSC gets the rule's answer: NO CALL, because the card does not show green-flag running. Every other decision field of these cards is known, so the track status is the only reason for NO CALL. These items count as out of scope, with `scope` set to `track_status`. Other out-of-scope items carry their request category in `scope`, and multi-turn items carry their follow-up style in `follow_up`.
 
@@ -64,6 +64,22 @@ Out of scope includes 4 track status items in validation and 2 in the mini-test.
 
 About half of the missing and decidable items are real cards whose field OpenF1 could not give: 10 and 8 in validation, 4 and 3 in the mini-test. The others are complete cards with one field made unknown, recorded as `removed_field`.
 
+## Evaluation families (2.3a)
+
+The evaluation protocol proposed in #41 gives each case one primary family: `out_of_scope` first, then `follow_up` when the history is not empty, then the card state. The corpus `kind` alone does not give that family, so 2.3b maps it from `kind`, `scope` and `follow_up`:
+
+| Corpus item | 2.3a primary family | Notes |
+|---|---|---|
+| `complete` | `complete` | |
+| `missing` | `blocking_incomplete` | `removed_field` names a constructed gap; the others are real |
+| `decidable` | `usable_incomplete` | |
+| `multi` with `follow_up` why, field or stated | `follow_up` | only a why follow-up needs the history, so only it is `history_sensitive`; a stated gap needs the correction of the message |
+| `multi` with `follow_up` out_of_scope | `out_of_scope` | also a follow-up; the scope reason is the category |
+| `out_of_scope` with a request category in `scope` | `out_of_scope` | the scope reason is the category, and the card is decidable |
+| `out_of_scope` with `scope` track_status | `blocking_incomplete` | unsupported context: the rule gives NO CALL away from green running |
+
+By family, validation holds 30 complete, 24 blocking, 15 usable, 15 follow-up and 16 out-of-scope items. The mini-test holds 12, 10, 6, 6 and 6. The protocol is still a proposal, so this table follows it if its names change.
+
 ## Checks
 
 Every `build` checks the following:
@@ -74,7 +90,7 @@ Every `build` checks the following:
 - the counts per kind match, no card is used twice, and A has at most 2 cards per race and driver
 - a missing item gets NO CALL and a decidable item keeps a call
 - the 60 swap fields each turn the card into NO CALL
-- a why or stated-gap follow-up repeats the rule's answer on the card
+- a why follow-up repeats the rule's answer on the card, and a stated-gap follow-up gives that answer after naming the stated gap
 - each set has its number of track status items, each on a safety car or VSC card with every other decision field known
 - no validation or mini-test question has the wording of a corpus A question once numbers are masked
 
@@ -96,11 +112,13 @@ On 18 October Maxime read all 540 rows of the first build on policy 1.1. 504 row
 
 The rebuild that balanced compounds and added the track status items invalidated 539 of the 540 row verdicts. A fresh review on 18 October checked all 648 answers against their cards and the policy, including the 21 SC/VSC cases and 37 late-race BOX cases. The 539 changed rows received automatic acceptance; V-055 retained its unchanged automatic verdict and note. Maxime's complete manual read applied to the first build only.
 
-A second blind-spot review then separated the evaluation wording, required known fields on track status cards and replaced the what-if follow-ups with conflicting gap claims. A fresh automatic review on 18 October checked all 648 answers, including the 27 follow-ups that must use the card's gap, the 21 SC/VSC cases and the 37 late-race BOX cases. All 517 changed rows received automatic acceptance; the 23 unchanged rows kept their verdicts and notes. The current sheet has 540 automatic acceptances, no confirmed decisions, no pending rows and no unresolved fixes. Maxime then read all 540 rows of this build on 18 October, and none needed a fix. With a single reader there is still no agreement measure.
+A second blind-spot review then separated the evaluation wording, required known fields on track status cards and replaced the what-if follow-ups with conflicting gap claims. A fresh automatic review on 18 October checked all 648 answers, including the 27 follow-ups that must use the card's gap, the 21 SC/VSC cases and the 37 late-race BOX cases. All 517 changed rows received automatic acceptance; the 23 unchanged rows kept their verdicts and notes. Maxime then read all 540 rows of this build on 18 October, and none needed a fix. With a single reader there is still no agreement measure.
+
+The next rebuild made the 27 stated-gap replies explicitly identify the claim and explain that the card decides. A fresh automatic review on 18 October rechecked all 648 answers, including the claimed numbers and the card-based reasoning in those 27 replies. All 27 changed rows received automatic acceptance; the 513 unchanged rows kept their verdicts and notes. The current sheet has 540 automatic acceptances, no confirmed decisions, no pending rows and no unresolved fixes. Maxime then read the 27 revised rows on 18 October, and none needed a fix, so every row of the current build has had his read.
 
 `review` summarises completed decisions as `automatic`, `confirmed` or `unattributed` (an earlier verdict without either prefix). `pending` counts empty verdicts, even when a note is present. `read` counts completed decisions, not human reading; the human reads are recorded here and on #7. `ok` counts accepted rows and `fix` lists unresolved defects. The review is complete only when no row is pending and no fix remains.
 
-The late-race rows are BOX calls with 1 or 2 laps left, 37 in the current build. They stay in the corpus. The policy has no rule on laps remaining, and a late stop can make sense: very worn tyres risk a puncture and lose pace, and until the end of 2024 a fresh set could also chase the fastest-lap point. Their WHY gives only the policy grounds: tyre age, relevant gaps and pit loss when required. Maxime's group decision to keep them guided the automatic review, and his read of the current build covered each of them.
+The late-race rows are BOX calls with 1 or 2 laps left, 37 in the current build. They stay in the corpus. The policy has no rule on laps remaining, and a late stop can make sense: very worn tyres risk a puncture and lose pace, and until the end of 2024 a fresh set could also chase the fastest-lap point. Their WHY gives only the policy grounds: tyre age, relevant gaps and pit loss when required. Maxime's group decision to keep them guided the automatic review, and his manual reads covered each of them.
 
 A recurring defect is corrected in the templates or selection, never in one generated dialogue by hand. After a rebuild, verdicts and notes survive only when the card and messages have the same digest. Changed examples are reviewed again. The final test stays closed.
 

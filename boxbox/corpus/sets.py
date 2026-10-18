@@ -25,6 +25,7 @@ from .build import (
     select_cards,
     track_item,
 )
+from .templates import stated_answer
 
 A_KINDS = {"complete": 260, "multi": 80, "out_of_scope": 60}
 SWAPS = 60  # complete A items that 3.1 turns into missing-field variants for corpus B
@@ -205,13 +206,12 @@ def _answer_errors(item: dict[str, Any]) -> list[str]:
     by_rule = item["kind"] != "out_of_scope" or item["scope"] == "track_status"
     if by_rule and item["messages"][1]["content"] != rule:
         errors.append("first answer is not the rule's answer")
-    if (
-        item["follow_up"] in ("why", "stated")
-        and item["messages"][3]["content"] != rule
-    ):
-        errors.append(
-            f"{item['follow_up']} follow-up is not the rule's answer on the card"
-        )
+    if item["follow_up"] == "why" and item["messages"][3]["content"] != rule:
+        errors.append("why follow-up is not the rule's answer on the card")
+    if item["follow_up"] == "stated":
+        seconds = re.search(r"\d+\.\d", item["messages"][2]["content"]).group()
+        if item["messages"][3]["content"] != stated_answer(item["card"], seconds):
+            errors.append("stated follow-up is not the rule's answer on the card")
     return errors
 
 

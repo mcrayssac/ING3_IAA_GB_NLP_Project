@@ -175,6 +175,13 @@ def field_answer(card: dict[str, Any], field: str) -> str:
     return f"CALL: {call}\nWHY: The card shows {field_phrase(card, field)}, and the call for this lap stays {call}."
 
 
+def stated_answer(card: dict[str, Any], seconds: str) -> str:
+    """The rule's answer on the card, saying the card wins over the gap stated in the message."""
+    call, why = decide(card)
+    prefix = f"The call uses the card, not the stated {seconds}-second gap behind"
+    return f"CALL: {call}\nWHY: {prefix}, and {why[0].lower()}{why[1:]}"
+
+
 def scope_answer(category: str, card: dict[str, Any], other: str = "") -> str:
     sentence = SCOPE[category].format(car=card["driver_number"], other=other)
     return f"CALL: NO CALL\nWHY: {sentence}"

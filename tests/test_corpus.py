@@ -141,7 +141,15 @@ def test_a_gap_stated_in_the_message_keeps_the_card_answer() -> None:
     items = corpus_a(records(), 2026)
     stated = [i for i in items if i["follow_up"] == "stated"]
     assert len(stated) == 20
-    assert all(i["messages"][3] == i["messages"][1] for i in stated)
+    for (
+        item
+    ) in stated:  # same call as the first answer, and the WHY says the card decides
+        first, second = item["messages"][1]["content"], item["messages"][3]["content"]
+        assert second.split("\n")[0] == first.split("\n")[0]
+        assert second.startswith(
+            second.split("\n")[0] + "\nWHY: The call uses the card, not"
+        )
+        assert second.endswith(first[first.index("WHY: ") + 6 :])
     stated[0]["messages"][3]["content"] = (
         "CALL: BOX\nWHY: The stated gap allows a stop."
     )
