@@ -96,17 +96,17 @@ The research plan allowed a pit loss estimated from the previous season at the s
 
 ## For the corpus (tasks 2.2 and 3.1)
 
-A complete card has a known pit loss, no UNKNOWN gap and green running. `train` has 29,644 of them: 28,989 STAY OUT and 655 BOX. Under the 1.4 policy most BOX cards have no car behind: 497 of the 783 BOX cards in `train`, from 127 race-driver pairs. The corpus should take BOX cards with a car behind (286 in `train`) and cap the cards per race and driver, so neighbouring laps of one stint do not dominate. Real cards whose pit loss is missing are natural material for the NO CALL variants of corpus B.
+A complete card has a known pit loss, no UNKNOWN gap and green running. `train` has 29,644 of them: 29,093 STAY OUT and 551 BOX under policy 1.1. Most BOX cards have no car behind: 385 of the 627 BOX cards in `train`, from 113 race-driver pairs. The corpus should take BOX cards with a car behind (242 in `train`) and cap the cards per race and driver, so neighbouring laps of one stint do not dominate. Real cards whose pit loss is missing are natural material for the NO CALL variants of corpus B.
 
 ## Rebuild of 18 October 2026
 
 | Split | Races | Races with cards | Cards | BOX | STAY OUT | NO CALL |
 |---|---:|---:|---:|---:|---:|---:|
-| train | 49 | 46 | 46,018 | 783 | 38,515 | 6,720 |
-| validation | 7 | 7 | 7,155 | 77 | 6,780 | 298 |
-| mini_test | 7 | 5 | 5,214 | 80 | 4,888 | 246 |
+| train | 49 | 46 | 46,018 | 627 | 39,263 | 6,128 |
+| validation | 7 | 7 | 7,155 | 53 | 6,744 | 358 |
+| mini_test | 7 | 5 | 5,214 | 65 | 4,882 | 267 |
 | final | 7 | 7 | 7,517 | closed | closed | closed |
 
 All 70 races were rebuilt without a source failure, and `decide` rejected none of the 65,904 cards as malformed. Two rebuilds from the cache gave identical card files for all 70 races. Five wet races give no card, two of them in `mini_test`.
 
-In `train`, NO CALL comes from a missing pit-loss estimate (3,697 cards), SC or VSC running (2,442) and unknown gaps (581). Four non-final races never get a pit-loss estimate: Australia 2023, where only two stops were made under green flag, the Netherlands 2023 and Britain 2024, where rain stops the cards early, and Miami 2025, where OpenF1 has only 51% of the laps.
+The calls are counted with policy 1.1 (per-compound tyre ages). In `train`, NO CALL comes from a missing pit-loss estimate (3,197 cards), SC or VSC running (2,442) and unknown gaps (489). Four non-final races never get a pit-loss estimate: Australia 2023, where only two stops were made under green flag, the Netherlands 2023 and Britain 2024, where rain stops the cards early, and Miami 2025, where OpenF1 has only 51% of the laps.

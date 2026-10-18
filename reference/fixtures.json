@@ -12,7 +12,7 @@
         "as_of_completed_lap": 29,
         "surface": "DRY",
         "track_status": "GREEN",
-        "compound": "HARD",
+        "compound": "MEDIUM",
         "tyre_age_laps": 18,
         "gap_ahead": {"state": "UNKNOWN", "seconds": null},
         "gap_behind": {"state": "KNOWN", "seconds": 24.0, "driver_number": "63"},
@@ -23,7 +23,7 @@
       "card_policy": [true],
       "messages": [
         {"role": "user", "content": "Should car 44 box at the start of lap 30?"},
-        {"role": "assistant", "content": "CALL: BOX\nWHY: With tyres aged 18 laps, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing."}
+        {"role": "assistant", "content": "CALL: BOX\nWHY: With MEDIUM tyres aged 18 laps, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing."}
       ]
     },
     {
@@ -37,7 +37,7 @@
         "as_of_completed_lap": 29,
         "surface": "DRY",
         "track_status": "GREEN",
-        "compound": "HARD",
+        "compound": "MEDIUM",
         "tyre_age_laps": 11,
         "gap_ahead": {"state": "UNKNOWN", "seconds": null},
         "gap_behind": {"state": "UNKNOWN", "seconds": null},
@@ -48,7 +48,7 @@
       "card_policy": [true],
       "messages": [
         {"role": "user", "content": "What is the call for car 44 at lap 30?"},
-        {"role": "assistant", "content": "CALL: STAY OUT\nWHY: The card shows tyres aged 11 laps, below the 12-lap trigger, so the rule is to stay out."}
+        {"role": "assistant", "content": "CALL: STAY OUT\nWHY: The card shows MEDIUM tyres aged 11 laps, below the 12-lap trigger for MEDIUM tyres, so the rule is to stay out."}
       ]
     },
     {
@@ -62,7 +62,7 @@
         "as_of_completed_lap": 29,
         "surface": "DRY",
         "track_status": "GREEN",
-        "compound": "HARD",
+        "compound": "MEDIUM",
         "tyre_age_laps": 18,
         "gap_ahead": {"state": "UNKNOWN", "seconds": null},
         "gap_behind": {"state": "UNKNOWN", "seconds": null},
@@ -87,7 +87,7 @@
         "as_of_completed_lap": 29,
         "surface": "DRY",
         "track_status": "GREEN",
-        "compound": "HARD",
+        "compound": "MEDIUM",
         "tyre_age_laps": 15,
         "gap_ahead": {"state": "KNOWN", "seconds": 1.5, "driver_number": "16"},
         "gap_behind": {"state": "KNOWN", "seconds": 24.0, "driver_number": "63"},
@@ -98,7 +98,7 @@
       "card_policy": [true, false],
       "messages": [
         {"role": "user", "content": "What is the call at lap 30?"},
-        {"role": "assistant", "content": "CALL: BOX\nWHY: With tyres aged 15 laps and a 1.5-second gap ahead, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing."},
+        {"role": "assistant", "content": "CALL: BOX\nWHY: With MEDIUM tyres aged 15 laps and a 1.5-second gap ahead, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing."},
         {"role": "user", "content": "Does the gap ahead change that call?"},
         {"role": "assistant", "content": "CALL: BOX\nWHY: The card's 1.5-second gap ahead meets the 2.0-second opportunity threshold, and its 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin."}
       ]
@@ -114,7 +114,7 @@
         "as_of_completed_lap": 29,
         "surface": "DRY",
         "track_status": "GREEN",
-        "compound": "HARD",
+        "compound": "MEDIUM",
         "tyre_age_laps": 18,
         "gap_ahead": {"state": "UNKNOWN", "seconds": null},
         "gap_behind": {"state": "KNOWN", "seconds": 24.0, "driver_number": "63"},

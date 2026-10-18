@@ -1,4 +1,4 @@
-"""Deterministic BoxBox race-card policy, version 1.0.
+"""Deterministic BoxBox race-card policy 1.1, on race-card schema 1.0.
 
 The contract and ordered rules are in docs/race-card-contract.md. This module
 uses only the Python standard library and does not reconstruct real race data.
@@ -10,8 +10,10 @@ import re
 from decimal import Decimal, InvalidOperation, localcontext
 from typing import Any
 
-YOUNG_AGE_LIMIT = 12
-OLD_AGE_LIMIT = 18
+POLICY_VERSION = "1.1"
+# (opportunity from, always from) in laps: the 25th percentile and the median tyre age
+# at green-flag stops in the 2023-2025 train races (scripts/tyre_thresholds.py)
+TYRE_LIMITS = {"SOFT": (8, 14), "MEDIUM": (12, 18), "HARD": (18, 24)}
 AHEAD_OPPORTUNITY_SECONDS = Decimal("2.0")
 REJOIN_MARGIN_SECONDS = Decimal("2.0")
 DRY_COMPOUNDS = frozenset({"SOFT", "MEDIUM", "HARD"})
@@ -59,6 +61,16 @@ def _malformed_none(card: dict[str, Any], field: str) -> bool:
 def _number(value: Decimal) -> str:
     rendered = format(value, "f")
     return rendered if "." in rendered else f"{rendered}.0"
+
+
+def article(number: str) -> str:
+    """'an' before a number read with a vowel sound: 8, 11, 18, 80-89, 800-899."""
+    whole = number.split(".")[0]
+    return "an" if whole.startswith("8") or whole in ("11", "18") else "a"
+
+
+def laps(count: int) -> str:
+    return "1 lap" if count == 1 else f"{count} laps"
 
 
 def _rejoin_threshold(pit_loss: Decimal) -> Decimal:
@@ -123,11 +135,14 @@ def _scope_reason(card: Any) -> str | None:
 
 def _opportunity(card: dict[str, Any], tyre_age: int) -> tuple[str | None, str]:
     """Rules 2 to 4: a final (call, why), or (None, the opportunity in words)."""
-    if tyre_age < YOUNG_AGE_LIMIT:
-        why = f"The card shows tyres aged {tyre_age} laps, below the 12-lap trigger"
+    compound = card["compound"]
+    young, old = TYRE_LIMITS[compound]
+    tyres = f"{compound} tyres aged {laps(tyre_age)}"
+    if tyre_age < young:
+        why = f"The card shows {tyres}, below the {young}-lap trigger for {compound} tyres"
         return "STAY OUT", f"{why}, so the rule is to stay out."
-    if tyre_age >= OLD_AGE_LIMIT:
-        return None, f"tyres aged {tyre_age} laps"
+    if tyre_age >= old:
+        return None, tyres
     state, ahead = _gap(card, "gap_ahead")
     if state == "UNKNOWN":
         return (
@@ -135,12 +150,14 @@ def _opportunity(card: dict[str, Any], tyre_age: int) -> tuple[str | None, str]:
             f"The card is missing the gap to the car ahead, {CANNOT_ASSESS}",
         )
     if state == "NONE":
-        why = f"The card shows tyres aged {tyre_age} laps and no car ahead"
+        why = f"The card shows {tyres} and no car ahead"
         return "STAY OUT", f"{why}, so the rule is to stay out."
     if ahead > AHEAD_OPPORTUNITY_SECONDS:
-        why = f"The card shows a {_number(ahead)}-second gap ahead, above the 2.0-second opportunity threshold"
+        gap = f"{article(_number(ahead))} {_number(ahead)}-second gap ahead"
+        why = f"The card shows {gap}, above the 2.0-second opportunity threshold"
         return "STAY OUT", f"{why}, so the rule is to stay out."
-    return None, f"tyres aged {tyre_age} laps and a {_number(ahead)}-second gap ahead"
+    gap = f"{article(_number(ahead))} {_number(ahead)}-second gap ahead"
+    return None, f"{tyres} and {gap}"
 
 
 def _rejoin(card: dict[str, Any], opportunity: str) -> tuple[str, str]:
@@ -154,7 +171,8 @@ def _rejoin(card: dict[str, Any], opportunity: str) -> tuple[str, str]:
     if state == "NONE":
         return (
             "BOX",
-            f"The card shows {opportunity} and no car behind, so the rule calls for boxing.",
+            # "tyres aged 14 laps and a 0.4-second gap ahead" becomes a list before "and no car behind"
+            f"The card shows {opportunity.replace(' and ', ', ')} and no car behind, so the rule calls for boxing.",
         )
     pit_loss = _seconds(card.get("pit_loss_seconds"))
     pit_loss_cutoff = card.get("pit_loss_as_of_completed_lap")

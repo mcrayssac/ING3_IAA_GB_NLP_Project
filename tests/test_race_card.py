@@ -71,6 +71,33 @@ def test_age_boundaries(age: int, expected: str) -> None:
     assert call(card) == expected
 
 
+@pytest.mark.parametrize(
+    ("compound", "age", "expected"),
+    [
+        ("SOFT", 7, "STAY OUT"),
+        ("SOFT", 8, "NO CALL"),
+        ("SOFT", 13, "NO CALL"),
+        ("SOFT", 14, "BOX"),
+        ("HARD", 17, "STAY OUT"),
+        ("HARD", 18, "NO CALL"),
+        ("HARD", 23, "NO CALL"),
+        ("HARD", 24, "BOX"),
+    ],
+)
+def test_each_compound_has_its_own_age_thresholds(compound, age, expected) -> None:
+    unknown_ahead = {"state": "UNKNOWN", "seconds": None}
+    card = changed(compound=compound, tyre_age_laps=age, gap_ahead=unknown_ahead)
+    assert call(card) == expected
+
+
+def test_the_young_tyre_answer_names_the_compound() -> None:
+    why = decide(changed(compound="SOFT", tyre_age_laps=5))[1]
+    assert why == (
+        "The card shows SOFT tyres aged 5 laps, below the 8-lap trigger for SOFT tyres,"
+        " so the rule is to stay out."
+    )
+
+
 def test_tyre_age_counts_earlier_sessions() -> None:
     assert call(changed(lap=1, as_of_completed_lap=0, tyre_age_laps=3)) == "STAY OUT"
     assert call(changed(tyre_age_laps=30)) == "BOX"
