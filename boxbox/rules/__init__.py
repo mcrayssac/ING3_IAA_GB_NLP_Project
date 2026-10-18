@@ -1,5 +1,5 @@
 """Public deterministic race-card decision API."""
 
-from .decision import decide, format_answer
+from .decision import POLICY_VERSION, TYRE_LIMITS, decide, format_answer
 
-__all__ = ["decide", "format_answer"]
+__all__ = ["POLICY_VERSION", "TYRE_LIMITS", "decide", "format_answer"]
