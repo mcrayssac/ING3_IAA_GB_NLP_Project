@@ -56,3 +56,12 @@ def build_config(overrides: dict[str, Any]) -> RunConfig:
 def load_config(path: str | Path) -> RunConfig:
     """Read a TOML file that sets only what differs from the baseline."""
     return build_config(tomllib.loads(Path(path).read_text(encoding="utf-8")))
+
+
+def load_run_settings(
+    path: str | Path, section: str
+) -> tuple[RunConfig, dict[str, Any]]:
+    """Read a TOML file whose `section` table holds settings outside RunConfig."""
+    values = tomllib.loads(Path(path).read_text(encoding="utf-8"))
+    extra = values.pop(section, {})
+    return build_config(values), extra
