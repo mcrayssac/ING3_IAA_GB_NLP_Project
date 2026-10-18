@@ -9,7 +9,11 @@ import random
 from pathlib import Path
 from typing import Any
 
+from boxbox.config import RunConfig
+
 SPLITS_FILE = Path("data/splits.json")
+CARDS_DIR = Path("data/cards")
+CLOSED_SPLITS = {"final"}  # read only once the versions are frozen
 SPLIT_NAMES = ("train", "validation", "mini_test", "final")
 FRACTIONS = {"train": 0.70, "validation": 0.10, "mini_test": 0.10, "final": 0.10}
 
@@ -87,3 +91,28 @@ def load_splits(path: Path = SPLITS_FILE) -> dict[str, Any]:
     ) or document.get("document_sha256") != document_sha256(document):
         raise ValueError(f"{path} was edited by hand (fingerprint mismatch)")
     return document
+
+
+class FinalSplitClosedError(RuntimeError):
+    """The final split was requested before the final test was opened."""
+
+
+def load_cards(
+    split: str,
+    config: RunConfig,
+    cards_dir: Path = CARDS_DIR,
+    splits_path: Path = SPLITS_FILE,
+) -> list[dict[str, Any]]:
+    """Card records of one split; `final` stays closed until config.final_test_open."""
+    if split in CLOSED_SPLITS and not config.final_test_open:
+        raise FinalSplitClosedError(f"{split} is closed until final_test_open is true")
+    races = load_splits(splits_path)["splits"][split]
+    records = []
+    for race_id in races:
+        lines = (
+            (cards_dir / f"{race_id}.jsonl").read_text(encoding="utf-8").splitlines()
+        )
+        records += [json.loads(line) for line in lines]
+    if any(record["split"] != split for record in records):
+        raise ValueError(f"cards in {cards_dir} do not match the {split} split")
+    return records

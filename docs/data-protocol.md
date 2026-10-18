@@ -27,6 +27,8 @@ python -m pytest tests/test_data.py
 
 The unit is a whole race. The 70 races of 2023 to 2025 are shuffled with seed 2026 and split 70/10/10/10 into `train`, `validation`, `mini_test` and `final`, with at least 5 races per evaluation split. `data/splits.json` stores the races, their session keys, the settings, a SHA-256 of the splits and a SHA-256 of the whole file. The loader refuses overlapping splits and any hand edit, including a changed session key. The 2026 season stays out.
 
+Later tasks read cards only through `boxbox.data.load_cards(split, config)`. It refuses `final` with `FinalSplitClosedError` while `config.final_test_open` is false, so the final cards stay unread until the versions are frozen.
+
 ## Card for lap L
 
 A card is a snapshot at the start of lap L, so every value comes from laps up to L - 1, the cutoff.

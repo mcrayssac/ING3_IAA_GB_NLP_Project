@@ -35,11 +35,10 @@ from boxbox.data import (
 )
 from boxbox.data.cards import SCHEMA_VERSION, timing_gaps
 from boxbox.data.openf1 import raw_sha256
-from boxbox.data.splits import FRACTIONS, SPLITS_FILE
+from boxbox.data.splits import CLOSED_SPLITS, FRACTIONS, SPLITS_FILE
 from boxbox.rules import decide
 
 CARDS_DIR = Path("data/cards")
-CLOSED_SPLITS = {"final"}  # call counts stay unread until the final test opens
 CONTRACT_ERRORS = (
     "The card schema",
     "The card identity",

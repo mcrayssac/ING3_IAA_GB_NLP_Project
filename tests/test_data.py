@@ -481,3 +481,25 @@ def test_the_splits_command_refuses_a_frozen_file(monkeypatch, tmp_path) -> None
     monkeypatch.setattr(rebuild_data, "season_races", no_network)
     assert rebuild_data.main(["splits", "--seasons", "2024", "--seed", "1"]) == 1
     assert frozen.read_text(encoding="utf-8") == "{}"
+
+
+def test_the_final_split_stays_closed_until_the_final_test(tmp_path) -> None:
+    from boxbox.config import build_config
+    from boxbox.data import FinalSplitClosedError, load_cards
+
+    splits = tmp_path / "splits.json"
+    freeze_splits({"splits": {"train": ["2024-01"], "final": ["2024-02"]}}, splits)
+    for race_id, split in (("2024-01", "train"), ("2024-02", "final")):
+        record = {"card_id": race_id, "split": split, "card": {}}
+        (tmp_path / f"{race_id}.jsonl").write_text(
+            json.dumps(record) + "\n", encoding="utf-8"
+        )
+    closed, opened = build_config({}), build_config({"final_test_open": True})
+    assert [r["card_id"] for r in load_cards("train", closed, tmp_path, splits)] == [
+        "2024-01"
+    ]
+    with pytest.raises(FinalSplitClosedError):
+        load_cards("final", closed, tmp_path, splits)
+    assert [r["card_id"] for r in load_cards("final", opened, tmp_path, splits)] == [
+        "2024-02"
+    ]
