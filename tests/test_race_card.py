@@ -14,7 +14,6 @@ import pytest
 from boxbox.rules import decide, format_answer
 from boxbox.rules.__main__ import main
 
-
 ROOT = Path(__file__).resolve().parents[1]
 CONVERSATIONS = json.loads(
     (ROOT / "reference/fixtures.json").read_text(encoding="utf-8"), parse_float=Decimal
@@ -22,7 +21,9 @@ CONVERSATIONS = json.loads(
 CARDS = {case["id"]: case["card"] for case in CONVERSATIONS}
 CLI_CARDS = {
     case["id"]: case["card"]
-    for case in json.loads((ROOT / "reference/fixtures.json").read_text(encoding="utf-8"))["conversations"]
+    for case in json.loads(
+        (ROOT / "reference/fixtures.json").read_text(encoding="utf-8")
+    )["conversations"]
 }
 
 
@@ -41,15 +42,19 @@ def test_five_conversation_fixtures_and_output_shape() -> None:
     document = (ROOT / "docs/race-card-contract.md").read_text(encoding="utf-8")
     for case in CONVERSATIONS:
         card = case["card"]
-        for turn in case["turns"]:
-            expected = turn["expected"]
+        assert all(set(message) == {"role", "content"} for message in case["messages"])
+        roles = [message["role"] for message in case["messages"]]
+        assert roles == ["user", "assistant"] * (len(roles) // 2)
+        answers = case["messages"][1::2]
+        for answer, card_policy in zip(answers, case["card_policy"], strict=True):
+            expected = answer["content"]
             lines = expected.splitlines()
             assert len(lines) == 2
             assert lines[0] in {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
             assert lines[1].startswith("WHY: ")
             assert lines[1].endswith(".")
             assert expected.replace("\n", "\n   ") in document
-            if turn["card_policy"]:
+            if card_policy:
                 assert format_answer(card) == expected
             elif case["id"] == "medium_safe":
                 assert lines[0] == "CALL: " + call(card)
@@ -66,6 +71,20 @@ def test_age_boundaries(age: int, expected: str) -> None:
     assert call(card) == expected
 
 
+def test_tyre_age_counts_earlier_sessions() -> None:
+    assert call(changed(lap=1, as_of_completed_lap=0, tyre_age_laps=3)) == "STAY OUT"
+    assert call(changed(tyre_age_laps=30)) == "BOX"
+
+
+def test_display_fields_never_change_the_call() -> None:
+    for case in CONVERSATIONS:
+        bare = copy.deepcopy(case["card"])
+        del bare["reference_lap_seconds"]
+        for field in ("gap_ahead", "gap_behind"):
+            bare[field].pop("driver_number", None)
+        assert decide(bare) == decide(case["card"])
+
+
 def test_irrelevant_missing_fields() -> None:
     assert call(changed("stay_young", gap_ahead=None, gap_behind=None)) == "STAY OUT"
     assert call(changed(gap_ahead=None)) == "BOX"
@@ -78,20 +97,38 @@ def test_irrelevant_missing_fields() -> None:
     [(Decimal("1.99"), "BOX"), (Decimal("2.0"), "BOX"), (Decimal("2.01"), "STAY OUT")],
 )
 def test_ahead_threshold(gap: Decimal, expected: str) -> None:
-    assert call(changed("medium_safe", gap_ahead={"state": "KNOWN", "seconds": gap})) == expected
+    assert (
+        call(changed("medium_safe", gap_ahead={"state": "KNOWN", "seconds": gap}))
+        == expected
+    )
 
 
 def test_ahead_states() -> None:
-    assert call(changed("medium_safe", gap_ahead={"state": "NONE", "seconds": None})) == "STAY OUT"
+    assert (
+        call(changed("medium_safe", gap_ahead={"state": "NONE", "seconds": None}))
+        == "STAY OUT"
+    )
     for invalid in ({"state": "NONE"}, {"state": "NONE", "seconds": 0}):
-        assert format_answer(changed("medium_safe", gap_ahead=invalid)).startswith("CALL: NO CALL\n")
-    assert call(changed("medium_safe", gap_ahead={"state": "UNKNOWN", "seconds": None})) == "NO CALL"
-    assert call(changed("medium_safe", gap_ahead={"state": "KNOWN", "seconds": -1})) == "NO CALL"
+        assert format_answer(changed("medium_safe", gap_ahead=invalid)).startswith(
+            "CALL: NO CALL\n"
+        )
+    assert (
+        call(changed("medium_safe", gap_ahead={"state": "UNKNOWN", "seconds": None}))
+        == "NO CALL"
+    )
+    assert (
+        call(changed("medium_safe", gap_ahead={"state": "KNOWN", "seconds": -1}))
+        == "NO CALL"
+    )
 
 
 @pytest.mark.parametrize(
     ("gap", "expected"),
-    [(Decimal("22.99"), "STAY OUT"), (Decimal("23.0"), "BOX"), (Decimal("23.01"), "BOX")],
+    [
+        (Decimal("22.99"), "STAY OUT"),
+        (Decimal("23.0"), "BOX"),
+        (Decimal("23.01"), "BOX"),
+    ],
 )
 def test_rejoin_threshold(gap: Decimal, expected: str) -> None:
     assert call(changed(gap_behind={"state": "KNOWN", "seconds": gap})) == expected
@@ -101,9 +138,18 @@ def test_behind_states() -> None:
     assert "22.99-second" in format_answer(
         changed(gap_behind={"state": "KNOWN", "seconds": Decimal("22.99")})
     )
-    assert call(changed(gap_behind={"state": "NONE", "seconds": None}, pit_loss_seconds=None)) == "BOX"
+    assert (
+        call(
+            changed(
+                gap_behind={"state": "NONE", "seconds": None}, pit_loss_seconds=None
+            )
+        )
+        == "BOX"
+    )
     for invalid in ({"state": "NONE"}, {"state": "NONE", "seconds": 0}):
-        assert format_answer(changed(gap_behind=invalid, pit_loss_seconds=None)).startswith("CALL: NO CALL\n")
+        assert format_answer(
+            changed(gap_behind=invalid, pit_loss_seconds=None)
+        ).startswith("CALL: NO CALL\n")
     assert call(changed(gap_behind={"state": "UNKNOWN", "seconds": None})) == "NO CALL"
     assert call(changed(gap_behind={"state": "KNOWN", "seconds": None})) == "NO CALL"
 
@@ -111,11 +157,33 @@ def test_behind_states() -> None:
 @pytest.mark.parametrize(
     ("card", "expected"),
     [
-        (changed("medium_safe", gap_ahead={"state": "KNOWN", "seconds": Decimal("2.0000000000000001")}), "STAY OUT"),
-        (changed(gap_behind={"state": "KNOWN", "seconds": Decimal("22.9999999999999999")}), "STAY OUT"),
-        (changed(gap_behind={"state": "KNOWN", "seconds": Decimal("23")}, pit_loss_seconds=Decimal("21")), "BOX"),
-        (changed(gap_behind={"state": "KNOWN", "seconds": Decimal("23")},
-                 pit_loss_seconds=Decimal("21.0000000000000000000000000001")), "STAY OUT"),
+        (
+            changed(
+                "medium_safe",
+                gap_ahead={"state": "KNOWN", "seconds": Decimal("2.0000000000000001")},
+            ),
+            "STAY OUT",
+        ),
+        (
+            changed(
+                gap_behind={"state": "KNOWN", "seconds": Decimal("22.9999999999999999")}
+            ),
+            "STAY OUT",
+        ),
+        (
+            changed(
+                gap_behind={"state": "KNOWN", "seconds": Decimal(23)},
+                pit_loss_seconds=Decimal(21),
+            ),
+            "BOX",
+        ),
+        (
+            changed(
+                gap_behind={"state": "KNOWN", "seconds": Decimal(23)},
+                pit_loss_seconds=Decimal("21.0000000000000000000000000001"),
+            ),
+            "STAY OUT",
+        ),
     ],
 )
 def test_direct_decimal_values(card: dict[str, object], expected: str) -> None:
@@ -130,8 +198,13 @@ def test_direct_decimal_values(card: dict[str, object], expected: str) -> None:
     ],
 )
 def test_cli_preserves_json_decimal_precision(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
-    base: str, field: str, number: str, expected: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    base: str,
+    field: str,
+    number: str,
+    expected: str,
 ) -> None:
     card = copy.deepcopy(CLI_CARDS[base])
     card[field] = {"state": "KNOWN", "seconds": "__NUMBER__"}
@@ -145,7 +218,8 @@ def test_cli_preserves_json_decimal_precision(
 
 @pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
 def test_cli_rejects_nonfinite_json_constants(
-    tmp_path: Path, constant: str,
+    tmp_path: Path,
+    constant: str,
 ) -> None:
     card = copy.deepcopy(CLI_CARDS["stay_young"])
     card["pit_loss_seconds"] = "__NUMBER__"
@@ -154,7 +228,10 @@ def test_cli_rejects_nonfinite_json_constants(
     path.write_text(source, encoding="utf-8")
     result = subprocess.run(
         [sys.executable, "-m", "boxbox.rules", str(path)],
-        cwd=ROOT, capture_output=True, text=True, check=False,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 2
     assert result.stdout == ""
@@ -177,16 +254,26 @@ def test_scope_identity_and_malformed_card() -> None:
     assert call(changed(compound="INTERMEDIATE")) == "NO CALL"
     assert call(changed(compound=[])) == "NO CALL"
     assert call(changed(tyre_age_laps=True)) == "NO CALL"
-    assert call(changed(tyre_age_laps=30)) == "NO CALL"
+    assert call(changed(tyre_age_laps=-1)) == "NO CALL"
+    assert call(changed(tyre_age_laps=18.0)) == "NO CALL"  # reconstruction must send 18
     assert call(changed(as_of_completed_lap=30)) == "NO CALL"
-    assert call(changed(race={**CARDS["box_old"]["race"], "completed": False})) == "NO CALL"
+    assert (
+        call(changed(race={**CARDS["box_old"]["race"], "completed": False}))
+        == "NO CALL"
+    )
     assert call({}) == "NO CALL"
     assert call(None) == "NO CALL"
 
 
 @pytest.mark.parametrize(
     ("driver_number", "expected"),
-    [("1", "BOX"), ("99", "BOX"), ("01", "NO CALL"), ("00", "NO CALL"), ("100", "NO CALL")],
+    [
+        ("1", "BOX"),
+        ("99", "BOX"),
+        ("01", "NO CALL"),
+        ("00", "NO CALL"),
+        ("100", "NO CALL"),
+    ],
 )
 def test_driver_number_has_no_leading_zero(driver_number: str, expected: str) -> None:
     assert call(changed(driver_number=driver_number)) == expected
