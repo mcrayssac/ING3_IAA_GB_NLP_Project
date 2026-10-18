@@ -162,6 +162,7 @@ def _item(
         "card": record["card"],
         "messages": messages,
         "scope": None,
+        "follow_up": None,
         "swap_field": None,
     }
 
@@ -176,50 +177,58 @@ def _turns(*pairs: tuple[str, str]) -> list[dict[str, str]]:
     return turns
 
 
-def _call_question(card: dict[str, Any], rng: random.Random) -> str:
-    return rng.choice(T.CALL_QUESTIONS).format(
+def _call_question(card: dict[str, Any], rng: random.Random, use: str) -> str:
+    return rng.choice(T.QUESTIONS[use]["call"]).format(
         car=card["driver_number"], lap=card["lap"]
     )
 
 
-def call_item(record: dict[str, Any], kind: str, rng: random.Random) -> dict[str, Any]:
+def call_item(
+    record: dict[str, Any], kind: str, rng: random.Random, use: str
+) -> dict[str, Any]:
     card = record["card"]
-    return _item(record, kind, _turns((_call_question(card, rng), T.call_answer(card))))
+    question = _call_question(card, rng, use)
+    return _item(record, kind, _turns((question, T.call_answer(card))))
 
 
-def _what_if_seconds(card: dict[str, Any]) -> float:
-    """An assumed gap behind on the other side of the rejoin threshold when there is one."""
+def _stated_seconds(card: dict[str, Any]) -> float:
+    """A gap behind on the other side of the rejoin threshold, so it would flip that test."""
     loss = card["pit_loss_seconds"]
-    if loss is None:
-        return 20.0
     behind = card["gap_behind"]
     covers = behind["state"] == "NONE" or behind["seconds"] >= loss + 2.0
     return round(max(0.5, loss + 2.0 - 4.0) if covers else loss + 2.0 + 4.0, 1)
 
 
-def multi_item(record: dict[str, Any], turn: int, rng: random.Random) -> dict[str, Any]:
-    """A call, then one follow-up: why, a field, an explicit what-if or out of scope."""
-    card = record["card"]
-    first = (_call_question(card, rng), T.call_answer(card))
-    style = turn % 4
-    if style == 0:
-        second = (rng.choice(T.WHY_QUESTIONS), T.call_answer(card))
-    elif style == 1:
-        field = list(T.FIELD_QUESTIONS)[turn // 4 % len(T.FIELD_QUESTIONS)]
-        second = (T.FIELD_QUESTIONS[field], T.field_answer(card, field))
-    elif style == 2:
-        seconds = _what_if_seconds(card)
+def multi_item(
+    record: dict[str, Any], turn: int, rng: random.Random, use: str
+) -> dict[str, Any]:
+    """A call, then one follow-up: why, a field, a gap stated in the message or out of scope.
+
+    A gap stated in the message still gets the rule's answer on the card: the card is the
+    only source of race numbers.
+    """
+    card, questions = record["card"], T.QUESTIONS[use]
+    first = (_call_question(card, rng, use), T.call_answer(card))
+    style = ("why", "field", "stated", "out_of_scope")[turn % 4]
+    if style == "why":
+        second = (rng.choice(questions["why"]), T.call_answer(card))
+    elif style == "field":
+        field = list(questions["field"])[turn // 4 % len(questions["field"])]
+        second = (questions["field"][field], T.field_answer(card, field))
+    elif style == "stated":
+        seconds = f"{_stated_seconds(card):.1f}"
+        question = rng.choice(questions["stated"])
         second = (
-            T.WHAT_IF_QUESTION.format(seconds=f"{seconds:.1f}"),
-            T.what_if_answer(card, seconds),
+            question.format(car=card["driver_number"], seconds=seconds),
+            T.call_answer(card),
         )
     else:
         category = ("weather", "live_race", "championship", "multi_stop")[turn // 4 % 4]
-        question = rng.choice(T.SCOPE[category][0]).format(
+        question = rng.choice(questions["scope"][category]).format(
             car=card["driver_number"], other=""
         )
         second = (question, T.scope_answer(category, card))
-    return _item(record, "multi", _turns(first, second))
+    return {**_item(record, "multi", _turns(first, second)), "follow_up": style}
 
 
 def _other_car(card: dict[str, Any], rng: random.Random) -> str:
@@ -228,10 +237,12 @@ def _other_car(card: dict[str, Any], rng: random.Random) -> str:
     return rng.choice([str(n) for n in range(1, 100) if str(n) not in on_card])
 
 
-def scope_item(record: dict[str, Any], turn: int, rng: random.Random) -> dict[str, Any]:
+def scope_item(
+    record: dict[str, Any], turn: int, rng: random.Random, use: str
+) -> dict[str, Any]:
     card, category = record["card"], list(T.SCOPE)[turn % len(T.SCOPE)]
     other = _other_car(card, rng)
-    question = rng.choice(T.SCOPE[category][0]).format(
+    question = rng.choice(T.QUESTIONS[use]["scope"][category]).format(
         car=card["driver_number"], other=other
     )
     item = _item(
@@ -242,16 +253,16 @@ def scope_item(record: dict[str, Any], turn: int, rng: random.Random) -> dict[st
     return {**item, "scope": category}
 
 
-def track_item(record: dict[str, Any], rng: random.Random) -> dict[str, Any]:
+def track_item(record: dict[str, Any], rng: random.Random, use: str) -> dict[str, Any]:
     """A call question under a safety car or VSC, which the rule answers with NO CALL."""
-    return {**call_item(record, "out_of_scope", rng), "scope": "track_status"}
+    return {**call_item(record, "out_of_scope", rng, use), "scope": "track_status"}
 
 
 def removed_item(
-    record: dict[str, Any], kind: str, field: str, rng: random.Random
+    record: dict[str, Any], kind: str, field: str, rng: random.Random, use: str
 ) -> dict:
     """A complete card with one field made unknown: required ("missing") or not ("decidable")."""
     changed = {**record, "card": remove_field(record["card"], field)}
-    item = call_item(changed, kind, rng)
+    item = call_item(changed, kind, rng, use)
     item["removed_field"] = field
     return item

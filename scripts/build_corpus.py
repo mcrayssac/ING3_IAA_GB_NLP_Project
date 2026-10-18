@@ -24,6 +24,7 @@ from boxbox.corpus import (
     TRACK_ITEMS,
     check_corpus_a,
     check_set,
+    check_unseen,
     corpus_a,
     eval_set,
 )
@@ -130,6 +131,7 @@ def _sets(seed: int) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
             EVAL_CAP,
             TRACK_ITEMS[split],
         )
+    errors += check_unseen(sets["A_train"], sets["validation"], sets["mini_test"])
     return sets, errors
 
 
