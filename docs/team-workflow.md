@@ -8,19 +8,19 @@ Each member confirms their own slots and usable human hours, including implement
 
 | Date (2026, Europe/Paris) | Member confirming | Remaining slots / usable hours | Confirmation | Recorded at (Europe/Paris) | Source |
 |---|---|---|---|---|---|
-| 18 October | Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 18 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 18 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
 | 18 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
-| 19 October | Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 19 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 19 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
 | 19 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
-| 20 October | Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 20 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 20 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
 | 20 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
-| 21 October | Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 21 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 21 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
 | 21 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
-| 22 October | Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| 22 October | Maxime CRAYSSAC | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:48 +0200 | Maxime CRAYSSAC, PR #39 |
 | 22 October | Paul PITIOT | 18:00-22:30 / 4.5 h | Confirmed | 18 October 2026, 15:24 +0200 | Paul PITIOT, project chat |
 | 22 October | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
 
@@ -31,10 +31,10 @@ For a common assessment cutoff, let `C` be the sum of the still-usable hours con
 | Assessment item | Current evidence / result | Confirmation needed from | Confirmed at / accessible reference |
 |---|---|---|---|
 | Assessment cutoff | pending confirmation | Paul, after collecting the three replies | pending confirmation / pending confirmation |
-| Remaining hours per member and complete total `C` | Paul: 22.5 h confirmed across 18-22 October (5 of 15 daily entries). Maxime and Matthieu: pending confirmation; complete team total unknown | Each member; Paul consolidates | pending confirmation / pending confirmation |
+| Remaining hours per member and complete total `C` | Paul: 22.5 h and Maxime: 22.5 h confirmed across 18-22 October (10 of 15 daily entries). Matthieu: pending confirmation; complete team total unknown | Each member; Paul consolidates | pending confirmation / pending confirmation |
 | Reserve `R` and protected slots | 8 collective hours required inside `C`; slots pending confirmation | All three members | pending confirmation / pending confirmation |
 | Planned-work capacity `P` | pending confirmation; subtract reserve once after `C` is established | Paul, checked by Maxime | pending confirmation / pending confirmation |
-| Gap against 50 h / 70 h | Partial confirmed amount: 22.5 h. The team's actual shortfall cannot be calculated until Maxime and Matthieu reply | Paul, checked by Maxime | pending confirmation / pending confirmation |
+| Gap against 50 h / 70 h | Partial confirmed amount: 45 h. The team's actual shortfall cannot be calculated until Matthieu replies | Paul, checked by Maxime | pending confirmation / pending confirmation |
 | Capacity/scope decision | pending confirmation; 50–70 h feasibility is unverified | All three members; Paul records the decision | pending confirmation / pending confirmation |
 
 After replies, report `max(0, 50 - C)` as the gap to the lower assumption and `max(0, 70 - C)` as the gap to its upper end. If some replies are missing, label the sum a partial confirmed amount, not total capacity. If `C < 50`, state the actual gap and obtain a linked team decision to add genuinely available time or revise sequencing/scope through the existing roadmap gates; do not allocate fictional hours or silently reduce acceptance. If `C < 8`, the reserve itself is not covered. If `50 <= C <= 70`, state where the capacity falls within the assumption and whether review/reserve slots fit; if `C > 70`, record the actual value without automatically expanding scope. Aggregate hours alone do not establish that dependency handovers fit the calendar.
@@ -45,7 +45,7 @@ The acknowledgment must identify the reviewed document revision or exact shared 
 
 | Member | Workflow / parallel-work acknowledgment | Availability and capacity/reserve decision acknowledgment | Confirmed at (Europe/Paris) | Accessible reference and reviewed revision |
 |---|---|---|---|---|
-| Maxime CRAYSSAC | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
+| Maxime CRAYSSAC | Confirmed | Confirmed | 18 October 2026, 15:48 +0200 | PR #39 at 04b2353 |
 | Paul PITIOT | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
 | Matthieu Brault | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
 
