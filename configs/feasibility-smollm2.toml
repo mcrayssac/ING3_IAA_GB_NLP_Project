@@ -1,0 +1,17 @@
+# Fallback for task 1.5: the same disposable check with SmolLM2-1.7B-Instruct,
+# to run when configs/feasibility.toml reports NO-GO for SmolLM3-3B.
+
+model_id = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+model_revision = "31b70e2e869a7173562077fd711b654946d38674"
+
+[lora]
+max_steps = 30
+
+[feasibility]
+rows = 64
+adapter_dialogues = 400
+adapter_epochs = 3
+max_adapter_minutes = 60
+max_memory_gb = 20
+reload_max_prob_diff = 0.001
+min_base_separation = 0.1
