@@ -1,4 +1,4 @@
-# BoxBox roadmap — consolidated
+# BoxBox roadmap - consolidated
 
 The single active schedule is now [the recovery roadmap](roadmap.md), covering 17–22 October 2026 with shared task pickup, dependencies, decision gates and links to the GitHub task queue.
 
