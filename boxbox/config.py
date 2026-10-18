@@ -33,7 +33,7 @@ class Lora:
 class RunConfig:
     model_id: str = "HuggingFaceTB/SmolLM3-3B"
     model_revision: str = "a07cc9a04f16550a088caea529712d1d335b0ac1"
-    data_source: str = "fastf1"
+    data_source: str = "openf1"
     abstention_share: float = 0.0  # 0 for A, 0.15 for B
     prompt_variant: str = "zero-shot"
     history_turns: int = 3

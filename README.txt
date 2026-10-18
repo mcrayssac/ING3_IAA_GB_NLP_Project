@@ -19,7 +19,24 @@ a07cc9a04f16550a088caea529712d1d335b0ac1 (Apache 2.0, about 6.2 GB of weights).
 
     .venv/bin/python -m pytest -q
 
-3. Feasibility check (task 1.5)
+3. Race data (task 2.1)
+-----------------------
+
+The race-level splits are frozen in data/splits.json (committed). The cards are
+rebuilt from OpenF1 and Jolpica. Responses are cached in data/cache/openf1/ and
+cards written to data/cards/; neither is committed. Without a cache the
+rebuild makes 286 requests, one every 2.1 s at OpenF1's free rate, so at least
+10 minutes. From the cache it took 77 s on an M3 Max.
+
+    .venv/bin/python -m scripts.rebuild_data cards
+    .venv/bin/python -m scripts.rebuild_data card --race 2024-01 --driver 1 --lap 20
+
+The splits were made once with the command below, which refuses to overwrite
+the existing file:
+
+    .venv/bin/python -m scripts.rebuild_data splits --seasons 2023 2024 2025 --seed 2026
+
+4. Feasibility check (task 1.5)
 -------------------------------
 
 This trains a disposable LoRA adapter for a few steps, reloads it in a fresh
@@ -64,7 +81,7 @@ over 3 epochs (300 steps) is extrapolated from 30 steps on examples of about
 304 tokens; it was not measured. Task 2.6 must measure it on the real corpus,
 whose multi-turn dialogues are longer.
 
-4. Notebook
+5. Notebook
 -----------
 
     .venv/bin/jupyter notebook agent.ipynb
