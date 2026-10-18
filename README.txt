@@ -36,7 +36,24 @@ the existing file:
 
     .venv/bin/python -m scripts.rebuild_data splits --seasons 2023 2024 2025 --seed 2026
 
-4. Feasibility check (task 1.5)
+4. Corpus (task 2.2)
+--------------------
+
+Corpus A, validation and mini-test dialogues are committed in data/corpus/
+(CC BY-NC-SA 4.0, see data/corpus/NOTICE). They are rebuilt from the cards in
+about 2 s, and the review sheet summary is written with the second command:
+
+    .venv/bin/python -m scripts.build_corpus build
+    .venv/bin/python -m scripts.build_corpus review
+
+In review_sheet.csv, use ok or fix in verdict and prefix the reason in note
+with automatic: or confirmed:. Leave unresolved judgments blank. The review
+command summarises existing decisions; it does not review or approve rows.
+review.json separates automatic, confirmed, unattributed and pending counts.
+The retained read count includes all completed decisions, not just human ones.
+Review is complete when pending is zero and the fix list is empty.
+
+5. Feasibility check (task 1.5)
 -------------------------------
 
 This trains a disposable LoRA adapter for a few steps, reloads it in a fresh
@@ -81,7 +98,7 @@ over 3 epochs (300 steps) is extrapolated from 30 steps on examples of about
 304 tokens; it was not measured. Task 2.6 must measure it on the real corpus,
 whose multi-turn dialogues are longer.
 
-5. Notebook
+6. Notebook
 -----------
 
     .venv/bin/jupyter notebook agent.ipynb
