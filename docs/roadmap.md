@@ -1,6 +1,6 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 17 October 2026 — milestone 1 is in progress.** Audience, scope and FastF1 selection (1.1–1.3), and the race-card contract and rules (1.4), are done. No model prototype, training run or result has been delivered. Other tasks are unstarted. Task 3.4 is now an optional zero-shot baseline with OpenJev Flash 9B; repeat runs and V2 stay deferred.
+**Snapshot: 17 October 2026 - milestone 1 is in progress.** Audience, scope and FastF1 selection (1.1–1.3), and the race-card contract and rules (1.4), are done. No model prototype, training run or result has been delivered. Other tasks are unstarted. Task 3.4 is now an optional zero-shot baseline with OpenJev Flash 9B; repeat runs and V2 stay deferred.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
@@ -14,7 +14,7 @@ The README retains the separate business overview. The Gantt groups tasks by mil
 
 ## Capacity and priorities
 
-The three members have **50–70 collective hours remaining**, including coordination, review and an **8-hour reserve**. This leaves **42–62 hours for planned work** before using contingency. Confirm daily availability in 1.6 and measured compute/reconstruction times in 1.5/2.1. These date windows do not prove that the full study fits.
+The recovery plan assumes **50–70 collective hours**, including coordination, review and an **8-hour reserve**. This would leave **42–62 hours for planned work** before using contingency. Actual remaining capacity must be established from the dated daily confirmations in the [1.6 team register](team-workflow.md#daily-availability-and-capacity); the assumption is not confirmed availability. Measured compute/reconstruction times belong to 1.5/2.1. These date windows do not prove that the full study fits.
 
 Protect the complete seven-step assignment, executed notebook, French report and French video. Target baseline/A/B with **400 training examples for A and 400 for B**, approximately **200 final cases**, and the **same 40 human-reviewed cases per retained version** (120 responses for three versions, 80 for two). Any reduction requires a recorded team decision with its effect on the claims and schedule.
 
@@ -71,7 +71,7 @@ Record a gate decision in its issue: evidence, available people/hardware, retain
 
 Categories are not exclusive responsibilities. **Anyone available may claim a ready task.** One person leads a claimed task; others can help. Any available teammate other than the implementer can review. Keep one active implementation task per person; unattended computation may run while another ready task is taken. A blocked claimant records the obstacle and a handover note rather than reserving work indefinitely.
 
-Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md) for claim, review and handover details.
+Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
 Ready and unassigned in this snapshot: **[1.5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) model feasibility and observations, [1.6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) agree task pickup and review, [5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable; these tasks have not started. The queue contains 28 unfinished tasks, including the optional [3.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35). The four completed tasks (1.1–1.4) do not need new issues.
 
@@ -98,12 +98,12 @@ Windows include implementation, checks and hand-off review; they are not effort 
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 1.1 | **Audience and need.** Define F1 content creators and analysts as the audience and historical pit-stop explanation as the need. | T | 26 Sep (completed) | — | done | — |
-| 1.2 | **Scope and research question.** Define the narrow historical scope and the A/B question on justified abstention. | T | 26 Sep (completed) | — | done | — |
-| 1.3 | **FastF1 selection.** Select FastF1; retain OpenF1 only as an optional cross-check. Access and reconstruction still need testing. | D | 26 Sep (completed) | — | done | — |
+| 1.1 | **Audience and need.** Define F1 content creators and analysts as the audience and historical pit-stop explanation as the need. | T | 26 Sep (completed) | - | done | - |
+| 1.2 | **Scope and research question.** Define the narrow historical scope and the A/B question on justified abstention. | T | 26 Sep (completed) | - | done | - |
+| 1.3 | **FastF1 selection.** Select FastF1; retain OpenF1 only as an optional cross-check. Access and reconstruction still need testing. | D | 26 Sep (completed) | - | done | - |
 | 1.4 | **Race-card contract and rules.** Fix card fields, units, thresholds and BOX/STAY OUT/NO CALL policy; provide a deterministic reference and five expected conversations. | D | 17 Oct, remaining day | 1.2, 1.3 | done | [#3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) |
 | 1.5 | **Model feasibility and observations.** Load a compact instruction model, document the required model observations and verify a short, reloadable adaptation on available hardware. | M | 17 Oct, remaining day | 1.2 | ready | [#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) |
-| 1.6 | **Agree task pickup and review.** Confirm daily availability, the shared claim/review workflow and the submission channel; assign no permanent task owners. | T | 17 Oct, remaining day | — | ready | [#5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) |
+| 1.6 | **Agree task pickup and review.** Confirm daily availability, the shared claim/review workflow and the submission channel; assign no permanent task owners. | T | 17 Oct, remaining day | - | ready | [#5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) |
 
 ### 2. First prototype
 

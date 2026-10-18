@@ -4,16 +4,56 @@ Use the [consolidated roadmap](roadmap.md) for task definitions, dependencies, w
 
 ## Pick up, deliver and review a task
 
-1. Check the issue and its prerequisites. A task is ready only after prerequisite outputs are reviewed and integrated. Comment with your claim, self-assign as the single lead and change its label to `status:in-progress`. Confirm no other teammate is already claiming it.
+1. Check the live issue, its prerequisites, the current claimant and your availability. A task is ready only after prerequisite outputs are reviewed and integrated; 1.6 has none. Coordinate simultaneous claims before starting, then comment with your claim, self-assign as the single temporary lead and replace the previous status label with `status:in-progress`. State your working directory, branch, intended output and next handover time. A claim does not reserve later tasks in that category.
 2. Keep one active hands-on implementation task per person. Others may help; an unattended computation can run while its lead takes another ready task. D/M/E/T identify work categories, not reserved owners.
-3. Use an isolated working directory and a small branch such as `feature/2-5a-conversation-engine`. Agree temporary coordination for shared notebook/dependency-file edits; publish a cell or focused change for later integration when necessary. Do not make a permanent person-to-file assignment.
+3. Use a separate Git working directory and a small branch such as `feature/2-5a-conversation-engine`. A new terminal in the same directory shares its branch, index and uncommitted files; it does not isolate work. Each contributor uses an independent clone or worktree. Follow the temporary shared-file procedure below for notebook and dependency edits.
 4. Implement the issue's expected output using existing shared functions where possible. Run relevant checks, retain actual outputs and record commands, versions and successful/failed/not-run results with reasons. A planned command is not a passed check.
-5. Move to `status:review` with the change/deliverable link and evidence. Any available teammate other than the implementer may review. The reviewer checks acceptance and the affected end-to-end path; changes requested return to in progress. Record who reviewed and what they checked.
+5. Move to `status:review` with the change/deliverable link, base/HEAD, changed and new files, commands/results, remaining risks and requested checks. Agree an available reviewer other than the implementer; a suggested name is not a confirmed review slot. The reviewer checks acceptance and the affected end-to-end path and records their name, time, evidence and verdict. Requested changes return the issue to `status:in-progress` under a confirmed lead; link each correction and its recheck before returning to review.
 6. Close with `status:done` only after acceptance and integration, or after the reviewed deliverable is accessible. Link the review and integration reference. A commit, screenshot or checked box alone does not prove completion. Submission task 5.6 additionally requires the actual human submission receipt.
 
-Use one status label: **planned → ready → in progress → review → done**; also **blocked** and **deferred**. Reopen a task when acceptance is invalidated. Keep deferred research work open with its decision rather than closing it as successful.
+Keep exactly one `status:` label on each issue; replace it on every transition. GitHub is the live record, while roadmap tables remain dated snapshots. Do not create a second status board in a confirmation document.
 
-For a blocker, record the obstacle, current branch/artifacts, checks already run and the smallest next action. Agree a handover or release the claim promptly; do not reserve work indefinitely. Record scope/count decisions with evidence and team agreement in the relevant gate issue. Review and coordination time come from the same 50–70-hour capacity, including the protected 8-hour reserve.
+| Status label | Meaning and next action |
+|---|---|
+| `status:planned` | Prerequisites are not yet reviewed and integrated; identify what is missing. |
+| `status:ready` | Prerequisites are met and the task is available to claim. |
+| `status:in-progress` | One identified lead is implementing the task. |
+| `status:review` | The output and check evidence are accessible for independent teammate review. |
+| `status:done` | Acceptance, independent review and integration or accessible delivery are evidenced. |
+| `status:blocked` | An obstacle prevents progress; record the obstacle, next action, who can unblock it and the next check-in. Release a claim if its lead cannot act. |
+| `status:deferred` | A linked team decision postpones the task, with reason, impact and revisit condition. Keep it open rather than closing it as successful. |
+
+Reopen a task when acceptance is invalidated and choose the single status matching its actual next action. From blocked, return to ready when the obstacle is removed and no lead is acting, or to in-progress after a lead confirms resumption. Resume deferred work only after a linked team decision and a fresh prerequisite/availability check. Record scope/count decisions with evidence and team agreement in the relevant gate issue; never silently relax acceptance.
+
+### Handover and release
+
+Record the obstacle or reason for stopping, current artifacts and the smallest next action before handing over. The outgoing lead names a proposed successor; that person confirms availability and receipt before becoming the single lead. Until then, record that pickup is pending confirmation. If nobody can take it, release the assignment promptly: keep blocked if the obstacle remains, or ready if another available member can act. Use deferred only for a team decision to postpone. Agree the next check-in rather than leaving a dormant claim indefinitely.
+
+Copy this note into the relevant issue when needed; a local path alone is not accessible to a teammate on another computer. Share an integrated reference, a branch/commit already published by a human, or an accessible patch/deliverable including new files. Confirm receipt before assuming a handover is complete.
+
+```text
+Issue / current single status:
+Outgoing lead / proposed successor / receipt confirmed by, at, reference:
+Repository directory / branch / starting SHA / current HEAD:
+Changed tracked files / new untracked files / accessible change or artifact link:
+Checks actually run and results / failed or not-run checks and reasons:
+Blocker / smallest next action / person able to unblock / next check-in:
+Shared-file coordination still held or explicitly released:
+Reviewer / next action / linked decision if scope changes:
+```
+
+The unattended-computation exception does not allow two simultaneous hands-on implementations. Record the running job, artifact/log location and monitoring or return point; avoid shared output/file writes. Sequence the next manual action or hand one task over. Waiting for a run creates no extra human hours. Review, coordination and corrections all consume the capacity assessed in the [team register](team-workflow.md#daily-availability-and-capacity), with one protected 8-hour reserve inside the total.
+
+### Temporary shared-file edits
+
+`agent.ipynb` and `requirements.txt` each need temporary coordination, without a permanent owner. The [code approach](code-approach.md#notebook) already requires one notebook editor at a time. Apply this procedure to each affected file:
+
+1. Announce the file, issue, branch/base, exact cells or dependency changes, intended editor and expected release/check-in time in the issue before editing. Check for an existing temporary edit agreement.
+2. Obtain agreement from affected active contributors on the scope and integration order. Record participants, date and accessible acknowledgment. Only one editor changes that shared file at a time. While agreement is pending confirmation, prepare an isolated cell/patch or proposed dependency diff for later integration.
+3. Deliver the focused result, base/reference, changed cells or versions, actual checks and any remaining integration action to the next contributor/reviewer. Local uncommitted work does not reach another clone automatically. Do not add unrelated notebook outputs or dependency changes.
+4. Record receipt, completion or handover of the agreed integration action and explicit release of the file. A blocked/stopped editor shares the partial result and releases or transfers the temporary edit agreement. The next editor rechecks the current base and coordination note before starting.
+
+Use a short issue note: `file; issue; temporary editor; base/branch; agreed scope; participants/date/acknowledgment; expected release; result/checks/next integration action; receipt; released by/at`. No file edit is claimed by this documentation task. Team acceptance of these rules is recorded only in the [1.6 confirmation register](team-workflow.md#team-acknowledgments).
 
 ## Shared implementation checks
 

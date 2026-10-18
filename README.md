@@ -32,7 +32,7 @@ The research question is whether a small language model gives fewer unjustified 
 
 ## Current status
 
-**Snapshot: 17 October 2026 — planning only, milestone 1 of 5 (framing and design).** The audience, scope and FastF1 selection were settled on 26 September. The decision rules, race-card contract, measured model feasibility and shared task-pickup workflow come next. No prototype, training run or result has been delivered. The team has 50–70 collective hours remaining, including an 8-hour reserve, until 22 October at 23:59 Paris time.
+**Snapshot: 17 October 2026 - planning only, milestone 1 of 5 (framing and design).** The audience, scope and FastF1 selection were settled on 26 September. The decision rules, race-card contract, measured model feasibility and shared task-pickup workflow come next. No prototype, training run or result has been delivered. The recovery plan assumes 50–70 collective hours, including an 8-hour reserve, until 22 October at 23:59 Paris time; confirmed remaining capacity is recorded separately in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
 
 ## Project structure
 
@@ -80,7 +80,7 @@ This overview shows the five recovery milestones, with the red dot still on fram
 - [Paul Pitiot](https://github.com/Paul-Pitiot-Cytech-Grp7-Mi)
 - [Matthieu Brault](https://github.com/Matthieu92b)
 
-D/M/E/T label data/protocol, model/notebook, evaluation/demo and team coordination work. Anyone available may claim a ready task; one person leads it and another available teammate reviews. These categories do not reserve tasks to particular people. All recovery issues start unassigned.
+D/M/E/T label data/protocol, model/notebook, evaluation/demo and team coordination work. Anyone available may claim a ready task; one person leads it and another available teammate reviews. These categories do not reserve tasks to particular people. All recovery issues started unassigned at the 17 October snapshot; GitHub holds current claims. Use the [execution guide](docs/roadmap-annexe.md#pick-up-deliver-and-review-a-task) for the workflow and the [team workflow](docs/team-workflow.md) for availability and acknowledgments. These arrangements remain pending confirmation until linked human evidence is supplied.
 
 ## License
 

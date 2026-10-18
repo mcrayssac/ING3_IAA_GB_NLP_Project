@@ -60,7 +60,7 @@ The first line contains exactly one of the three labels, not the literal alterna
 
 All race-card numbers below are synthetic. Each conversation uses a full card in [`reference/fixtures.json`](../reference/fixtures.json); the listed fields highlight what matters to that example. The exact two-line responses are the expected outputs, including wording. The fifth response illustrates scope handling outside the card-only decision function.
 
-1. **Old tyres and a safe rejoin — BOX.** Card `box_old`: tyre age 18 laps, 24.0 s behind, 21.0 s pit loss, pit-loss cutoff lap 29.
+1. **Old tyres and a safe rejoin - BOX.** Card `box_old`: tyre age 18 laps, 24.0 s behind, 21.0 s pit loss, pit-loss cutoff lap 29.
 
    User: Should car 44 box at the start of lap 30?
 
@@ -71,7 +71,7 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
    WHY: With tyres aged 18 laps, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.
    ```
 
-2. **Young tyres, with irrelevant values unavailable — STAY OUT.** Card `stay_young`: tyre age 11 laps; both gaps and pit loss are unknown.
+2. **Young tyres, with irrelevant values unavailable - STAY OUT.** Card `stay_young`: tyre age 11 laps; both gaps and pit loss are unknown.
 
    User: What is the call for car 44 at lap 30?
 
@@ -82,7 +82,7 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
    WHY: The card shows tyres aged 11 laps, below the 12-lap trigger, so the rule is to stay out.
    ```
 
-3. **Missing required gap — NO CALL.** Card `missing_behind`: tyre age 18 laps; gap behind is unknown.
+3. **Missing required gap - NO CALL.** Card `missing_behind`: tyre age 18 laps; gap behind is unknown.
 
    User: Can car 44 box now?
 
