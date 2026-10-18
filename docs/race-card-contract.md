@@ -17,29 +17,37 @@ Cards are JSON objects with the following fields. JSON `null` means **unknown or
 | `as_of_completed_lap` | Integer exactly `lap - 1` (zero for lap 1). | Declares the snapshot cutoff: all race observations must be available by this completed lap. |
 | `surface` | `"DRY"`, `"WET"`, `"UNKNOWN"` or `null`. | Only `DRY` is supported. |
 | `track_status` | `"GREEN"`, `"SC"`, `"VSC"`, `"RED"`, `"UNKNOWN"` or `null`, observed at the cutoff. | Only `GREEN` is supported; neutralisations change the pit-loss context. |
-| `compound` | `"SOFT"`, `"MEDIUM"`, `"HARD"`, `"INTERMEDIATE"`, `"WET"`, `"UNKNOWN"` or `null`. | Only the three dry compounds are supported. The policy does not assign different numerical thresholds to them. |
+| `compound` | `"SOFT"`, `"MEDIUM"`, `"HARD"`, `"INTERMEDIATE"`, `"WET"`, `"UNKNOWN"` or `null`. | Only the three dry compounds are supported. Each has its own tyre-age thresholds (rules 2 to 4). |
 | `tyre_age_laps` | Integer ≥ 0, or `null`. Laps driven on the current set at the cutoff, counting laps from earlier sessions for a used set, at the end of lap `lap - 1`. OpenF1 gives it as the stint's `tyre_age_at_start` plus the laps run in the stint. It can exceed `as_of_completed_lap`. A source that reports a float, such as FastF1's `TyreLife`, is converted: a finite whole value such as 18.0 becomes 18, and a missing (NaN) or non-integral value becomes `null`. A float in the card itself is invalid and gives `NO CALL`. | Required to test the opportunity rule. |
-| `gap_ahead`, `gap_behind` | Each is `{"state":"KNOWN","seconds":number}` with non-negative seconds, `{"state":"NONE","seconds":null}` for no neighbouring car, or `{"state":"UNKNOWN","seconds":null}`. The `seconds` key is required in every supplied gap object, including `NONE`. A gap object may also carry the neighbour's `driver_number`, in the card's format, for display. | Ahead is needed only for ages 12–17; behind is needed only after an opportunity exists. A missing object is treated as `UNKNOWN`. `NONE` is a verified absence, never a missing measurement. The neighbour's `driver_number` is never used. |
+| `gap_ahead`, `gap_behind` | Each is `{"state":"KNOWN","seconds":number}` with non-negative seconds, `{"state":"NONE","seconds":null}` for no neighbouring car, or `{"state":"UNKNOWN","seconds":null}`. The `seconds` key is required in every supplied gap object, including `NONE`. A gap object may also carry the neighbour's `driver_number`, in the card's format, for display. | Ahead is needed only inside the opportunity window of rule 3; behind is needed only after an opportunity exists. A missing object is treated as `UNKNOWN`. `NONE` is a verified absence, never a missing measurement. The neighbour's `driver_number` is never used. |
 | `pit_loss_seconds` | Non-negative JSON number or `null`; estimated green-flag pit transit loss in seconds, excluding tyre-performance predictions. | Needed only if there is a known car behind after an opportunity exists. |
 | `pit_loss_as_of_completed_lap` | Integer from 0 to `lap - 1`, or `null`. | Required with a used pit-loss estimate; records the latest lap allowed in that estimate. It may be older than the card snapshot. |
 | `reference_lap_seconds` | Positive JSON number or `null`; a typical green-flag lap time before the cutoff, in seconds. | Never used. The interface needs it to draw the circle of doom. |
 
 Display-only fields never change the call, so a missing one never forces `NO CALL`.
 
-The reconstruction step must keep evidence for the `as_of_completed_lap` claim, each gap and the pit-loss estimate. A pit-loss estimate may use earlier stops or earlier races, but never the evaluated or later lap. The reference checks the declared cutoff and `pit_loss_as_of_completed_lap`; it cannot independently prove that upstream data obeyed them. Do not fill absent values from later timing, an average invented for convenience, or a model guess. Reject malformed required fields with `NO CALL`; a supplied `NONE` gap without `seconds: null` is always malformed and gives `NO CALL`, even when that gap would otherwise be irrelevant. An irrelevant unknown value does not force abstention: for example, an 11-lap tyre needs neither gap nor pit-loss values for the `STAY OUT` rule, and an 18-lap tyre does not need the gap ahead.
+The reconstruction step must keep evidence for the `as_of_completed_lap` claim, each gap and the pit-loss estimate. A pit-loss estimate may use earlier stops or earlier races, but never the evaluated or later lap. The reference checks the declared cutoff and `pit_loss_as_of_completed_lap`; it cannot independently prove that upstream data obeyed them. Do not fill absent values from later timing, an average invented for convenience, or a model guess. Reject malformed required fields with `NO CALL`; a supplied `NONE` gap without `seconds: null` is always malformed and gives `NO CALL`, even when that gap would otherwise be irrelevant. An irrelevant unknown value does not force abstention: for example, an 11-lap MEDIUM tyre needs neither gap nor pit-loss values for the `STAY OUT` rule, and an 18-lap MEDIUM tyre does not need the gap ahead.
 
 ## Ordered decision rules
 
-Rules are applied in this order. The inequalities and tie handling are part of the contract.
+Rules are applied in this order. The inequalities and tie handling are part of the contract. This is policy version 1.1, which gives each dry compound its own tyre-age thresholds:
+
+| Compound | Opportunity from (`young`) | Always from (`old`) |
+|---|---:|---:|
+| SOFT | 8 laps | 14 laps |
+| MEDIUM | 12 laps | 18 laps |
+| HARD | 18 laps | 24 laps |
+
+They are the 25th percentile and the median of the tyre age at green-flag stops in the 2023 to 2025 train races (`scripts/tyre_thresholds.py`), so validation and test races play no part in them.
 
 1. If card identity/cutoff is invalid or missing, the race is not confirmed completed, surface is not `DRY`, status is not `GREEN`, compound is not a dry compound, or tyre age is missing/invalid, return `NO CALL` with the first applicable reason in that order.
-2. If `tyre_age_laps < 12`, return `STAY OUT`. No gap or pit-loss field is needed.
-3. If `12 ≤ tyre_age_laps < 18`, an opportunity exists only with a **known** `gap_ahead.seconds ≤ 2.0`. A verified `NONE` ahead or a known gap above 2.0 gives `STAY OUT`. An unknown or malformed gap ahead gives `NO CALL`.
-4. If `tyre_age_laps ≥ 18`, an opportunity exists regardless of the gap ahead.
+2. If `tyre_age_laps < young`, return `STAY OUT`. No gap or pit-loss field is needed.
+3. If `young ≤ tyre_age_laps < old`, an opportunity exists only with a **known** `gap_ahead.seconds ≤ 2.0`. A verified `NONE` ahead or a known gap above 2.0 gives `STAY OUT`. An unknown or malformed gap ahead gives `NO CALL`.
+4. If `tyre_age_laps ≥ old`, an opportunity exists regardless of the gap ahead.
 5. With an opportunity, a verified `NONE` behind gives `BOX`; no pit-loss value is needed because this policy cannot lose position to a following car on the card. An unknown or malformed gap behind gives `NO CALL`.
 6. With an opportunity and a known car behind, require a valid `pit_loss_seconds` and a valid `pit_loss_as_of_completed_lap`. If either is missing, invalid or future-derived, return `NO CALL`. Return `BOX` when `gap_behind.seconds ≥ pit_loss_seconds + 2.0`; otherwise return `STAY OUT`. Equality goes to `BOX`.
 
-The 12- and 18-lap ages, 2.0-second gap ahead and 2.0-second rejoin margin are fixed policy choices. They are deliberately simple and do not model degradation, undercuts, traffic beyond the immediate neighbours or safety-car pit-loss changes. `NO CALL` means the policy cannot justify either action from the card, including unsupported scope; it is not a claim that a real team would abstain.
+The tyre-age thresholds, 2.0-second gap ahead and 2.0-second rejoin margin are fixed policy choices. They are deliberately simple and do not model degradation, undercuts, traffic beyond the immediate neighbours or safety-car pit-loss changes. `NO CALL` means the policy cannot justify either action from the card, including unsupported scope; it is not a claim that a real team would abstain.
 
 The executable reference is [`boxbox/rules`](../boxbox/rules). Import `decide(card)` or `format_answer(card)` from `boxbox.rules`; `decide` is the recommended public decision API and returns `(call, why)`, while `format_answer` renders exactly two lines. Run `python3 -m boxbox.rules path/to/card.json` to inspect a card. The JSON command parses decimals without binary-float rounding; direct callers can pass `Decimal` values for exact thresholds.
 
@@ -60,7 +68,7 @@ The first line contains exactly one of the three labels, not the literal alterna
 
 All race-card numbers below are synthetic. Each conversation uses a full card in [`reference/fixtures.json`](../reference/fixtures.json); the listed fields highlight what matters to that example. The exact two-line responses are the expected outputs, including wording. The fifth response illustrates scope handling outside the card-only decision function.
 
-1. **Old tyres and a safe rejoin - BOX.** Card `box_old`: tyre age 18 laps, 24.0 s behind, 21.0 s pit loss, pit-loss cutoff lap 29.
+1. **Old tyres and a safe rejoin - BOX.** Card `box_old`: MEDIUM tyres aged 18 laps, 24.0 s behind, 21.0 s pit loss, pit-loss cutoff lap 29.
 
    User: Should car 44 box at the start of lap 30?
 
@@ -68,10 +76,10 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
 
    ```text
    CALL: BOX
-   WHY: With tyres aged 18 laps, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.
+   WHY: With MEDIUM tyres aged 18 laps, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.
    ```
 
-2. **Young tyres, with irrelevant values unavailable - STAY OUT.** Card `stay_young`: tyre age 11 laps; both gaps and pit loss are unknown.
+2. **Young tyres, with irrelevant values unavailable - STAY OUT.** Card `stay_young`: MEDIUM tyres aged 11 laps; both gaps and pit loss are unknown.
 
    User: What is the call for car 44 at lap 30?
 
@@ -79,10 +87,10 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
 
    ```text
    CALL: STAY OUT
-   WHY: The card shows tyres aged 11 laps, below the 12-lap trigger, so the rule is to stay out.
+   WHY: The card shows MEDIUM tyres aged 11 laps, below the 12-lap trigger for MEDIUM tyres, so the rule is to stay out.
    ```
 
-3. **Missing required gap - NO CALL.** Card `missing_behind`: tyre age 18 laps; gap behind is unknown.
+3. **Missing required gap - NO CALL.** Card `missing_behind`: MEDIUM tyres aged 18 laps; gap behind is unknown.
 
    User: Can car 44 box now?
 
@@ -93,7 +101,7 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
    WHY: The card is missing the gap to the car behind, so the rule cannot assess a pit stop.
    ```
 
-4. **Follow-up on one card.** Card `medium_safe`: tyre age 15 laps, 1.5 s ahead, 24.0 s behind and 21.0 s pit loss.
+4. **Follow-up on one card.** Card `medium_safe`: MEDIUM tyres aged 15 laps, 1.5 s ahead, 24.0 s behind and 21.0 s pit loss.
 
    User: What is the call at lap 30?
 
@@ -101,7 +109,7 @@ All race-card numbers below are synthetic. Each conversation uses a full card in
 
    ```text
    CALL: BOX
-   WHY: With tyres aged 15 laps and a 1.5-second gap ahead, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.
+   WHY: With MEDIUM tyres aged 15 laps and a 1.5-second gap ahead, the 24.0-second gap behind covers the 21.0-second pit loss plus the 2.0-second margin, so the rule calls for boxing.
    ```
 
    User: Does the gap ahead change that call?
