@@ -35,7 +35,7 @@ The left column describes the race situation, numbers first and their pictures a
 ## Header bar
 
 - The product name.
-- The card picker, with two groups: "Synthetic examples" and "Real races".
+- The card picker. Each label starts with "Synthetic example:" or "Real race:", so the two kinds of card stay apart.
 - An upload button, "Upload card (JSON)".
 - The engine badge. Until task 2.8 it reads "Stub: rule answers, not a trained model" in amber. With the real engine it reads "Adapter A".
 - The policy version, "Policy 1.1".
@@ -123,7 +123,7 @@ A toggle under the banner, off by default.
 
 - `gr.Chatbot` in messages format, which is the contract's list of `{role, content}`. While it is empty it says what to ask.
 - A message box with a Send button. Enter also sends.
-- Quick questions as buttons: "Box or stay out?", "Why?", "What gap behind does the card show?" and one out-of-scope request, "Will it rain later?". A button fills the message box and sends it.
+- Quick questions as buttons: "Box or stay out?", "Why?", "What gap behind does the card show?" and one out-of-scope request, "Will it rain later?". A button sends its question at once, without going through the message box.
 - From a send until the answer, Send, the message box and the quick questions are disabled, so a slow engine never gets the same question twice.
 
 ### Reset and history
@@ -202,10 +202,12 @@ A collapsed accordion at the bottom of the screen holds:
 ```python
 from boxbox.app import launch
 
-launch(inline=True)
+RUN_DEMO = True  # False for the clean nbconvert run, where nobody can click
+if RUN_DEMO:
+    launch(inline=True)
 ```
 
-The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
+Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
 
 ## Tests
 
