@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from fractions import Fraction
 
-from ._io import AXES, FAMILIES, LABELS
+from ._io import AXES, FAMILIES, LABELS, RESPONSE_FIELDS
 
 DIRECTIONS = {
     "unjustified_decision_rate": "lower",
@@ -156,7 +156,12 @@ def observations(
         version: [
             {
                 **case,
-                **outputs[case["case_id"]],
+                **{
+                    key: value
+                    for key, value in outputs[case["case_id"]].items()
+                    if key
+                    in (*RESPONSE_FIELDS, "strict_format_valid", "extracted_call")
+                },
                 "review_selected": case["case_id"] in selected,
                 "review": notes.get(outputs[case["case_id"]]["response_id"]),
             }

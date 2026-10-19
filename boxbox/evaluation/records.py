@@ -114,6 +114,8 @@ def validate_cases(
     """Validate the envelope and policy references without interpreting English."""
     by_id: dict[str, dict] = {}
     scenarios: dict[str, tuple[str, str]] = {}
+    scenario_sources: dict[str, str] = {}
+    source_scenarios: dict[tuple[str, str], str] = {}
     for case in cases:
         for key in ("case_id", "card_id", "race_id", "scenario_id", "variant_id"):
             if not _id(case.get(key)):
@@ -151,6 +153,12 @@ def validate_cases(
         identity = (race, split)
         if scenarios.setdefault(case["scenario_id"], identity) != identity:
             raise ValueError(f"{cid}: scenario crosses races or splits")
+        if split != "synthetic":
+            scenario, source = case["scenario_id"], case["card_id"]
+            if scenario_sources.setdefault(scenario, source) != source:
+                raise ValueError(f"{cid}: scenario spans distinct source situations")
+            if source_scenarios.setdefault((split, source), scenario) != scenario:
+                raise ValueError(f"{cid}: source situation has multiple scenarios")
         if type(case["turn_index"]) is not int or case["turn_index"] < 1:
             raise ValueError(f"{cid}: invalid target turn")
         check_history(case["history"])
@@ -324,6 +332,15 @@ def pair_outputs(
             errors.append(f"duplicate/invalid response identity: {cid}/{version}/{rid}")
             continue
         seen.add(rid)
+        conflicts = sorted(
+            key
+            for key in (row.keys() & index[cid].keys()) - {"case_id", "input_sha256"}
+            if dumps(row[key]) != dumps(index[cid][key])
+        )
+        if conflicts:
+            errors.append(
+                f"conflicting case metadata: {cid}/{version}: {', '.join(conflicts)}"
+            )
         if (
             row.get("cases_sha256") != cases_sha256
             or row.get("input_sha256") != index[cid]["input_sha256"]

@@ -27,7 +27,12 @@ from ._io import (
 from .metrics import observations, summarize, validate_rating
 from .parsing import parse_response
 from .records import PairingError, pair_outputs, prepare_case, validate_cases
-from .review import SamplingError, export_review, select_review_cases
+from .review import (
+    SamplingError,
+    export_review,
+    review_response_count,
+    select_review_cases,
+)
 from .statistics import bootstrap_compare
 
 
@@ -436,11 +441,13 @@ def run_score(args: argparse.Namespace, config: RunConfig) -> None:
         if (
             selection.get("cases_sha256") != cases_hash
             or selection["selected_in_slot_order"] != expected["selected_in_slot_order"]
+            or selection["selected_case_ids"] != expected["selected_case_ids"]
             or selection["candidate_metadata_sha256"]
             != expected["candidate_metadata_sha256"]
         ):
             raise ValueError("sampling manifest does not match the common case ledger")
-        selected = selection["selected_case_ids"]
+        selected = expected["selected_case_ids"]
+        review_response_count(args.versions, args.drop_b_record)
     ratings, ratings_hash = read_jsonl(args.ratings) if args.ratings else (None, None)
     observed = observations(
         cases, paired, ratings, selected, rating_phase=args.rating_phase

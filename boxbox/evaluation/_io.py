@@ -13,6 +13,20 @@ PROTOCOL_ID = "boxbox-eval"
 PROTOCOL_VERSION = "1.1.0"
 AXES = ("correctness", "role_format", "history", "scope", "factuality")
 LABELS = ("BOX", "STAY OUT", "NO CALL")
+RESPONSE_FIELDS = (
+    "response_id",
+    "case_id",
+    "version_id",
+    "run_id",
+    "config_sha256",
+    "protocol_id",
+    "protocol_version",
+    "input_sha256",
+    "cases_sha256",
+    "status",
+    "raw_response",
+    "error",
+)
 FAMILIES = (
     "complete",
     "blocking_incomplete",
@@ -72,7 +86,10 @@ def dumps(value: Any) -> str:
 def read_jsonl(path: str | Path) -> tuple[list[dict[str, Any]], str]:
     data = Path(path).read_bytes()
     rows = []
-    for index, line in enumerate(data.decode("utf-8").splitlines(), 1):
+    lines = data.decode("utf-8").split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    for index, line in enumerate(lines, 1):
         if not line.strip():
             raise ValueError(f"{path}:{index}: blank ledger line")
         row = loads(line)

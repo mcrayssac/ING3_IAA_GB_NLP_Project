@@ -68,6 +68,28 @@ def output(case, version, call=None, *, digest="a" * 64):
     }
 
 
+def source_case(case, *, lap=30, driver=44):
+    """Invent a real-shaped envelope from a synthetic card, without data-file I/O."""
+    card = deepcopy(case["card"])
+    card["race"].update(season=2022, round=1, event="Synthetic source identity check")
+    card.update(lap=lap, driver_number=str(driver), as_of_completed_lap=lap - 1)
+    card_id = f"2022-01-{driver}-L{lap:02d}"
+    provenance = {"source": "synthetic identity test", "session_key": 123}
+    row = deepcopy(case)
+    row.update(
+        case_id="syn:source-case:" + card_id,
+        card_id=card_id,
+        race_id="2022-01",
+        scenario_id="syn:source-scenario:" + card_id,
+        split="validation",
+        source_card=deepcopy(card),
+        source_card_sha256=sha256(dumps(card)),
+        provenance=provenance,
+        provenance_sha256=sha256(dumps(provenance)),
+    )
+    return prepare_case(row, card)
+
+
 @pytest.fixture
 def toy(cases):
     index = {c["case_id"]: c for c in cases}
@@ -259,6 +281,43 @@ def test_decimal_bytes_history_and_json_validation(cases):
         prepare_case(sensitive, sensitive["card"], history_turns=0)
 
 
+@pytest.mark.parametrize("separator", ["\x85", "\u2028", "\u2029"])
+def test_jsonl_preserves_unicode_response_separators(cases, tmp_path, separator):
+    case = cases[0]
+    response = output(case, "v1")
+    raw = "CALL: BOX\nWHY: One." + separator + "Two."
+    response["raw_response"] = raw
+    path = tmp_path / "unicode.jsonl"
+    digest = write_jsonl(path, [response])
+    restored, actual_digest = read_jsonl(path)
+    assert restored == [response]
+    assert actual_digest == digest == sha256(path.read_bytes())
+    paired = pair_outputs([case], restored, ["v1"], "a" * 64)
+    observed = observations([case], paired)["v1"]
+    assert observed[0]["raw_response"] == raw
+    report = summarize(observed)
+    assert report["metrics"]["overall/strict_format_rate"]["value"] == 0
+    assert report["metrics"]["overall/call_label_validity"]["value"] == 1
+
+
+@pytest.mark.parametrize("ending", ["", "\n", "\r\n"])
+def test_jsonl_physical_line_endings(tmp_path, ending):
+    path = tmp_path / "physical-lines.jsonl"
+    path.write_bytes((dumps({"value": 1}) + ending).encode())
+    assert read_jsonl(path)[0] == [{"value": 1}]
+    empty = tmp_path / "empty.jsonl"
+    empty.write_bytes(b"")
+    assert read_jsonl(empty)[0] == []
+
+
+@pytest.mark.parametrize("text", ["\n", "{}\n\n", "{}\n \n", "{}\r\n\r\n"])
+def test_jsonl_rejects_blank_physical_lines(tmp_path, text):
+    path = tmp_path / "blank-lines.jsonl"
+    path.write_bytes(text.encode())
+    with pytest.raises(ValueError, match="blank ledger line"):
+        read_jsonl(path)
+
+
 def test_context_family_and_source_adapter(cases):
     scope = next(c for c in cases if c["case_id"] == "syn:case:scope")
     assert scope["reference"]["expected_call"] == "NO CALL"
@@ -314,6 +373,63 @@ def test_context_family_and_source_adapter(cases):
         validate_cases([incorrect])
 
 
+@pytest.mark.parametrize("changed_field", ["pit_loss_seconds", "driver_number"])
+def test_source_scenario_identity_survives_transformed_cards(cases, changed_field):
+    original = source_case(cases[0])
+    variant = deepcopy(original)
+    variant.update(case_id="syn:transformed-source-case", variant_id="syn:changed")
+    card = deepcopy(original["card"])
+    card[changed_field] = None
+    call, reason = decide(card)
+    assert call == "NO CALL"
+    variant["attributes"]["card_state"] = "blocking_incomplete"
+    variant["primary_family"] = "blocking_incomplete"
+    variant["reference"].update(
+        policy_call=call, policy_reason=reason, expected_call=call, why_reference=reason
+    )
+    variant = prepare_case(variant, card)
+    distinct = source_case(cases[0], lap=31)
+    ledger = [original, variant, distinct]
+    membership = {"validation": ["2022-01"]}
+    assert len(validate_cases(ledger, membership)) == 3
+    paired = pair_outputs(
+        ledger,
+        [output(case, "v1") for case in ledger],
+        ["v1"],
+        "a" * 64,
+        membership,
+    )
+    assert len(paired["v1"]) == 3
+
+
+@pytest.mark.parametrize("mutation", ["split_source", "merge_laps", "merge_drivers"])
+def test_source_scenario_identity_rejects_fragmentation_and_merging(cases, mutation):
+    first = source_case(cases[0])
+    if mutation == "split_source":
+        second = deepcopy(first)
+        second.update(case_id="syn:second-variant", variant_id="syn:second")
+        second["scenario_id"] = "syn:fragmented-source"
+    else:
+        second = source_case(
+            cases[0],
+            lap=31 if mutation == "merge_laps" else 30,
+            driver=11 if mutation == "merge_drivers" else 44,
+        )
+        second["scenario_id"] = first["scenario_id"]
+    ledger = [first, second]
+    membership = {"validation": ["2022-01"]}
+    with pytest.raises(ValueError, match="source situation"):
+        validate_cases(ledger, membership)
+    with pytest.raises(PairingError, match="source situation"):
+        pair_outputs(
+            ledger,
+            [output(case, "v1") for case in ledger],
+            ["v1"],
+            "a" * 64,
+            membership,
+        )
+
+
 @pytest.mark.parametrize(
     "mutation",
     [
@@ -365,6 +481,67 @@ def test_case_duplicates_scenario_collisions_and_missing_versions(toy):
         pair_outputs(damaged, rows, ["toy_old", "toy_new"], "a" * 64)
     with pytest.raises(PairingError, match="missing output"):
         pair_outputs(cases, rows, ["toy_old", "toy_new", "absent"], "a" * 64)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("reference", {"expected_call": "BOX"}),
+        ("race_id", "syn:race:injected"),
+        ("scenario_id", "syn:scenario:injected"),
+        ("primary_family", "out_of_scope"),
+        ("applicability", {}),
+        ("card", {}),
+        ("history", [{"role": "user", "content": "Injected history"}]),
+        ("message", "Injected message"),
+    ],
+)
+def test_pairing_rejects_conflicting_case_metadata(toy, field, value):
+    cases, original, _ = toy
+    rows = deepcopy(original)
+    rows[0][field] = value
+    with pytest.raises(PairingError, match="conflicting case metadata"):
+        pair_outputs(cases, rows, ["toy_old", "toy_new"], "a" * 64)
+
+
+def test_observations_keep_case_authority_with_identical_outputs(cases):
+    selected = [
+        next(c for c in cases if c["case_id"] == cid)
+        for cid in ("syn:case:equality", "syn:case:young")
+    ]
+    rows = [output(c, v, "BOX") for c in selected for v in ("v1", "v2")]
+    for row in rows:
+        case = next(c for c in selected if c["case_id"] == row["case_id"])
+        row["reference"] = deepcopy(case["reference"])
+        row["producer_note"] = "Extra producer metadata cannot become case metadata."
+    paired = pair_outputs(selected, rows, ["v1", "v2"], "a" * 64)
+    # Even a caller mutating a pairing cannot override the case ledger in observations.
+    for row in paired["v2"].values():
+        row.update(
+            reference={"expected_call": "BOX"},
+            race_id="syn:race:injected",
+            scenario_id="syn:scenario:injected",
+            primary_family="out_of_scope",
+            applicability={},
+        )
+    observed = observations(selected, paired)
+    for version in observed:
+        for case, row in zip(selected, observed[version], strict=True):
+            for field in (
+                "reference",
+                "race_id",
+                "scenario_id",
+                "primary_family",
+                "applicability",
+            ):
+                assert row[field] == case[field]
+            assert "producer_note" not in row
+            assert row["raw_response"] == "CALL: BOX\nWHY: This is a synthetic example."
+    comparison = bootstrap_compare(observed, "v1", "v2", replications=20)
+    agreement = comparison["metrics"]["overall/call_agreement"]
+    assert agreement["old"]["value"] == agreement["new"]["value"] == 0.5
+    assert agreement["gain"] == 0 and agreement["difference_interval"] == [0, 0]
+    assert comparison["race_order"] == ["syn:race:1", "syn:race:2"]
 
 
 def test_manual_fractions_and_empty_categories(toy):
@@ -625,7 +802,7 @@ def test_full_review_export_round_trip_and_integrity(cases, tmp_path):
     outputs = [output(case, version) for case in full for version in versions]
     paired = pair_outputs(full, outputs, versions, "a" * 64)
     folder = tmp_path / "review"
-    report = export_review(folder, full, paired, chosen, illustrative=True)
+    report = export_review(folder, full, paired, chosen)
     assert (report["targets"], report["responses"]) == (40, 120)
     lookup = loads((folder / "response-lookup.json").read_text())
     notes = import_review(folder / "review.csv", lookup, full, illustrative=True)
@@ -789,6 +966,104 @@ def test_eighty_response_review_requires_explicit_drop(cases, tmp_path):
     )
     assert report["responses"] == 80
     assert not (tmp_path / "unapproved").exists()
+
+
+@pytest.mark.parametrize("count", [0, 1, 39])
+def test_nonillustrative_review_requires_forty_targets(cases, tmp_path, count):
+    full = quota_cases(cases)
+    chosen = select_review_cases(full)["selected_case_ids"][:count]
+    versions = ["baseline", "A", "B"]
+    paired = pair_outputs(
+        full,
+        [output(case, version) for case in full for version in versions],
+        versions,
+        "a" * 64,
+    )
+    folder = tmp_path / "reduced-review"
+    with pytest.raises(ValueError, match="exactly 40 targets"):
+        export_review(folder, full, paired, chosen)
+    assert not folder.exists()
+
+
+@pytest.mark.parametrize("mutation", ["remove", "replace"])
+def test_cli_rejects_inconsistent_selected_ids(cases, tmp_path, capsys, mutation):
+    full = quota_cases(cases)
+    extra = deepcopy(full[0])
+    extra.update(case_id="syn:extra-candidate", variant_id="syn:extra-candidate")
+    full.append(extra)
+    source = tmp_path / "cases.jsonl"
+    digest = write_jsonl(source, full)
+    outputs = tmp_path / "outputs.jsonl"
+    write_jsonl(
+        outputs,
+        [output(c, v, digest=digest) for c in full for v in ("baseline", "A")],
+    )
+    sampled = tmp_path / "sampled"
+    assert main(["sample", "--cases", str(source), "--output", str(sampled)]) == 0
+    selection = loads((sampled / "selection.json").read_text())
+    selected = selection["selected_case_ids"]
+    if mutation == "remove":
+        selection["selected_case_ids"] = selected[:-1]
+    else:
+        unselected = next(c["case_id"] for c in full if c["case_id"] not in selected)
+        selection["selected_case_ids"] = sorted([*selected[1:], unselected])
+    selection["sampling_manifest_sha256"] = sha256(
+        dumps({k: v for k, v in selection.items() if k != "sampling_manifest_sha256"})
+    )
+    edited = tmp_path / "edited-selection.json"
+    edited.write_text(dumps(selection))
+    destination = tmp_path / "must-not-exist"
+    code = main(
+        [
+            "score",
+            "--cases",
+            str(source),
+            "--outputs",
+            str(outputs),
+            "--versions",
+            "baseline",
+            "A",
+            "--selection",
+            str(edited),
+            "--output",
+            str(destination),
+        ]
+    )
+    assert code == 2
+    assert "sampling manifest does not match" in capsys.readouterr().err
+    assert not destination.exists()
+
+
+def test_cli_requires_drop_record_before_writing_review_run(cases, tmp_path, capsys):
+    full = quota_cases(cases)
+    source = tmp_path / "cases.jsonl"
+    digest = write_jsonl(source, full)
+    outputs = tmp_path / "outputs.jsonl"
+    write_jsonl(
+        outputs,
+        [output(c, v, digest=digest) for c in full for v in ("baseline", "A")],
+    )
+    sampled = tmp_path / "sampled"
+    assert main(["sample", "--cases", str(source), "--output", str(sampled)]) == 0
+    destination = tmp_path / "unapproved"
+    code = main(
+        [
+            "score",
+            "--cases",
+            str(source),
+            "--outputs",
+            str(outputs),
+            "--versions",
+            "baseline",
+            "A",
+            "--selection",
+            str(sampled / "selection.json"),
+            "--output",
+            str(destination),
+        ]
+    )
+    assert code == 2 and "explicit B-drop record" in capsys.readouterr().err
+    assert not destination.exists()
 
 
 def test_cli_worked_example_and_generic_score(tmp_path):

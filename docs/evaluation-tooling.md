@@ -43,6 +43,8 @@ Public functions are exported by `boxbox.evaluation`. Their fields extend the ev
 
 `validate_cases(cases, race_splits=None)` checks identifiers, scenario/race/split consistency, turn position, applicability, family priority, policy references and input hashes. Pass the already checked full split document for real cases; its split mapping alone cannot check session keys. Synthetic fixtures use `split=synthetic` and `syn:` race identities.
 
+For real cases, each source race/lap/car maps to one scenario across variants and target turns, and one scenario cannot combine distinct source situations. This uses the checked source `card_id`, including when a probe transforms the card's identity fields. Synthetic calibration and metadata-only quota witnesses retain their explicitly declared scenario identities.
+
 Real records retain source `provenance`, `provenance_sha256` and `source_card_sha256`. Transformed cases also retain `source_card`: source IDs are checked against the original card even for malformed-input probes. `card_content_sha256` identifies the evaluation variant. These content hashes use the evaluator's finite-number JSON encoding and differ from raw timing-file hashes. Strict-cutoff availability remains an upstream responsibility.
 
 `corpus_case(item, annotation, split, history_turns=3, source_record=record)` adapts a supplied item without corpus-file I/O. The source record comes unchanged from `load_cards`. Only the last assistant turn is scored; previous exchanges are fixed history and the last user entry is the current message. The target reference answer never becomes input. Supply reviewed contextual annotations and scenario/variant identities. Item ID, kind, scope, follow-up and transformation metadata are retained.
@@ -50,6 +52,8 @@ Real records retain source `provenance`, `provenance_sha256` and `source_card_sh
 `pair_outputs(cases, outputs, versions, cases_sha256, race_splits=None)` requires exactly one scheduled output per case/version. Each output includes `cases_sha256` in addition to the protocol's response fields. `config_sha256` identifies that version's saved effective generation configuration. One version has one run/config identity; attempts are not silently combined.
 
 Pairing checks protocol/input/ledger hashes, identifiers and explicit error records. It lists defects in `PairingError`, without inner joins, duplicate selection, fabricated error rows or retries. An `ok` output can be empty. `generation_error` requires code/message and preserves partial raw text or null.
+
+Conflicting case metadata repeated in an output is a pairing error. Observations take references, race/scenario identities and applicability only from the case ledger; only declared response fields and parsed format/CALL results are merged from outputs. JSONL records are separated by physical LF characters, preserving Unicode separators inside raw strings.
 
 `parse_response(raw_response, status="ok")` checks strict structure and extracts the first CALL independently. Only CRLF-to-LF and removal of at most one terminal LF are allowed. No semantic conclusion follows from structure. Partial error output never becomes a correct abstention.
 
@@ -82,6 +86,8 @@ python -m boxbox.evaluation score \
 Omit `--selection` for automatic-only analysis. Use `--contrast OLD NEW` for additional comparisons. Baseline/A and A/B are principal; others are labelled exploratory or synthetic. Candidate prompt selection remains 2.5b's validation-only task, using the protocol's predeclared exact-fraction priorities and candidate IDs.
 
 Actual forty-target review exports contain baseline/A/B (120 responses), or baseline/A with a real `--drop-b-record` reference (80). The illustrative excerpt and unit tests make no actual B-drop decision. The optional CALL-only baseline receives no invented WHY or human-review slots.
+
+Scoring verifies both the slot-order and sorted selected-ID lists against the recomputed sample. Non-illustrative exports require exactly forty targets; an inconsistent manifest or missing B-drop declaration fails before creating the scoring output directory.
 
 Final requests fail before reading case/output paths unless `RunConfig.final_test_open` is true and actual `--freeze-record` and `--acceptance-record` references are supplied. Those declarations still require team verification; the evaluator does not authenticate human acceptance. Task 2.3b keeps the default gate closed and never opens actual final cases.
 

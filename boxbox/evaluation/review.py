@@ -279,7 +279,9 @@ def export_review(
         or not set(selected_ids) <= index.keys()
     ):
         raise ValueError("invalid review target selection")
-    if len(selected_ids) == 40 and not illustrative:
+    if not illustrative:
+        if len(selected_ids) != 40:
+            raise ValueError("review requires exactly 40 targets")
         review_response_count(list(paired), drop_b_record)
     codes = version_codes(list(paired))
     if rating_phase not in {"initial", "adjudicated"}:
