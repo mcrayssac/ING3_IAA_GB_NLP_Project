@@ -47,12 +47,6 @@ to refresh it after editing verdicts or notes:
     .venv/bin/python -m scripts.build_corpus build
     .venv/bin/python -m scripts.build_corpus review
 
-Corpus B (task 3.1) is derived from the committed A_train.jsonl without cards.
-The token counts of A and B need the model tokenizer (downloaded once):
-
-    .venv/bin/python -m scripts.build_corpus build-b
-    .venv/bin/python -m scripts.build_corpus exposure
-
 In review_sheet.csv, use ok or fix in verdict and prefix the reason in note
 with automatic: or confirmed:. Leave unresolved judgments blank. The review
 command summarises existing decisions; it does not review or approve rows.
