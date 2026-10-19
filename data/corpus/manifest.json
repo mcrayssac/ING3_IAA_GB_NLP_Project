@@ -15,29 +15,6 @@
     "mini_test.jsonl": {
       "items": 40,
       "sha256": "b9ea28f755ea94776471157e2b662c4b816e93e4924dd694d0b59fa8f94519e7"
-    },
-    "B_train.jsonl": {
-      "items": 400,
-      "sha256": "94b61b2bde220026f43633e53ad4ee55c98b649a193150ba8e5ee5db15367331",
-      "source": "A_train.jsonl",
-      "shared": 340,
-      "variants": 60
-    }
-  },
-  "b_pairs": {
-    "file": "B_pairs.json",
-    "sha256": "176b2281998ba8dc45e69dc6a1313155c0e55b4d33e28f8d2fb35e1e16739d80"
-  },
-  "exposure_characters": {
-    "A_train": {
-      "items": 400,
-      "total": 285824,
-      "completion": 64680
-    },
-    "B_train": {
-      "items": 400,
-      "total": 282588,
-      "completion": 61923
     }
   }
 }
