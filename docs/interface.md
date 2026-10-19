@@ -188,7 +188,7 @@ A collapsed accordion at the bottom of the screen holds:
 |---|---|
 | `boxbox/app/panels.py` | Pure functions from a card or an answer to HTML: `situation`, `inputs_table`, `used_by_rule`, `tyre_zones`, `tyre_readout` and `tyre_window`, `circle_points`, `circle_readout` and `circle_of_doom`, `parse_answer`, `banner`, `policy_panel`. Charts are hand-written SVG. |
 | `boxbox/app/session.py` | `stub_respond`, `sample_cards`, `send` (one exchange with the bounded history), `load_upload` and `latest_answer`. |
-| `boxbox/app/layout.py` | The colour tokens, the event handlers (`show_card`, `upload_card`, `ask`, `clear`, `toggle`, `busy`, `ready`), `build_app(respond, engine, cards, turns)` for the layout and wiring, and `launch`, which adds the theme. |
+| `boxbox/app/layout.py` | The colour tokens, the event handlers (`show_card`, `pick_card`, `upload_card`, `ask`, `clear`, `toggle`, `busy`, `ready`), `history_line` for the status line, `build_app(respond, engine, cards, turns)` for the layout and wiring, and `launch`, which adds the theme. |
 | `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser. |
 | `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
