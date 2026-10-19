@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import copy
 import json
+from dataclasses import replace
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 import torch
-from transformers import GenerationConfig
+from tokenizers import Tokenizer
+from tokenizers.models import WordLevel
+from tokenizers.pre_tokenizers import WhitespaceSplit
+from transformers import GenerationConfig, PreTrainedTokenizerFast
+from transformers.utils import chat_template_utils
 
 from boxbox.app.session import send
 from boxbox.config import Decoding, RunConfig
@@ -21,6 +27,7 @@ from boxbox.model import (
     ConversationEngineError,
     baseline_instructions,
 )
+from scripts import smoke_conversation
 
 
 def make_config(
@@ -180,6 +187,89 @@ def test_default_instructions_use_exported_policy_constants():
     assert "null as missing, never as zero" in instructions
 
 
+def clock_tokenizer() -> PreTrainedTokenizerFast:
+    backend = Tokenizer(
+        WordLevel({"[UNK]": 0, "2026-10-19": 1, "2026-10-20": 2}, unk_token="[UNK]")
+    )
+    backend.pre_tokenizer = WhitespaceSplit()
+    return PreTrainedTokenizerFast(
+        tokenizer_object=backend,
+        unk_token="[UNK]",
+        chat_template=(
+            "{{ strftime_now('%Y-%m-%d') }} "
+            "{% for message in messages %}{{ message.role }} {{ message.content }} {% endfor %}"
+            "{% if add_generation_prompt %}assistant{% endif %}"
+        ),
+    )
+
+
+def test_template_tokens_stay_identical_across_execution_dates(monkeypatch):
+    prepared = []
+    for day in (19, 20):
+
+        class WallClock:
+            @classmethod
+            def now(cls, current_day=day):
+                return datetime(2026, 10, current_day, 12)
+
+        monkeypatch.setattr(chat_template_utils, "datetime", WallClock)
+        subject = ConversationEngine(
+            FakeModel(), clock_tokenizer(), make_config(), instructions="Use the card."
+        )
+        prepared.append(subject.prepare(card(), history(), "Now", fixed_history=True))
+    first, second = prepared
+    assert torch.equal(first.input_ids, second.input_ids)
+    assert first.input_ids[0, 0].item() == 1  # the configured date, including on day 20
+    assert (
+        first.trace["prompt_token_ids_sha256"]
+        == second.trace["prompt_token_ids_sha256"]
+    )
+    assert (
+        first.trace["chat_template_context"]
+        == second.trace["chat_template_context"]
+        == {"strftime_now": "2026-10-19T00:00:00+00:00"}
+    )
+    assert (
+        first.trace["chat_template_context_sha256"]
+        == second.trace["chat_template_context_sha256"]
+    )
+
+
+def test_template_date_override_changes_tokens_and_recorded_context():
+    prepared = []
+    for template_date in ("2026-10-19", "2026-10-20"):
+        subject = ConversationEngine(
+            FakeModel(),
+            clock_tokenizer(),
+            replace(make_config(), chat_template_date=template_date),
+            instructions="Use the card.",
+        )
+        prepared.append(subject.prepare(card(), [], "Now", fixed_history=True))
+    first, second = prepared
+    assert first.input_ids[0, 0].item() == 1 and second.input_ids[0, 0].item() == 2
+    assert (
+        first.trace["prompt_messages_sha256"] == second.trace["prompt_messages_sha256"]
+    )
+    assert (
+        first.trace["prompt_token_ids_sha256"]
+        != second.trace["prompt_token_ids_sha256"]
+    )
+    assert (
+        first.trace["chat_template_context_sha256"]
+        != second.trace["chat_template_context_sha256"]
+    )
+    assert (
+        second.trace["chat_template_context"]["strftime_now"]
+        == "2026-10-20T00:00:00+00:00"
+    )
+
+
+@pytest.mark.parametrize("template_date", ["20261019", "2026-02-30", "today", None])
+def test_template_date_rejects_invalid_or_noncanonical_values(template_date):
+    with pytest.raises(ValueError, match="chat_template_date"):
+        engine(config=replace(make_config(), chat_template_date=template_date))
+
+
 def test_history_turn_limit_keeps_newest_complete_exchanges_and_zero_is_empty():
     turns = history() + [
         {"role": "user", "content": "Later question"},
@@ -323,6 +413,97 @@ def test_generation_failure_propagates_and_never_becomes_no_call():
     assert "backend offline" in error.value.message
     assert error.value.partial_response is None
     assert error.value.partial_response != "CALL: NO CALL"
+
+
+@pytest.mark.parametrize("failed_transfer", [1, 2])
+def test_device_transfer_failure_keeps_original_error_and_prepared_trace(
+    monkeypatch, failed_transfer
+):
+    subject = engine()
+    original_to = torch.Tensor.to
+    backend_error = RuntimeError("MPS allocation failed")
+    transfers = 0
+
+    def transfer(tensor, *args, **kwargs):
+        nonlocal transfers
+        transfers += 1
+        if transfers == failed_transfer:
+            raise backend_error
+        return original_to(tensor, *args, **kwargs)
+
+    monkeypatch.setattr(torch.Tensor, "to", transfer)
+    with pytest.raises(ConversationEngineError) as error:
+        subject.respond_with_trace(card(), history(), "Now")
+    assert error.value.code == "device_transfer_error"
+    assert error.value.__cause__ is backend_error
+    assert error.value.trace["history"]["retained"] == history()
+    assert error.value.trace["input_tokens"] == 4
+    assert error.value.trace["generation_error"] == {
+        "type": "RuntimeError",
+        "stage": "device_transfer",
+    }
+    assert error.value.trace["generation_settings"]["max_new_tokens"] == 4
+    assert error.value.partial_response is None
+    assert subject.model.calls == 0
+
+
+def test_eval_failure_is_wrapped_before_generation(monkeypatch):
+    subject = engine()
+    backend_error = RuntimeError("could not enter evaluation mode")
+
+    def fail_eval():
+        raise backend_error
+
+    monkeypatch.setattr(subject.model, "eval", fail_eval)
+    with pytest.raises(ConversationEngineError) as error:
+        subject.respond_with_trace(card(), [], "Now")
+    assert error.value.code == "model_eval_error"
+    assert error.value.__cause__ is backend_error
+    assert error.value.trace["prompt_token_ids_sha256"]
+    assert error.value.trace["generation_error"]["stage"] == "model_eval"
+    assert subject.model.calls == 0
+
+
+def test_smoke_saves_and_pairs_device_error_after_a_success(monkeypatch, tmp_path):
+    config_path = Path("configs/conversation-smoke.toml")
+    subject = engine(config=smoke_conversation.load_config(config_path))
+    monkeypatch.setattr(
+        smoke_conversation, "load_conversation_engine", lambda config: subject
+    )
+    original_to = torch.Tensor.to
+    transfers = 0
+
+    def transfer(tensor, *args, **kwargs):
+        nonlocal transfers
+        transfers += 1
+        if transfers == 3:  # the second case's first input transfer
+            raise RuntimeError("MPS allocation failed")
+        return original_to(tensor, *args, **kwargs)
+
+    monkeypatch.setattr(torch.Tensor, "to", transfer)
+    run = smoke_conversation.execute(config_path, "device-error-regression", tmp_path)
+    outputs = [
+        json.loads(line) for line in (run / "outputs.jsonl").read_text().splitlines()
+    ]
+    attempts = [
+        json.loads(line) for line in (run / "attempts.jsonl").read_text().splitlines()
+    ]
+    metrics = json.loads((run / "metrics.json").read_text())
+    manifest = json.loads((run / "manifest.json").read_text())
+    assert outputs[0]["status"] == "ok"
+    assert outputs[1]["status"] == "generation_error"
+    assert outputs[1]["error"]["code"] == "device_transfer_error"
+    assert outputs[1]["raw_response"] is None
+    assert attempts[1]["trace"]["generation_error"]["stage"] == "device_transfer"
+    assert attempts[1]["retained_history"] == attempts[1]["requested_history"]
+    assert metrics["successful_generation_calls"] == subject.model.calls == 4
+    assert metrics["generation_errors"] == 1 and metrics["paired_outputs"] == 5
+    metadata = manifest["extra"]["conversation_engine"]
+    assert metadata["chat_template_context"] == subject.template_context()
+    assert (
+        metadata["chat_template_context_sha256"]
+        == attempts[0]["trace"]["chat_template_context_sha256"]
+    )
 
 
 def test_shared_engine_is_callable_by_demo_and_has_no_hidden_session_memory():

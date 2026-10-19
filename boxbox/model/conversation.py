@@ -10,6 +10,7 @@ import threading
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -196,6 +197,20 @@ class ConversationEngine:
         first_parameter = next(iter(model.parameters()), None)
         self.dtype = str(dtype or getattr(first_parameter, "dtype", "unknown"))
         self._generation_lock = threading.Lock()
+        try:
+            template_date = date.fromisoformat(self.config.chat_template_date)
+            if template_date.isoformat() != self.config.chat_template_date:
+                raise ValueError("noncanonical date")
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                "chat_template_date must be a valid YYYY-MM-DD string"
+            ) from error
+        self._template_datetime = datetime(
+            template_date.year,
+            template_date.month,
+            template_date.day,
+            tzinfo=UTC,
+        )
         if not isinstance(self.instructions, str) or not self.instructions:
             raise ValueError("instructions must be a nonempty string")
         if type(self.config.history_turns) is not int or self.config.history_turns < 0:
@@ -265,6 +280,10 @@ class ConversationEngine:
             {"role": "user", "content": message},
         ]
 
+    def template_context(self) -> dict[str, str]:
+        """Return the fixed clock passed to the native template renderer."""
+        return {"strftime_now": self._template_datetime.isoformat()}
+
     def _template(
         self, messages: list[dict[str, str]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -274,6 +293,7 @@ class ConversationEngine:
                 tokenize=True,
                 return_dict=True,
                 return_tensors="pt",
+                strftime_now=self._template_datetime.strftime,
                 **TEMPLATE_OPTIONS,
             )
         except Exception as error:
@@ -353,6 +373,7 @@ class ConversationEngine:
                 "fixed_history": fixed_history,
                 "generation_attempted": False,
                 "context_failure": reason,
+                "chat_template_context": self.template_context(),
                 "history": {
                     "mode": "fixed" if fixed_history else "interactive",
                     "provided_turns": requested_turns,
@@ -471,6 +492,10 @@ class ConversationEngine:
             "instructions_sha256": _sha256(selected_instructions),
             "chat_template": template,
             "chat_template_sha256": _sha256(template_bytes),
+            "chat_template_context": self.template_context(),
+            "chat_template_context_sha256": _sha256(
+                _json_text(self.template_context())
+            ),
             "template_options": TEMPLATE_OPTIONS.copy(),
             "template_option_note": TEMPLATE_OPTION_NOTE,
             "messages": copy.deepcopy(template_messages),
@@ -636,9 +661,11 @@ class ConversationEngine:
         except ConversationEngineError as error:
             error.trace = trace
             raise
+        stage = "device_transfer"
         try:
             input_ids = prepared.input_ids.to(self.device)
             attention_mask = prepared.attention_mask.to(self.device)
+            stage = "model_eval"
             self.model.eval()
             started = time.perf_counter()
             stage = "generation"
@@ -733,8 +760,10 @@ class ConversationEngine:
             raise
         except Exception as error:
             trace["generation_settings"] = generation_settings
-            trace["generation_error"] = {"type": type(error).__name__}
+            trace["generation_error"] = {"type": type(error).__name__, "stage": stage}
             code = {
+                "device_transfer": "device_transfer_error",
+                "model_eval": "model_eval_error",
                 "generation": "generation_error",
                 "device_synchronization": "device_synchronization_error",
                 "output_validation": "invalid_generation_output",

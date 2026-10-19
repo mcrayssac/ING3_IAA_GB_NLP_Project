@@ -6,6 +6,7 @@ adapter = "none"
 seed = 2026
 final_test_open = false
 mps_memory_cap_gb = 20.0
+chat_template_date = "2026-10-19"
 
 [decoding]
 max_new_tokens = 64

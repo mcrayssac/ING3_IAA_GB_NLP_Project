@@ -216,6 +216,10 @@ def execute(config_path: Path, name: str, runs_dir: Path = RUNS_DIR) -> Path:
                     "device": str(engine.device),
                     "dtype": engine.dtype,
                     "attn_implementation": engine.attn_implementation,
+                    "chat_template_context": engine.template_context(),
+                    "chat_template_context_sha256": _sha256(
+                        dumps(engine.template_context())
+                    ),
                     "chat_template_sha256": _sha256(
                         (run_dir / "tokenizer-chat-template.source.txt").read_bytes()
                     ),

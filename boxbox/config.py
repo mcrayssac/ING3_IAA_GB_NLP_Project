@@ -45,6 +45,8 @@ class RunConfig:
     seed: int = 2026
     final_test_open: bool = False
     mps_memory_cap_gb: float = 20.0
+    # Reference date used for reproducible template metadata.
+    chat_template_date: str = "2026-10-19"
 
 
 def build_config(overrides: dict[str, Any]) -> RunConfig:
