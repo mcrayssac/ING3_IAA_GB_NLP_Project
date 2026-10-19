@@ -1,10 +1,10 @@
 {
-  "rows": 540,
-  "read": 540,
+  "rows": 600,
+  "read": 600,
   "automatic": 540,
-  "confirmed": 0,
+  "confirmed": 60,
   "unattributed": 0,
   "pending": 0,
-  "ok": 540,
+  "ok": 600,
   "fix": []
 }
