@@ -1,5 +1,11 @@
 """Model loading and observation helpers."""
 
+from .conversation import (
+    ConversationEngine,
+    ConversationEngineError,
+    baseline_instructions,
+    load_conversation_engine,
+)
 from .loading import (
     cap_mps_memory,
     get_device,
@@ -11,9 +17,13 @@ from .loading import (
 from .observe import label_probability, next_token_probs, top_tokens
 
 __all__ = [
+    "ConversationEngine",
+    "ConversationEngineError",
+    "baseline_instructions",
     "cap_mps_memory",
     "get_device",
     "label_probability",
+    "load_conversation_engine",
     "load_model",
     "memory_gb",
     "model_dtype",
