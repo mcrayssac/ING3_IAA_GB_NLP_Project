@@ -108,8 +108,31 @@ To execute it from the command line:
 
     .venv/bin/jupyter nbconvert --to notebook --execute --inplace agent.ipynb
 
+7. Evaluation tooling (task 2.3b)
+--------------------------------
 
-7. Demo (task 2.4)
+Run the synthetic worked example with a fresh output directory:
+
+    .venv/bin/python -m boxbox.evaluation fixtures --output runs/2026-10-19_evaluation-fixtures
+
+It checks the 35 calibration targets and 55 synthetic annotations, then writes
+the paired table, race-cluster intervals, a 40-target metadata quota witness
+and an illustrative six-target/twelve-response review excerpt. The separate
+version key and response lookup are outside the review CSV. Pending score
+fields are not human ratings, and no model or race reconstruction is run.
+
+The evaluator core uses the Python standard library. To test it separately
+without the training stack, see docs/evaluation-tooling.md. Targeted checks:
+
+    .venv/bin/python -m pytest -q tests/test_evaluation.py tests/test_race_card.py
+    .venv/bin/ruff check boxbox/evaluation tests/test_evaluation.py
+    .venv/bin/ruff format --check boxbox/evaluation tests/test_evaluation.py
+
+The guide documents sample-before-generation, score, input/output ledgers,
+the real-split integration and the final-test gate. Default final_test_open
+stays false. Existing run directories are never overwritten.
+
+8. Demo (task 2.4)
 ------------------
 
 The Gradio pit-wall screen opens in the browser. Until task 2.8 it answers
