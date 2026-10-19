@@ -131,3 +131,17 @@ without the training stack, see docs/evaluation-tooling.md. Targeted checks:
 The guide documents sample-before-generation, score, input/output ledgers,
 the real-split integration and the final-test gate. Default final_test_open
 stays false. Existing run directories are never overwritten.
+
+8. Demo (task 2.4)
+------------------
+
+The Gradio pit-wall screen opens in the browser. Until task 2.8 it answers
+with a stub that returns the rule's answer, and the screen says so:
+
+    .venv/bin/python -m boxbox.app
+
+The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
+4.0, see data/demo/NOTICE). They come from validation races and are rebuilt
+with:
+
+    .venv/bin/python -m scripts.demo_cards

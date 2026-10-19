@@ -1,0 +1,10 @@
+The cards in this folder are derived from timing data published by OpenF1
+(https://openf1.org), with round numbers and event names from Jolpica-F1
+(https://github.com/jolpica/jolpica-f1).
+
+They are released under the Creative Commons Attribution-NonCommercial-ShareAlike
+4.0 International licence (CC BY-NC-SA 4.0), as OpenF1's licence requires, and not
+under the Apache License 2.0 that covers the code of this repository.
+
+The timing data belongs to the Formula 1 companies. BoxBox is an unofficial,
+non-commercial student project with no link to them.
