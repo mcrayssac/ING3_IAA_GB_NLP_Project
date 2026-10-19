@@ -1,0 +1,263 @@
+[
+  {
+    "card": {
+      "as_of_completed_lap": 53,
+      "compound": "SOFT",
+      "driver_number": "27",
+      "gap_ahead": {
+        "driver_number": "21",
+        "seconds": 2.5,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "driver_number": "4",
+        "seconds": 54.3,
+        "state": "KNOWN"
+      },
+      "lap": 54,
+      "pit_loss_as_of_completed_lap": 48,
+      "pit_loss_seconds": 22.9,
+      "race": {
+        "completed": true,
+        "event": "Bahrain Grand Prix",
+        "round": 1,
+        "season": 2023
+      },
+      "reference_lap_seconds": 98.4,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 57,
+      "track_status": "GREEN",
+      "tyre_age_laps": 16
+    },
+    "card_id": "2023-01-27-L54"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 21,
+      "compound": "HARD",
+      "driver_number": "30",
+      "gap_ahead": {
+        "driver_number": "10",
+        "seconds": 1.5,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "driver_number": "23",
+        "seconds": 28.7,
+        "state": "KNOWN"
+      },
+      "lap": 22,
+      "pit_loss_as_of_completed_lap": 21,
+      "pit_loss_seconds": 21.7,
+      "race": {
+        "completed": true,
+        "event": "Las Vegas Grand Prix",
+        "round": 22,
+        "season": 2025
+      },
+      "reference_lap_seconds": 97.3,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 50,
+      "track_status": "GREEN",
+      "tyre_age_laps": 19
+    },
+    "card_id": "2025-22-30-L22"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 46,
+      "compound": "MEDIUM",
+      "driver_number": "43",
+      "gap_ahead": {
+        "driver_number": "30",
+        "seconds": 6.4,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "seconds": null,
+        "state": "NONE"
+      },
+      "lap": 47,
+      "pit_loss_as_of_completed_lap": 35,
+      "pit_loss_seconds": 21.6,
+      "race": {
+        "completed": true,
+        "event": "Las Vegas Grand Prix",
+        "round": 22,
+        "season": 2025
+      },
+      "reference_lap_seconds": 96.3,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 50,
+      "track_status": "GREEN",
+      "tyre_age_laps": 21
+    },
+    "card_id": "2025-22-43-L47"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 40,
+      "compound": "HARD",
+      "driver_number": "31",
+      "gap_ahead": {
+        "driver_number": "44",
+        "seconds": 3.2,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "driver_number": "87",
+        "seconds": 4.6,
+        "state": "KNOWN"
+      },
+      "lap": 41,
+      "pit_loss_as_of_completed_lap": 35,
+      "pit_loss_seconds": 21.6,
+      "race": {
+        "completed": true,
+        "event": "Las Vegas Grand Prix",
+        "round": 22,
+        "season": 2025
+      },
+      "reference_lap_seconds": 96.5,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 50,
+      "track_status": "GREEN",
+      "tyre_age_laps": 13
+    },
+    "card_id": "2025-22-31-L41"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 17,
+      "compound": "MEDIUM",
+      "driver_number": "1",
+      "gap_ahead": {
+        "seconds": null,
+        "state": "NONE"
+      },
+      "gap_behind": {
+        "driver_number": "81",
+        "seconds": 2.0,
+        "state": "KNOWN"
+      },
+      "lap": 18,
+      "pit_loss_as_of_completed_lap": 17,
+      "pit_loss_seconds": 21.6,
+      "race": {
+        "completed": true,
+        "event": "Abu Dhabi Grand Prix",
+        "round": 24,
+        "season": 2025
+      },
+      "reference_lap_seconds": 90.3,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 58,
+      "track_status": "GREEN",
+      "tyre_age_laps": 17
+    },
+    "card_id": "2025-24-1-L18"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 18,
+      "compound": "MEDIUM",
+      "driver_number": "4",
+      "gap_ahead": {
+        "seconds": null,
+        "state": "NONE"
+      },
+      "gap_behind": {
+        "driver_number": "81",
+        "seconds": 0.9,
+        "state": "KNOWN"
+      },
+      "lap": 19,
+      "pit_loss_as_of_completed_lap": 14,
+      "pit_loss_seconds": 20.3,
+      "race": {
+        "completed": true,
+        "event": "Austrian Grand Prix",
+        "round": 11,
+        "season": 2025
+      },
+      "reference_lap_seconds": 71.3,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 70,
+      "track_status": "GREEN",
+      "tyre_age_laps": 18
+    },
+    "card_id": "2025-11-4-L19"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 41,
+      "compound": "SOFT",
+      "driver_number": "20",
+      "gap_ahead": {
+        "driver_number": "2",
+        "seconds": 12.1,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "driver_number": "27",
+        "seconds": 8.6,
+        "state": "KNOWN"
+      },
+      "lap": 42,
+      "pit_loss_as_of_completed_lap": 38,
+      "pit_loss_seconds": 22.9,
+      "race": {
+        "completed": true,
+        "event": "Bahrain Grand Prix",
+        "round": 1,
+        "season": 2023
+      },
+      "reference_lap_seconds": 98.8,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 57,
+      "track_status": "VSC",
+      "tyre_age_laps": 1
+    },
+    "card_id": "2023-01-20-L42"
+  },
+  {
+    "card": {
+      "as_of_completed_lap": 13,
+      "compound": "MEDIUM",
+      "driver_number": "22",
+      "gap_ahead": {
+        "driver_number": "10",
+        "seconds": 0.7,
+        "state": "KNOWN"
+      },
+      "gap_behind": {
+        "driver_number": "30",
+        "seconds": 3.5,
+        "state": "KNOWN"
+      },
+      "lap": 14,
+      "pit_loss_as_of_completed_lap": null,
+      "pit_loss_seconds": null,
+      "race": {
+        "completed": true,
+        "event": "Japanese Grand Prix",
+        "round": 3,
+        "season": 2025
+      },
+      "reference_lap_seconds": 94.5,
+      "schema_version": "1.0",
+      "surface": "DRY",
+      "total_laps": 53,
+      "track_status": "GREEN",
+      "tyre_age_laps": 13
+    },
+    "card_id": "2025-03-22-L14"
+  }
+]

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import copy
 import random
 from collections import Counter, defaultdict
 from itertools import product
 from typing import Any
 
-from boxbox.rules import TYRE_LIMITS, decide
+from boxbox.rules import TYRE_LIMITS, decide, remove_field
 
 from . import templates as T
 
@@ -66,18 +65,6 @@ def path_of(card: dict[str, Any]) -> str | None:
             return "stay_gap_ahead"
         return "stay_rejoin"
     return None
-
-
-def remove_field(card: dict[str, Any], field: str) -> dict[str, Any]:
-    """The card with one field made unknown, as the contract writes an unknown value."""
-    changed = copy.deepcopy(card)
-    if field in ("gap_ahead", "gap_behind"):
-        changed[field] = {"state": "UNKNOWN", "seconds": None}
-    elif field == "pit_loss_seconds":
-        changed["pit_loss_seconds"] = changed["pit_loss_as_of_completed_lap"] = None
-    else:
-        changed[field] = None
-    return changed
 
 
 def _race_driver(record: dict[str, Any]) -> str:

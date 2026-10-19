@@ -70,10 +70,10 @@ The circle is one lap measured in time. It shows where the card's car would rejo
 A strategist first asks whether the tyres are in the pit window. The gauge answers from the card and the policy thresholds.
 
 - A horizontal bar of tyre laps, from 0 to 4 laps past the larger of the tyre age and the compound's `old` threshold.
-- Three zones from `TYRE_LIMITS` in `boxbox.rules`:
-  - below `young`: too young to stop
-  - from `young` to `old`: a stop only with the car ahead within 2.0 s
-  - from `old`: an opportunity whatever the gap ahead
+- Three zones from `TYRE_LIMITS` in `boxbox.rules`, labelled on the bar:
+  - "too young", below `young`: too young to stop
+  - "window", from `young` to `old`: a stop only with the car ahead within 2.0 s, which a caption under the bar recalls
+  - "opportunity", from `old`: an opportunity whatever the gap ahead
 - For example, MEDIUM tyres have zones that change at 12 and 18 laps.
 - A marker at the card's tyre age.
 - For a compound that is not SOFT, MEDIUM or HARD, or an unknown age, the bar is not drawn and the panel names the reason.
@@ -91,7 +91,7 @@ One row per field the rule reads, so a missing value is seen before the question
 | Track status | GREEN, SC, VSC, RED or unknown |
 | Surface | DRY, WET or unknown |
 
-Rows with an unknown or missing value are highlighted. With the policy check on, a last column says whether the rule uses the field on this card.
+Rows with an unknown or missing value are highlighted. With the policy check on, a last column says whether the rule uses the field on this card. On a card where the rule gives NO CALL, no input decides a stop, so one line under the table points to the rule's reason instead.
 
 ### Raw card
 
@@ -122,7 +122,7 @@ A toggle under the banner, off by default.
 
 ### Reset and history
 
-- Reset clears the conversation and the banner, and keeps the card.
+- Reset clears the conversation and the banner, and keeps the card. The bin icon of the conversation does the same.
 - A status line under the input reads "Engine sees the last 3 exchanges". The number comes from `RunConfig.history_turns`.
 
 ### Engine errors
@@ -160,20 +160,22 @@ A collapsed accordion at the bottom of the screen holds:
 
 | File | Content |
 |---|---|
-| `boxbox/app/panels.py` | Pure functions from a card to a display: `situation`, `inputs_rows`, `tyre_window`, `circle_of_doom`, `parse_answer`, `policy_reference`, `used_by_rule`. Figures use matplotlib. |
-| `boxbox/app/session.py` | `send`, `reset`, `select_card` and `load_upload`, which take the session state and return the new one, plus `stub_respond`. |
-| `boxbox/app/layout.py` | `build_app(respond=stub_respond, cards=...)`: the Gradio layout and its wiring, nothing else. |
-| `boxbox/app/__main__.py` | `python -m boxbox.app` launches the app in the browser. |
+| `boxbox/app/panels.py` | Pure functions from a card or an answer to a display: `situation`, `inputs_table`, `used_by_rule`, `tyre_zones` and `tyre_window`, `circle_points` and `circle_of_doom`, `parse_answer`, `banner`, `policy_panel`. Figures use matplotlib. |
+| `boxbox/app/session.py` | `stub_respond`, `sample_cards`, `send` (one exchange with the bounded history), `load_upload` and `latest_answer`. |
+| `boxbox/app/layout.py` | The event handlers (`show_card`, `upload_card`, `ask`, `clear`, `toggle`), `build_app(respond, engine, cards, turns)` for the layout and wiring, and `launch`, which adds the theme. |
+| `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser. |
+| `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
-- `used_by_rule` counts a known field as used when making it unknown changes `decide(card)`. It reuses `remove_field` and copies no threshold logic. `remove_field` moves to `boxbox.rules`, and `boxbox.corpus` keeps exporting it, because the app may import only `rules` and `model`.
-- Task 2.8 passes the real engine to `build_app(respond=...)` and changes nothing else.
+- `used_by_rule` counts a known field as used when making it unknown changes `decide(card)`. It reuses `remove_field` and copies no threshold logic. `remove_field` now lives in `boxbox.rules`, and `boxbox.corpus` keeps exporting it, because the app may import only `rules` and `model`.
+- Gradio 6 takes the theme, CSS and script at launch time, so `launch` builds the app and passes them. Gradio is pinned in `requirements.txt`.
+- Task 2.8 calls `launch(respond=..., engine="Adapter A")` with the real engine and changes nothing else.
 
 ## Notebook launch cell
 
 ```python
-from boxbox.app import build_app
+from boxbox.app import launch
 
-build_app().launch(inline=True)
+launch(inline=True)
 ```
 
 The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
@@ -182,11 +184,13 @@ The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared not
 
 `tests/test_app.py` checks:
 
-- the circle angles and rejoin point, including an unknown gap and a missing lap time
-- the tyre window zones for each dry compound
-- `parse_answer` on valid and malformed answers, and `used_by_rule`
-- send, reset, card change, an engine error that leaves the history unchanged, and the history bound
+- the circle angles and rejoin point, including an unknown gap, no car, a missing pit loss and a missing lap time
+- the tyre window zones for each dry compound, and the reason when it is not drawn
+- `parse_answer` on valid and malformed answers, `used_by_rule`, the highlighted rows and the rule column on a NO CALL card
+- that text from an uploaded card is escaped
+- send, reset, card change, an engine error that leaves the history unchanged and raises a warning, and the history bound
 - two sessions that stay independent
-- an upload that is not a JSON object
+- an upload that is not one JSON object
+- the picker with 5 synthetic and 8 real cards
 
 The browser walkthrough runs on the synthetic and real cards before review.
