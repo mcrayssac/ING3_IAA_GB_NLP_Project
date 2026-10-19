@@ -12,6 +12,7 @@ from boxbox.app import build_app, stub_respond
 from boxbox.app import layout as L
 from boxbox.app import panels as P
 from boxbox.app.session import load_upload, sample_cards, send
+from boxbox.evaluation.parsing import parse_response
 from boxbox.rules import format_answer
 
 FIXTURES = json.loads(Path("reference/fixtures.json").read_text(encoding="utf-8"))
@@ -211,7 +212,7 @@ def test_handlers_reset_on_card_change_reset_and_error(tmp_path) -> None:
     wrong.write_text("[]")
     with pytest.warns(UserWarning, match="one JSON object"):
         refused = L.upload_card(str(wrong), False)
-    assert len(refused) == 12 and "one JSON object" in refused[4]
+    assert len(refused) == 13 and "one JSON object" in refused[4]
 
 
 def test_picker_and_app_build() -> None:
@@ -221,3 +222,59 @@ def test_picker_and_app_build() -> None:
     assert len(synthetic) == 5 and len(real) == 8
     assert len(build_app(cards=cards).fns) > 0
     assert "stub" in L.role_text(stub=True) and "stub" not in L.role_text(stub=False)
+
+
+def test_history_bound_follows_the_evaluator_including_zero() -> None:
+    seen = []
+
+    def engine(current, history, message):
+        seen.append(len(history))
+        return format_answer(current)
+
+    history = []
+    for turns in (0, 1, 3):
+        for _ in range(3):
+            history, _ = send(card(), history, "Box?", engine, turns=turns)
+    assert seen == [0, 0, 0, 2, 2, 2, 6, 6, 6]
+    assert [L.history_line(n) for n in (0, 1, 3)] == [
+        "Engine sees no earlier exchange",
+        "Engine sees the last exchange",
+        "Engine sees the last 3 exchanges",
+    ]
+    assert len(build_app(turns=0).fns) > 0
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "CALL: BOX\nWHY: The gap covers the loss.",
+        "CALL: BOX\nWHY: The gap covers the loss.\n",
+        "CALL: BOX\r\nWHY: The gap covers the loss.",
+        "CALL: BOX\nWHY: The gap covers the loss.\n\n",
+        "CALL: BOX\nWHY:  The gap covers the loss.",
+        "CALL: BOX\nWHY: The gap covers the loss. ",
+        "CALL: BOX\nWHY: Two\fparts.",
+        "CALL: BOX\nWHY: ",
+        "CALL: MAYBE\nWHY: x.",
+        "call: BOX\nWHY: x.",
+        " CALL: BOX\nWHY: x.",
+        "CALL: STAY OUT\nWHY: Young tyres.",
+        "CALL: NO CALL\nWHY: The pit loss is missing.",
+        "Sure!\nCALL: BOX\nWHY: x.",
+    ],
+)
+def test_banner_parser_agrees_with_the_evaluator(raw) -> None:
+    ours, theirs = P.parse_answer(raw), parse_response(raw)
+    assert (ours is not None) == theirs["strict_format_valid"]
+    if ours:
+        assert ours[0] == theirs["extracted_call"]
+
+
+def test_picking_and_uploading_keep_the_picker_honest(tmp_path) -> None:
+    picked = L.pick_card({"A card": card()}, "A card", False)
+    assert picked[0] == card() and picked[-1]["label"] == L.PICKER
+    good = tmp_path / "card.json"
+    good.write_text(json.dumps(card()))
+    uploaded = L.upload_card(str(good), False)
+    assert uploaded[0] == card() and uploaded[-1]["value"] is None
+    assert "uploaded file on screen" in uploaded[-1]["label"]

@@ -35,7 +35,7 @@ The left column describes the race situation, numbers first and their pictures a
 ## Header bar
 
 - The product name.
-- The card picker. Each label starts with "Synthetic example:" or "Real race:", so the two kinds of card stay apart.
+- The card picker. Each label starts with "Synthetic example:" or "Real race:", so the two kinds of card stay apart. After an upload the picker empties and reads "Race card (uploaded file on screen)", so it never names a card that is not shown.
 - An upload button, "Upload card (JSON)".
 - The engine badge. Until task 2.8 it reads "Stub: rule answers, not a trained model" in amber. With the real engine it reads "Adapter A".
 - The policy version, "Policy 1.1".
@@ -106,7 +106,7 @@ The full card JSON sits in a collapsed accordion, so a reviewer can check any va
 ### Call banner
 
 - It shows the CALL of the latest assistant answer in large text, with its WHY below. The colour follows the call: BOX orange, STAY OUT blue, NO CALL grey, in the shades of the colour table below. The pair never relies on red and green, and the call is always written in words.
-- An answer that is not exactly the two `CALL:` and `WHY:` lines of the contract shows "Answer not in CALL/WHY format". The raw text stays in the conversation. The app never repairs an answer, because a format failure is a result.
+- An answer that is not exactly the two `CALL:` and `WHY:` lines of the contract shows "Answer not in CALL/WHY format". The banner uses the strict-format rules of the 2.3b evaluator (`boxbox.evaluation.parsing.parse_response`): Windows line ends and one final newline pass, while a WHY with leading or trailing blanks fails. A test keeps the two in agreement. The raw text stays in the conversation. The app never repairs an answer, because a format failure is a result.
 - Before the first question the banner reads "No call yet", with the hint "Ask a question or pick one below." in a muted style, so it does not look like an input.
 - While the engine works, the banner reads "Waiting for the engine".
 
@@ -124,12 +124,12 @@ A toggle under the banner, off by default.
 - `gr.Chatbot` in messages format, which is the contract's list of `{role, content}`. While it is empty it says what to ask.
 - A message box with a Send button. Enter also sends.
 - Quick questions as buttons: "Box or stay out?", "Why?", "What gap behind does the card show?" and one out-of-scope request, "Will it rain later?". A button sends its question at once, without going through the message box.
-- From a send until the answer, Send, the message box and the quick questions are disabled, so a slow engine never gets the same question twice.
+- From a send until the answer, Send, the message box, the quick questions, the card picker, the upload button and Reset are disabled. A slow engine never gets the same question twice, and a card change or a reset cannot be undone by an answer that lands late. The bin icon of the conversation cannot be disabled in Gradio 6, so it should not be used while the banner reads "Waiting for the engine".
 
 ### Reset and history
 
 - Reset clears the conversation and the banner, and keeps the card. The bin icon of the conversation does the same.
-- A status line under the input reads "Engine sees the last 3 exchanges". The number comes from `RunConfig.history_turns`.
+- A status line under the input reads "Engine sees the last 3 exchanges", "the last exchange" or "no earlier exchange". The number comes from `RunConfig.history_turns`, or from the `turns` given to `launch`.
 
 ### Engine errors
 
@@ -179,7 +179,7 @@ A collapsed accordion at the bottom of the screen holds:
 
 - A card change, from the picker or an upload, clears the conversation, the banner and the message box, and redraws the left column.
 - Every browser session has its own card and history in `gr.State`. Nothing mutable sits at module level, so two people on the same app never see each other's conversation.
-- The app calls `respond(card, history[-2 * turns:], message)`, where `turns` is `RunConfig.history_turns`. The engine receives only the current card's history.
+- The app calls `respond(card, history[-2 * turns:], message)`, where `turns` is `RunConfig.history_turns` unless `launch` is given another value. With `turns = 0` the engine receives an empty history, as in the 2.3b evaluator. The engine receives only the current card's history.
 - Until task 2.8 the engine is `stub_respond`, which returns `format_answer(card)` for any message. It cannot follow up or refuse a request, and the badge and the role text say so.
 
 ## Code layout
@@ -192,10 +192,11 @@ A collapsed accordion at the bottom of the screen holds:
 | `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser. |
 | `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
-- The footer shows only "Built with Gradio". The API link and the run history are off, and every event is private to the screen.
+- The footer shows only "Built with Gradio". The API link, the run history and Gradio's telemetry are off, and every event is private to the screen.
 - `used_by_rule` counts a known field as used when making it unknown changes `decide(card)`. It reuses `remove_field` and copies no threshold logic. `remove_field` now lives in `boxbox.rules`, and `boxbox.corpus` keeps exporting it, because the app may import only `rules` and `model`.
 - Gradio 6 takes the theme and CSS at launch time, so `launch` builds the app and passes them. Gradio is pinned in `requirements.txt`.
-- Task 2.8 calls `launch(respond=..., engine="Adapter A")` with the real engine and changes nothing else.
+- Task 2.8 calls `launch(respond=..., engine="Adapter A", turns=config.history_turns)` with the real engine and the run's config, and changes nothing else.
+- A hung engine keeps the controls disabled until it returns. Bounding the generation time belongs to the engine's settings (2.5a), and the 2.8 check covers it.
 
 ## Notebook launch cell
 
@@ -207,7 +208,7 @@ if RUN_DEMO:
     launch(inline=True)
 ```
 
-Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
+Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. In a hosted notebook such as Colab, Gradio opens a public link unless `launch` gets `share=False`. Task 2.8 decides which it wants. The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
 
 ## Tests
 
@@ -217,9 +218,10 @@ Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the n
 - the circle readout, including a car behind short of the margin and a card with every gap and time missing
 - the tyre window zones for each dry compound, its readout, and the reason when it is not drawn
 - that both charts are SVG labelled with their readout, skipped when data is missing, and that the app uses no matplotlib
-- `parse_answer` on valid and malformed answers, `used_by_rule`, the highlighted rows and the rule column on a NO CALL card
+- `parse_answer` on valid and malformed answers, its agreement with the evaluator's `parse_response` on edge cases, `used_by_rule`, the highlighted rows and the rule column on a NO CALL card
 - that text from an uploaded card is escaped
-- send, reset, card change, an engine error that leaves the history unchanged and raises a warning, and the history bound
+- send, reset, card change, an engine error that leaves the history unchanged and raises a warning, and the history bound, including no history at all
+- the picker label after a pick and after an upload
 - that sending disables the controls until the engine answers
 - two sessions that stay independent
 - an upload that is not one JSON object

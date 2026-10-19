@@ -52,7 +52,7 @@ def send(
     if not message:
         return history, None
     try:  # the contract's bounded history; any engine failure is shown, never stored
-        answer = respond(card, history[-2 * turns :], message)
+        answer = respond(card, history[-2 * turns :] if turns else [], message)
     except Exception as error:  # noqa: BLE001
         return history, f"The engine failed: {error}. The conversation is unchanged."
     if not isinstance(answer, str):

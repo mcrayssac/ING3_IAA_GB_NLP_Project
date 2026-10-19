@@ -350,16 +350,22 @@ def tyre_window(card: dict[str, Any]) -> str:
 
 
 def parse_answer(text: Any) -> tuple[str, str] | None:
-    """(call, why) when the answer is exactly the two contract lines, else None."""
-    lines = text.split("\n") if isinstance(text, str) else []
-    if (
-        len(lines) != 2
-        or not lines[0].startswith("CALL: ")
-        or not lines[1].startswith("WHY: ")
-    ):
+    """(call, why) when the answer is strictly two contract lines, else None.
+
+    The rules are those of boxbox.evaluation.parsing.parse_response, so the banner never
+    contradicts the scores; tests/test_app.py checks that the two agree.
+    """
+    if not isinstance(text, str):
         return None
-    call, why = lines[0][len("CALL: ") :], lines[1][len("WHY: ") :]
-    return (call, why) if call in CALLS and why.strip() else None
+    lines = text.replace("\r\n", "\n").removesuffix("\n").split("\n")
+    if len(lines) != 2 or not lines[1].startswith("WHY: "):
+        return None
+    call, why = lines[0].removeprefix("CALL: "), lines[1][len("WHY: ") :]
+    clean = why == why.strip(" \t") and not any(
+        c in why for c in "\r\v\f\x85\u2028\u2029"
+    )
+    known = lines[0].startswith("CALL: ") and call in CALLS
+    return (call, why) if known and why and clean else None
 
 
 def banner(answer: str | None) -> str:

@@ -22,6 +22,7 @@ from .session import (
 )
 
 STUB = "Stub: rule answers, not a trained model"
+PICKER = "Race card"
 QUICK = (
     "Box or stay out?",
     "Why?",
@@ -149,13 +150,20 @@ def show_card(card: dict[str, Any], on: bool) -> tuple:
     return card, [], [], "", "", *_card_view(card, on), *_call_view(card, [], on)
 
 
+def pick_card(cards: dict[str, dict[str, Any]], name: str, on: bool) -> tuple:
+    """A card chosen in the picker, which gets its plain label back."""
+    return *show_card(cards[name], on), gr.update(label=PICKER)
+
+
 def upload_card(path: str, on: bool) -> tuple:
-    """An uploaded card, or the error alone when the file is refused."""
+    """An uploaded card with the picker emptied, or the error alone when it is refused."""
     card, problem = load_upload(path)
     if problem:
         gr.Warning(problem)
-        return (gr.skip(),) * 4 + (problem,) + (gr.skip(),) * 7  # keep the current card
-    return show_card(card, on)
+        return (gr.skip(),) * 4 + (problem,) + (gr.skip(),) * 8  # keep the current card
+    return *show_card(card, on), gr.update(
+        value=None, label=f"{PICKER} (uploaded file on screen)"
+    )
 
 
 def ask(
@@ -184,7 +192,10 @@ def toggle(card: dict[str, Any], history: list, on: bool) -> tuple:
 
 
 def busy(count: int) -> tuple:
-    """While the engine runs: every way to send is disabled and the banner says so."""
+    """While the engine runs, nothing can send, change the card or reset the conversation.
+
+    A card change or a reset during an answer would be undone when the answer lands.
+    """
     return (gr.update(interactive=False),) * count + (WAITING,)
 
 
@@ -193,18 +204,29 @@ def ready(count: int) -> tuple:
     return (gr.update(interactive=True),) * count
 
 
+def history_line(turns: int) -> str:
+    """The status line saying how much of the conversation the engine receives."""
+    if turns == 0:
+        return "Engine sees no earlier exchange"
+    return (
+        "Engine sees the last exchange"
+        if turns == 1
+        else f"Engine sees the last {turns} exchanges"
+    )
+
+
 def build_app(
     respond: Respond = stub_respond,
     engine: str = STUB,
     cards: dict[str, dict[str, Any]] | None = None,
     turns: int | None = None,
 ) -> gr.Blocks:
-    """The demo screen. Task 2.8 passes the real engine and its name, nothing else."""
+    """The demo screen. Task 2.8 passes the real engine, its name and the run's turns."""
     cards = cards or sample_cards()
-    turns = turns or RunConfig().history_turns
+    turns = RunConfig().history_turns if turns is None else turns
     first = next(iter(cards))
     badge = "stub" if respond is stub_respond else "engine"
-    with gr.Blocks(title="BoxBox") as app:
+    with gr.Blocks(title="BoxBox", analytics_enabled=False) as app:  # no telemetry
         card, history = gr.State(cards[first]), gr.State([])
         with gr.Row():
             gr.HTML(
@@ -212,7 +234,7 @@ def build_app(
                 f'<span class="{badge}">{engine}</span>'
                 f'<span class="badge">Policy {POLICY_VERSION}</span>'
             )
-            picker = gr.Dropdown(list(cards), value=first, label="Race card", scale=2)
+            picker = gr.Dropdown(list(cards), value=first, label=PICKER, scale=2)
             upload = gr.UploadButton(
                 "Upload card (JSON)",
                 file_types=[".json"],
@@ -249,45 +271,44 @@ def build_app(
                     send_button = gr.Button("Send", variant="primary", scale=1)
                 with gr.Row():
                     reset = gr.Button("Reset", size="sm", scale=0)
-                    gr.Markdown(f"Engine sees the last {turns} exchanges")
+                    gr.Markdown(history_line(turns))
                 error = gr.Markdown()
         with gr.Accordion("Role and limits", open=False):
             gr.Markdown(role_text(respond is stub_respond))
         everything = [card, history, chat, message, error, situation, circle, tyres]
         everything += [inputs, raw, call, policy]
         exchange = [history, chat, message, error, call, policy]
-        controls = [send_button, message, *quick]
+        controls = [send_button, message, *quick, picker, upload, reset]
         asking = partial(ask, respond, turns)
         hidden = {
             "api_visibility": "private"
         }  # the screen is the interface, not an API
 
         def sending(trigger: Any, fn: Any, inputs: list) -> None:
-            trigger(
+            locked = trigger(
                 partial(busy, len(controls)),
                 None,
                 [*controls, call],
                 trigger_mode="once",
                 **hidden,
-            ).then(fn, inputs, exchange, **hidden).then(
+            )
+            locked.then(fn, inputs, exchange, **hidden).then(
                 partial(ready, len(controls)), None, controls, **hidden
             )
 
-        picker.change(
-            lambda name, on: show_card(cards[name], on),
+        # .input reacts to people only, so emptying the picker after an upload stays quiet
+        picker.input(
+            partial(pick_card, cards),
             [picker, rule_on],
-            everything,
+            [*everything, picker],
             **hidden,
         )
-        upload.upload(upload_card, [upload, rule_on], everything, **hidden)
+        upload.upload(upload_card, [upload, rule_on], [*everything, picker], **hidden)
         sending(send_button.click, asking, [card, history, message, rule_on])
         sending(message.submit, asking, [card, history, message, rule_on])
         for button, text in zip(quick, QUICK):
-            sending(
-                button.click,
-                lambda c, h, on, t=text: asking(c, h, t, on),
-                [card, history, rule_on],
-            )
+            question = partial(lambda t, c, h, on: asking(c, h, t, on), text)
+            sending(button.click, question, [card, history, rule_on])
         for trigger in (
             reset.click,
             chat.clear,
@@ -302,7 +323,12 @@ def build_app(
     return app
 
 
-def launch(respond: Respond = stub_respond, engine: str = STUB, **options: Any) -> Any:
+def launch(
+    respond: Respond = stub_respond,
+    engine: str = STUB,
+    turns: int | None = None,
+    **options: Any,
+) -> Any:
     """Build the screen and launch it with its theme; options go to Gradio's launch."""
     theme = gr.themes.Base(
         primary_hue="slate",
@@ -315,4 +341,6 @@ def launch(respond: Respond = stub_respond, engine: str = STUB, **options: Any) 
         ],
     )
     settings = {"footer_links": ["gradio"], "run_history": False} | options
-    return build_app(respond, engine).launch(theme=theme, css=CSS, **settings)
+    return build_app(respond, engine, turns=turns).launch(
+        theme=theme, css=CSS, **settings
+    )
