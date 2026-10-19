@@ -145,3 +145,29 @@ The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
 with:
 
     .venv/bin/python -m scripts.demo_cards
+
+9. Conversation engine (task 2.5a)
+----------------------------------
+
+The shared conversation engine is implemented in boxbox/model/conversation.py.
+It uses the pinned SmolLM3 tokenizer's native chat template, preserves the
+current card and a bounded complete-turn history, and returns the unmodified
+generated continuation. It is callable by the demo and evaluation code; the
+demo keeps its explicit stub until task 2.8.
+
+Run deterministic engine, demo-contract, config/run, policy and evaluator tests
+without loading weights:
+
+    .venv/bin/python -m pytest -q tests/test_conversation_engine.py tests/test_app.py tests/test_runs.py tests/test_race_card.py tests/test_evaluation.py
+
+Run the real-model smoke using the pinned baseline and synthetic cases only:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.smoke_conversation --config configs/conversation-smoke.toml --name 2-5a-smollm3-smoke-repeat
+
+The smoke creates a new ignored runs/<date>_2-5a-smollm3-smoke/ directory with
+fixed case and input ledgers, output/error records, raw text, generated token
+IDs, prompt/context traces and effective generation settings. It does not read
+real validation, mini-test or final cases. Protocol 1.1.0 remains proposed;
+automatic parser/agreement diagnostics are not human ratings. See
+docs/conversation-engine.md for template, token/time bounds, errors and 2.5b,
+2.6 and 2.8 handoffs.

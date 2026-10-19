@@ -14,6 +14,8 @@ class Decoding:
     do_sample: bool = False
     temperature: float = 1.0
     top_p: float = 1.0
+    max_context_tokens: int = 8192
+    max_generation_seconds: float = 30.0
 
 
 @dataclass(frozen=True)
@@ -42,6 +44,7 @@ class RunConfig:
     lora: Lora = field(default_factory=Lora)
     seed: int = 2026
     final_test_open: bool = False
+    mps_memory_cap_gb: float = 20.0
 
 
 def build_config(overrides: dict[str, Any]) -> RunConfig:
