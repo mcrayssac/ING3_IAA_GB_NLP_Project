@@ -214,7 +214,7 @@ def test_build_never_opens_the_final_split(monkeypatch, tmp_path) -> None:
     assert "final" not in asked
     assert manifests[0] == manifests[1]
     sheet = (tmp_path / "review_sheet.csv").read_text(encoding="utf-8")
-    assert sheet.count("\n") == 400 + 100 + 40 + 1
+    assert sheet.count("\n") == 400 + 100 + 40 + 60 + 1  # B adds its 60 variants
 
 
 def test_review_verdicts_survive_only_unchanged_items(monkeypatch, tmp_path) -> None:
