@@ -45,6 +45,9 @@ docs/code-approach.md   code layout, configs, run folders and team coding rules
 docs/interface.md       Gradio interface specs
 docs/data-protocol.md   race data source, card reconstruction and splits
 docs/corpus.md          training and evaluation dialogues and their review
+docs/evaluation-protocol.md evaluation rubric and comparison protocol (proposal)
+docs/evaluation-tooling.md evaluator API, offline fixture checks and review exports
+boxbox/evaluation/      deterministic scoring, pairing and race-level uncertainty
 data/splits.json        frozen race-level splits
 data/corpus/            corpus A, validation and mini-test (CC BY-NC-SA 4.0)
 docs/diagrams/          active overview/Gantt and historical diagram assets
@@ -53,6 +56,8 @@ LICENSE                Apache License 2.0
 ```
 
 The notebook, the shared code and the data arrive with the first prototype.
+
+The [evaluation tooling](docs/evaluation-tooling.md) can be checked offline on synthetic fixtures without loading a model. Its protocol checks and sample exports are not model results or actual human ratings.
 
 The product, interface, prompts, training examples, code, notebook explanations, run guide and project documentation use English. The report, video and other teacher-facing presentation documents use French.
 
