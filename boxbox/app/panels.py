@@ -6,14 +6,18 @@ import html
 import math
 from typing import Any
 
-from matplotlib.figure import Figure
-
 from boxbox.rules import TYRE_LIMITS, decide, remove_field
 from boxbox.rules.decision import laps
 
 MARGIN = 2.0  # rejoin margin and gap-ahead limit of the policy, in seconds
 CALLS = ("BOX", "STAY OUT", "NO CALL")
-CALL_COLOURS = {"BOX": "#f28c28", "STAY OUT": "#4c8df6", "NO CALL": "#9aa0a6"}
+# colours are CSS variables of layout.py, so they follow the light or dark appearance
+CALL_COLOURS = {
+    "BOX": "var(--bx-box)",
+    "STAY OUT": "var(--bx-stay)",
+    "NO CALL": "var(--bx-nocall)",
+}
+# flag and Pirelli colours, used only for the dots of the chips
 COMPOUND_COLOURS = {"SOFT": "#da291c", "MEDIUM": "#ffd12e", "HARD": "#f0f0ec"}
 STATUS_COLOURS = {
     "GREEN": "#2dbe60",
@@ -21,7 +25,11 @@ STATUS_COLOURS = {
     "VSC": "#ffd12e",
     "RED": "#e5484d",
 }
-INK, PANEL, GRID = "#e6e8eb", "#16181d", "#3a3f47"
+NEUTRAL = "#94a3b8"
+ASSUMPTION = "Assumes a fixed pit loss and that the other cars keep their pace."
+CIRCLE_WIDTH, CIRCLE_HEIGHT, RADIUS = 440, 300, 105
+CENTRE = (CIRCLE_WIDTH / 2, CIRCLE_HEIGHT / 2)
+TYRE_WIDTH = 440
 # rows of the decision inputs: label and the card field remove_field makes unknown
 INPUTS = (
     ("Tyre age", "tyre_age_laps"),
@@ -53,7 +61,7 @@ def gap(card: dict[str, Any], side: str) -> tuple[str, float | None]:
 
 
 def _chip(text: Any, colour: str) -> str:
-    return f'<span class="chip" style="--chip:{colour}">{html.escape(str(text))}</span>'
+    return f'<span class="chip"><i style="background:{colour}"></i>{html.escape(str(text))}</span>'
 
 
 def situation(card: dict[str, Any]) -> str:
@@ -71,9 +79,9 @@ def situation(card: dict[str, Any]) -> str:
     return (
         f'<div class="situation"><div class="race">{html.escape(title)}</div>'
         f'<div class="mono">{html.escape(lap)} &nbsp; Car {html.escape(str(card.get("driver_number", "?")))}</div>'
-        f"<div>{_chip(status, STATUS_COLOURS.get(status, GRID))}"
-        f"{_chip(card.get('surface') or 'UNKNOWN', GRID)}"
-        f"{_chip(tyres, COMPOUND_COLOURS.get(compound, GRID))}</div></div>"
+        f"<div>{_chip(status, STATUS_COLOURS.get(status, NEUTRAL))}"
+        f"{_chip(card.get('surface') or 'UNKNOWN', NEUTRAL)}"
+        f"{_chip(tyres, COMPOUND_COLOURS.get(compound, NEUTRAL))}</div></div>"
     )
 
 
@@ -132,7 +140,8 @@ def inputs_table(card: dict[str, Any], with_rule: bool) -> str:
         text, known = input_value(card, field)
         rule = _rule_cell(card, field, known) if column else ""
         flag = "" if known else ' class="unknown"'
-        value = f"<td class=mono>{html.escape(text)}</td>"
+        mark = "" if known else '<span class="mark" aria-hidden="true">?</span> '
+        value = f"<td class=mono>{mark}{html.escape(text)}</td>"
         rows.append(f"<tr{flag}><td>{label}</td>{value}{rule}</tr>")
     note = ""
     if with_rule and not column:
@@ -159,133 +168,185 @@ def circle_points(card: dict[str, Any]) -> dict[str, Any] | str:
     if not lap:
         return "No circle: the card has no reference lap time."
     points = {"ahead": None, "behind": None, "rejoin": None, "band_end": None}
-    points |= {"cleared": None, "notes": []}
+    points["cleared"] = None
     for side, key, sign in (("gap_ahead", "ahead", 1), ("gap_behind", "behind", -1)):
         state, seconds = gap(card, side)
         if state == "KNOWN":
             points[key] = sign * seconds / lap * 360
-        else:
-            points["notes"].append(
-                f"Car {key}: {'no car' if state == 'NONE' else 'gap unknown'}"
-            )
     loss = _number(card.get("pit_loss_seconds"))
     if loss is None:
-        points["notes"].append("No rejoin point: the pit loss is missing.")
         return points
-    points["rejoin"], points["band_end"] = (
-        -loss / lap * 360,
-        -(loss + MARGIN) / lap * 360,
-    )
+    points["rejoin"] = -loss / lap * 360
+    points["band_end"] = -(loss + MARGIN) / lap * 360
     state, behind = gap(card, "gap_behind")
     if state == "KNOWN":
-        points["cleared"] = behind >= loss + MARGIN  # rule 6: equality clears
+        points["cleared"] = (
+            round(behind - loss - MARGIN, 1) >= 0
+        )  # rule 6: equality clears
     return points
 
 
-def _figure(width: float, height: float, polar: bool = False) -> tuple[Figure, Any]:
-    fig = Figure(figsize=(width, height), facecolor=PANEL)
-    ax = fig.add_subplot(projection="polar" if polar else None, facecolor=PANEL)
-    ax.tick_params(colors=INK, labelsize=8)
-    for spine in ax.spines.values():
-        spine.set_color(GRID)
-    return fig, ax
-
-
-def message_figure(text: str) -> Figure:
-    """A small panel that says why a chart is not drawn."""
-    fig, ax = _figure(5, 1.2)
-    ax.axis("off")
-    ax.text(0.5, 0.5, text, color=INK, ha="center", va="center", fontsize=10)
-    return fig
-
-
-def circle_of_doom(card: dict[str, Any]) -> Figure:
-    """One lap in time: the car on top, its neighbours, the rejoin point and margin."""
-    points = circle_points(card)
-    if isinstance(points, str):
-        return message_figure(points)
-    fig, ax = _figure(4.4, 4.6, polar=True)
-    ax.set_theta_zero_location("N")
-    ax.set_theta_direction(-1)  # cars run clockwise
-    ax.set_ylim(0, 1.45)  # room for the labels outside the ring
-    ax.set_yticks([])
-    ax.set_xticks([])
-    ax.plot([math.radians(d) for d in range(361)], [1] * 361, color=GRID, lw=6)
-    if points["rejoin"] is not None:
-        band = [
-            math.radians(
-                points["rejoin"] + step * (points["band_end"] - points["rejoin"]) / 20
-            )
-            for step in range(21)
-        ]
-        ax.plot(band, [1] * 21, color=CALL_COLOURS["BOX"], lw=10, alpha=0.6)
-        ax.plot(
-            [math.radians(points["rejoin"])], [1], "o", color=CALL_COLOURS["BOX"], ms=9
-        )
-    _car(ax, 0, "car", INK)
-    behind = (
-        "cleared"
-        if points["cleared"]
-        else "not cleared"
-        if points["cleared"] is False
-        else ""
+def _car_name(card: dict[str, Any], side: str) -> str:
+    number = (
+        card[side].get("driver_number") if isinstance(card.get(side), dict) else None
     )
-    if points["ahead"] is not None:
-        _car(ax, points["ahead"], "ahead", INK)
-    if points["behind"] is not None:
-        _car(ax, points["behind"], f"behind {behind}".strip(), CALL_COLOURS["STAY OUT"])
-    notes = points["notes"] + [
-        "Assumes a fixed pit loss and that the other cars keep their pace."
-    ]
-    fig.text(0.5, 0.02, "\n".join(notes), color=INK, ha="center", fontsize=8)
-    return fig
+    return f"Car {number}" if number else "The car"
 
 
-def _car(ax: Any, degrees: float, label: str, colour: str) -> None:
+def _neighbour(card: dict[str, Any], side: str, where: str, loss: float | None) -> str:
+    state, seconds = gap(card, side)
+    if state != "KNOWN":
+        return f"No car {where}." if state == "NONE" else f"Gap {where} unknown."
+    text = f"{_car_name(card, side)} {where} at {seconds:.1f} s"
+    if where == "behind" and loss is not None:
+        room = round(seconds - loss - MARGIN, 1)
+        text += (
+            f" clears the margin by {room:.1f} s"
+            if room >= 0
+            else f" is {-room:.1f} s short of it"
+        )
+    return text + "."
+
+
+def circle_readout(card: dict[str, Any]) -> str:
+    """What the circle shows, in words and seconds: its readout and its accessible label."""
+    loss = _number(card.get("pit_loss_seconds"))
+    parts = [] if _number(card.get("reference_lap_seconds")) else [circle_points(card)]
+    if loss is None:
+        parts.append("No rejoin point: the pit loss is missing.")
+    else:
+        parts.append(f"Rejoins {loss:.1f} s back, margin to {loss + MARGIN:.1f} s.")
+    parts.append(_neighbour(card, "gap_behind", "behind", loss))
+    parts.append(_neighbour(card, "gap_ahead", "ahead", loss))
+    return " ".join(parts)
+
+
+def _xy(degrees: float, radius: float) -> tuple[float, float]:
     theta = math.radians(degrees)
-    ax.plot([theta], [1], "o", color=colour, ms=11, markeredgecolor=PANEL)
-    side = math.sin(theta)  # labels lean outwards so they never sit on the ring
-    align = "left" if side > 0.3 else "right" if side < -0.3 else "center"
-    ax.text(theta, 1.16, label, color=colour, ha=align, va="center", fontsize=8)
+    return CENTRE[0] + radius * math.sin(theta), CENTRE[1] - radius * math.cos(theta)
 
 
-def tyre_window(card: dict[str, Any]) -> Figure:
-    """The tyre age on a bar split by the compound's policy thresholds."""
+def _car(degrees: float, label: str, filled: bool, inside: bool = False) -> str:
+    """One car on the ring; neighbour labels sit outside, the card's car label inside."""
+    x, y = _xy(degrees, RADIUS)
+    lx, ly = _xy(degrees, RADIUS - 26 if inside else RADIUS + 26)
+    side = math.sin(math.radians(degrees))
+    anchor = "middle" if inside or degrees == 0 else "start" if side > 0 else "end"
+    fill = "var(--bx-ink)" if filled else "var(--block-background-fill)"
+    return (
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="8" fill="{fill}" class="car"/>'
+        f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="{anchor}" '
+        f'dominant-baseline="middle">{html.escape(label)}</text>'
+    )
+
+
+def _band(start: float, end: float) -> str:
+    """The rejoin margin as an arc, drawn counter-clockwise from the rejoin point."""
+    end = max(end, start - 359)
+    (x1, y1), (x2, y2) = _xy(start, RADIUS), _xy(end, RADIUS)
+    large = 1 if start - end > 180 else 0
+    rx, ry = _xy(start, RADIUS - 26)
+    return (
+        f'<path d="M{x1:.1f},{y1:.1f} A{RADIUS},{RADIUS} 0 {large} 0 {x2:.1f},{y2:.1f}" class="band"/>'
+        f'<rect x="{x1 - 6:.1f}" y="{y1 - 6:.1f}" width="12" height="12" class="rejoin" '
+        f'transform="rotate(45 {x1:.1f} {y1:.1f})"/>'
+        f'<text x="{rx:.1f}" y="{ry:.1f}" text-anchor="middle" dominant-baseline="middle">rejoin</text>'
+    )
+
+
+def circle_of_doom(card: dict[str, Any]) -> str:
+    """One lap in time as SVG, with the car on top, its neighbours and the rejoin margin."""
+    points, readout = circle_points(card), circle_readout(card)
+    svg = ""
+    if not isinstance(points, str):
+        shapes = [
+            f'<circle cx="{CENTRE[0]}" cy="{CENTRE[1]}" r="{RADIUS}" class="ring"/>'
+        ]
+        if points["rejoin"] is not None:
+            shapes.append(_band(points["rejoin"], points["band_end"]))
+        shapes.append(
+            _car(0, f"car {card.get('driver_number', '?')}", True, inside=True)
+        )
+        if points["ahead"] is not None:
+            shapes.append(_car(points["ahead"], "ahead", True))
+        if (
+            points["behind"] is not None
+        ):  # hollow when the car behind is inside the margin
+            shapes.append(
+                _car(points["behind"], "behind", points["cleared"] is not False)
+            )
+        svg = _svg(f"0 0 {CIRCLE_WIDTH} {CIRCLE_HEIGHT}", readout, "".join(shapes))
+    return f'<div class="chart">{svg}<p class="readout">{html.escape(readout)}</p><p class="note">{ASSUMPTION}</p></div>'
+
+
+def _svg(box: str, label: str, shapes: str) -> str:
+    label = html.escape(label)
+    return f'<svg viewBox="{box}" role="img" aria-label="{label}"><title>{label}</title>{shapes}</svg>'
+
+
+def tyre_readout(card: dict[str, Any]) -> str:
+    """Where the tyre age sits against the compound's thresholds, in words."""
     zones = tyre_zones(card)
     if isinstance(zones, str):
-        return message_figure(zones)
+        return zones
+    young, old, age, _ = zones
+    zone = (
+        "too young"
+        if age < young
+        else "in the window"
+        if age < old
+        else "in the opportunity zone"
+    )
+    return f"{laps(age)} on {card['compound']}, {zone}. Window from {young} laps, opportunity from {old}."
+
+
+def _zone(start: float, stop: float, name: str, label: str) -> str:
+    width = stop - start
+    shape = (
+        f'<rect x="{start:.1f}" y="26" width="{width:.1f}" height="20" class="{name}"/>'
+    )
+    if width < len(label) * 7.5 + 8:  # too narrow: the readout names the zone
+        return shape
+    return (
+        shape
+        + f'<text x="{start + width / 2:.1f}" y="37" text-anchor="middle" dominant-baseline="middle" class="zone-label">{label}</text>'
+    )
+
+
+def tyre_window(card: dict[str, Any]) -> str:
+    """The tyre age on a bar split by the compound's policy thresholds, with its readout."""
+    zones, readout = tyre_zones(card), tyre_readout(card)
+    if isinstance(zones, str):
+        return f'<div class="chart"><p class="readout">{html.escape(readout)}</p></div>'
     young, old, age, end = zones
-    fig, ax = _figure(5, 1.7)
-    fig.subplots_adjust(bottom=0.34, top=0.84)  # room for the caption
-    spans = (
-        (0, young, CALL_COLOURS["STAY OUT"], "too young"),
-        (young, old, COMPOUND_COLOURS["MEDIUM"], "window"),
-        (old, end, CALL_COLOURS["BOX"], "opportunity"),
-    )
-    for start, stop, colour, label in spans:
-        ax.barh(0, stop - start, left=start, color=colour, alpha=0.55, height=0.5)
-        ax.text(
-            (start + stop) / 2,
-            0,
-            label,
-            color=INK,
-            ha="center",
-            va="center",
-            fontsize=8,
+    scale = (TYRE_WIDTH - 20) / end
+
+    def x(laps_: float) -> float:
+        return 10 + laps_ * scale
+
+    shapes = [
+        _zone(x(0), x(young), "zone1", "too young"),
+        _zone(x(young), x(old), "zone2", "window"),
+        _zone(x(old), x(end), "zone3", "opportunity"),
+        f'<rect x="{x(0):.1f}" y="26" width="{x(end) - x(0):.1f}" height="20" class="bar"/>',
+    ]
+    for tick in (0, young, old):
+        shapes.append(
+            f'<text x="{x(tick):.1f}" y="62" text-anchor="middle" class="tick">{tick}</text>'
         )
-    ax.axvline(age, color=INK, lw=3)
-    ax.text(age, 0.42, laps(age), color=INK, ha="center", fontsize=9, fontweight="bold")
-    ax.set_xlim(0, end)
-    ax.set_ylim(-0.6, 0.6)
-    ax.set_yticks([])
-    ax.set_xticks([0, young, old])
-    ax.set_xlabel(
-        f"Window: a stop needs the car ahead within {MARGIN:.1f} s.",
-        color=INK,
-        fontsize=8,
+    anchor = "start" if x(age) < 40 else "end" if x(age) > TYRE_WIDTH - 40 else "middle"
+    shapes.append(
+        f'<line x1="{x(age):.1f}" y1="20" x2="{x(age):.1f}" y2="52" class="age"/>'
     )
-    ax.set_title(f"{card['compound']} tyre window", color=INK, fontsize=9, loc="left")
-    return fig
+    shapes.append(
+        f'<text x="{x(age):.1f}" y="12" text-anchor="{anchor}" class="age-label">{laps(age)}</text>'
+    )
+    title = (
+        f'<div class="chart-title">{html.escape(card["compound"])} tyre window</div>'
+    )
+    svg = _svg(f"0 0 {TYRE_WIDTH} 70", readout, "".join(shapes))
+    caption = f"In the window, a stop needs the car ahead within {MARGIN:.1f} s."
+    return f'<div class="chart">{title}{svg}<p class="readout">{html.escape(readout)}</p><p class="note">{caption}</p></div>'
 
 
 def parse_answer(text: Any) -> tuple[str, str] | None:
@@ -304,7 +365,10 @@ def parse_answer(text: Any) -> tuple[str, str] | None:
 def banner(answer: str | None) -> str:
     """The latest call in large text, or what stops it from being read."""
     if answer is None:
-        return '<div class="banner idle">Ask about this lap</div>'
+        return (
+            '<div class="banner idle"><div class="call">No call yet</div>'
+            '<div class="why">Ask a question or pick one below.</div></div>'
+        )
     parsed = parse_answer(answer)
     if parsed is None:
         return '<div class="banner bad">Answer not in CALL/WHY format</div>'
@@ -324,7 +388,8 @@ def policy_panel(card: dict[str, Any], answer: str | None) -> str:
         same = parsed[0] == call
         badge = f'<span class="badge">{"Matches the rule" if same else "Differs from the rule"}</span>'
     return (
-        f'<div class="policy"><b>Rule on this card:</b> {call} {badge}'
+        f'<div class="policy"><b>Rule on this card:</b> '
+        f'<span style="color:{CALL_COLOURS[call]}">{call}</span> {badge}'
         f"<div>{html.escape(why)}</div>"
         "<div class=note>An out-of-scope request should differ: the assistant answers NO CALL to it.</div></div>"
     )

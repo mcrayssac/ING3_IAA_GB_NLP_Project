@@ -26,12 +26,12 @@ def card(name: str = "medium_safe", **fields) -> dict:
 def test_circle_angles_and_rejoin_point() -> None:
     points = P.circle_points(
         card()
-    )  # lap 90 s, ahead 1.5 s, behind 24.0 s, pit loss 21.0 s
+    )  # lap 90 s, ahead 1.5 s, behind 24.0 s, loss 21.0 s
     assert points["ahead"] == pytest.approx(6.0)
     assert points["behind"] == pytest.approx(-96.0)
     assert points["rejoin"] == pytest.approx(-84.0)
     assert points["band_end"] == pytest.approx(-92.0)
-    assert points["cleared"] is True and points["notes"] == []
+    assert points["cleared"] is True
 
 
 def test_circle_with_unknown_gaps_missing_loss_and_lap_time() -> None:
@@ -39,13 +39,56 @@ def test_circle_with_unknown_gaps_missing_loss_and_lap_time() -> None:
         gap_behind={"state": "KNOWN", "seconds": 23.0}
     )  # equality clears, rule 6
     assert P.circle_points(edge)["cleared"] is True
-    unknown = P.circle_points(card(gap_ahead={"state": "UNKNOWN", "seconds": None}))
-    assert unknown["ahead"] is None and "Car ahead: gap unknown" in unknown["notes"]
-    none = P.circle_points(card(gap_behind={"state": "NONE", "seconds": None}))
-    assert none["behind"] is None and "Car behind: no car" in none["notes"]
-    no_loss = P.circle_points(card(pit_loss_seconds=None))
-    assert no_loss["rejoin"] is None and any("pit loss" in n for n in no_loss["notes"])
+    assert (
+        P.circle_points(card(gap_ahead={"state": "UNKNOWN", "seconds": None}))["ahead"]
+        is None
+    )
+    assert (
+        P.circle_points(card(gap_behind={"state": "NONE", "seconds": None}))["behind"]
+        is None
+    )
+    assert P.circle_points(card(pit_loss_seconds=None))["rejoin"] is None
     assert "reference lap time" in P.circle_points(card(reference_lap_seconds=None))
+
+
+def test_circle_readout_gives_the_numbers_in_words() -> None:
+    assert P.circle_readout(card()) == (
+        "Rejoins 21.0 s back, margin to 23.0 s. "
+        "Car 63 behind at 24.0 s clears the margin by 1.0 s. Car 16 ahead at 1.5 s."
+    )
+    short = P.circle_readout(card(gap_behind={"state": "KNOWN", "seconds": 4.6}))
+    assert "The car behind at 4.6 s is 18.4 s short of it." in short
+    blanks = card(
+        gap_ahead={"state": "UNKNOWN", "seconds": None},
+        gap_behind={"state": "NONE", "seconds": None},
+        pit_loss_seconds=None,
+        reference_lap_seconds=None,
+    )
+    assert P.circle_readout(blanks) == (
+        "No circle: the card has no reference lap time. "
+        "No rejoin point: the pit loss is missing. No car behind. Gap ahead unknown."
+    )
+
+
+def test_charts_are_labelled_svg_and_skip_missing_data() -> None:
+    circle = P.circle_of_doom(card())
+    assert f'aria-label="{P.circle_readout(card())}"' in circle and "<svg" in circle
+    assert "<svg" not in P.circle_of_doom(card(reference_lap_seconds=None))
+    tyres = P.tyre_window(card())
+    assert f'aria-label="{P.tyre_readout(card())}"' in tyres
+    assert P.tyre_readout(card()) == (
+        "15 laps on MEDIUM, in the window. Window from 12 laps, opportunity from 18."
+    )
+    assert "<svg" not in P.tyre_window(card(tyre_age_laps=None))
+    sources = [f.read_text(encoding="utf-8") for f in Path("boxbox/app").glob("*.py")]
+    assert not any("matplotlib" in source for source in sources)
+
+
+def test_sending_disables_the_controls_until_the_engine_answers() -> None:
+    waiting = L.busy(3)
+    assert [u["interactive"] for u in waiting[:3]] == [False] * 3
+    assert "Waiting for the engine" in waiting[3]
+    assert [u["interactive"] for u in L.ready(3)] == [True] * 3
 
 
 @pytest.mark.parametrize(
@@ -75,7 +118,7 @@ def test_answers_are_read_never_repaired() -> None:
     for bad in ("CALL: BOX", "CALL: MAYBE\nWHY: x.", "Sure!\nCALL: BOX\nWHY: x.", None):
         assert P.parse_answer(bad) is None
     assert "not in CALL/WHY format" in P.banner("CALL: BOX")
-    assert "Ask about this lap" in P.banner(None)
+    assert "No call yet" in P.banner(None)
 
 
 def test_used_by_rule_and_highlighted_inputs() -> None:

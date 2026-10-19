@@ -28,28 +28,68 @@ QUICK = (
     "What gap behind does the card show?",
     "Will it rain later?",
 )
+# colour tokens for the light and dark appearance; Gradio sets .dark from the system setting
 CSS = """
+:root {
+  --bx-ink: #0f172a; --bx-muted: #475569; --bx-ring: #64748b; --bx-bad: #b91c1c;
+  --bx-box: #b45309; --bx-stay: #1d4ed8; --bx-nocall: #475569;
+  --bx-zone1: #e2e8f0; --bx-zone2: #cbd5e1; --bx-zone3: #94a3b8; --bx-zone-ink: #0f172a;
+  --bx-unknown: rgba(100, 116, 139, 0.16);
+}
+.dark {
+  --bx-ink: #f1f5f9; --bx-muted: #94a3b8; --bx-ring: #64748b; --bx-bad: #f87171;
+  --bx-box: #f28c28; --bx-stay: #60a5fa; --bx-nocall: #9aa0a6;
+  --bx-zone1: #334155; --bx-zone2: #475569; --bx-zone3: #64748b; --bx-zone-ink: #ffffff;
+  --bx-unknown: rgba(148, 163, 184, 0.16);
+}
 .brand { font-size: 1.4em; font-weight: 800; }
-.brand span { font-weight: 400; color: #9aa0a6; }
+.brand span { font-weight: 400; color: var(--bx-muted); }
 .stub { background: #f2a900; color: #111; padding: 2px 10px; border-radius: 6px; font-weight: 700; }
-.engine, .badge { border: 1px solid #9aa0a6; border-radius: 10px; padding: 1px 8px; margin-left: 8px; }
+.engine, .badge { border: 1px solid var(--bx-ring); border-radius: 10px; padding: 1px 8px;
+                  margin-left: 8px; }
 .stub, .engine, .badge { white-space: nowrap; display: inline-block; margin-top: 4px; }
-.chip { display: inline-block; padding: 2px 10px; margin: 6px 6px 0 0; border-radius: 12px;
-        border: 2px solid var(--chip); font-weight: 600; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px;
+        margin: 6px 6px 0 0; border-radius: 12px; border: 1px solid var(--bx-ring);
+        font-weight: 600; }
+.chip i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--bx-ring); }
 .situation .race { font-size: 1.2em; font-weight: 700; }
-.mono { font-family: ui-monospace, Menlo, monospace; }
-.banner { border-left: 8px solid var(--call, #3a3f47); padding: 10px 16px; border-radius: 6px;
-          background: #1e2128; }
-.banner .call { font-size: 2em; font-weight: 800; color: var(--call); }
-.banner.idle { color: #9aa0a6; font-size: 1.2em; font-style: italic; background: none;
-               border: 1px dashed #3a3f47; }
-.banner.bad { border-left-color: #e5484d; font-size: 1.2em; }
+.mono, .readout { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); }
+.banner { border-left: 8px solid var(--call, var(--bx-ring)); padding: 10px 16px;
+          border-radius: 6px; background: var(--block-background-fill); }
+.banner .call { font-size: 2em; font-weight: 800; color: var(--call, var(--bx-ink)); }
+.banner.idle .call { font-size: 1.4em; color: var(--bx-muted); }
+.banner.bad { border-left-color: var(--bx-bad); font-size: 1.2em; }
 .inputs { width: 100%; border-collapse: collapse; }
-.inputs td, .inputs th { padding: 4px 8px; border-bottom: 1px solid #3a3f47; text-align: left; }
-.inputs tr.unknown td { background: rgba(255, 209, 46, 0.15); }
-.policy .note, .note { color: #9aa0a6; font-size: 0.9em; }
+.inputs td, .inputs th { padding: 4px 8px; border-bottom: 1px solid var(--bx-ring);
+                         text-align: left; }
+.inputs tr.unknown td { background: var(--bx-unknown); font-style: italic; }
+.mark { font-weight: 800; font-style: normal; }
+.note { color: var(--bx-muted); font-size: 0.9em; }
+.chart-title { font-weight: 600; }
+.readout { margin: 6px 0 0; }
+.chart svg { width: 100%; max-width: 440px; display: block; margin: 0 auto; }
+.chart text { font-size: 13px; fill: var(--bx-ink); }
+.chart .ring { fill: none; stroke: var(--bx-ring); stroke-width: 6; }
+.chart .band { fill: none; stroke: var(--bx-ink); stroke-width: 14; stroke-dasharray: 2 3; }
+.chart .rejoin { fill: var(--bx-ink); }
+.chart .car { stroke: var(--bx-ink); stroke-width: 2.5; }
+.chart .zone1 { fill: var(--bx-zone1); }
+.chart .zone2 { fill: var(--bx-zone2); }
+.chart .zone3 { fill: var(--bx-zone3); }
+.chart .bar { fill: none; stroke: var(--bx-ring); stroke-width: 1.5; }
+.chart .zone-label { fill: var(--bx-zone-ink); font-size: 12px; }
+.chart .tick { fill: var(--bx-muted); font-size: 12px; }
+.chart .age { stroke: var(--bx-ink); stroke-width: 3; }
+.chart .age-label { font-weight: 700; }
 """
-DARK = "() => { document.body.classList.add('dark'); }"  # pit-wall screens are dark
+WAITING = (
+    '<div class="banner idle"><div class="call">Waiting for the engine</div></div>'
+)
+PLACEHOLDER = (
+    "Ask whether the car on the card should box on this lap, then follow up. "
+    "The quick questions below are a start."
+)
 
 
 def role_text(stub: bool) -> str:
@@ -143,6 +183,16 @@ def toggle(card: dict[str, Any], history: list, on: bool) -> tuple:
     return P.inputs_table(card, on), *_call_view(card, history, on)
 
 
+def busy(count: int) -> tuple:
+    """While the engine runs: every way to send is disabled and the banner says so."""
+    return (gr.update(interactive=False),) * count + (WAITING,)
+
+
+def ready(count: int) -> tuple:
+    """The engine answered: the controls come back."""
+    return (gr.update(interactive=True),) * count
+
+
 def build_app(
     respond: Respond = stub_respond,
     engine: str = STUB,
@@ -164,12 +214,20 @@ def build_app(
             )
             picker = gr.Dropdown(list(cards), value=first, label="Race card", scale=2)
             upload = gr.UploadButton(
-                "Upload card", file_types=[".json"], size="sm", scale=0, min_width=140
+                "Upload card (JSON)",
+                file_types=[".json"],
+                size="sm",
+                scale=0,
+                min_width=170,
             )
         with gr.Row():
-            with gr.Column(scale=2):
-                situation, circle = gr.HTML(), gr.Plot(show_label=False)
-                tyres, inputs = gr.Plot(show_label=False), gr.HTML()
+            with gr.Column(scale=2):  # the numbers first, then the pictures of them
+                situation, inputs, tyres, circle = (
+                    gr.HTML(),
+                    gr.HTML(),
+                    gr.HTML(),
+                    gr.HTML(),
+                )
                 with gr.Accordion("Raw card", open=False):
                     raw = gr.Code(language="json")
             with gr.Column(scale=3):
@@ -177,7 +235,10 @@ def build_app(
                 rule_on = gr.Checkbox(False, label="Policy check: show the rule's call")
                 policy = gr.HTML(visible=False)
                 chat = gr.Chatbot(
-                    label="Conversation", height=380, buttons=["copy", "copy_all"]
+                    label="Conversation",
+                    height=380,
+                    buttons=["copy", "copy_all"],
+                    placeholder=PLACEHOLDER,
                 )
                 with gr.Row():
                     quick = [gr.Button(q, size="sm") for q in QUICK]
@@ -195,29 +256,63 @@ def build_app(
         everything = [card, history, chat, message, error, situation, circle, tyres]
         everything += [inputs, raw, call, policy]
         exchange = [history, chat, message, error, call, policy]
+        controls = [send_button, message, *quick]
         asking = partial(ask, respond, turns)
+        hidden = {
+            "api_visibility": "private"
+        }  # the screen is the interface, not an API
+
+        def sending(trigger: Any, fn: Any, inputs: list) -> None:
+            trigger(
+                partial(busy, len(controls)),
+                None,
+                [*controls, call],
+                trigger_mode="once",
+                **hidden,
+            ).then(fn, inputs, exchange, **hidden).then(
+                partial(ready, len(controls)), None, controls, **hidden
+            )
+
         picker.change(
-            lambda name, on: show_card(cards[name], on), [picker, rule_on], everything
+            lambda name, on: show_card(cards[name], on),
+            [picker, rule_on],
+            everything,
+            **hidden,
         )
-        upload.upload(upload_card, [upload, rule_on], everything)
-        send_button.click(asking, [card, history, message, rule_on], exchange)
-        message.submit(asking, [card, history, message, rule_on], exchange)
+        upload.upload(upload_card, [upload, rule_on], everything, **hidden)
+        sending(send_button.click, asking, [card, history, message, rule_on])
+        sending(message.submit, asking, [card, history, message, rule_on])
         for button, text in zip(quick, QUICK):
-            button.click(
+            sending(
+                button.click,
                 lambda c, h, on, t=text: asking(c, h, t, on),
                 [card, history, rule_on],
-                exchange,
             )
-        reset.click(clear, [card, rule_on], [history, chat, error, call, policy])
-        chat.clear(
-            clear, [card, rule_on], [history, chat, error, call, policy]
-        )  # its bin icon
-        rule_on.change(toggle, [card, history, rule_on], [inputs, call, policy])
-        app.load(show_card, [card, rule_on], everything)
+        for trigger in (
+            reset.click,
+            chat.clear,
+        ):  # chat.clear is the conversation's bin icon
+            trigger(
+                clear, [card, rule_on], [history, chat, error, call, policy], **hidden
+            )
+        rule_on.change(
+            toggle, [card, history, rule_on], [inputs, call, policy], **hidden
+        )
+        app.load(show_card, [card, rule_on], everything, **hidden)
     return app
 
 
 def launch(respond: Respond = stub_respond, engine: str = STUB, **options: Any) -> Any:
-    """Build the screen and launch it with the pit-wall theme; options go to Gradio."""
-    theme = gr.themes.Base(primary_hue="orange", neutral_hue="slate")
-    return build_app(respond, engine).launch(theme=theme, css=CSS, js=DARK, **options)
+    """Build the screen and launch it with its theme; options go to Gradio's launch."""
+    theme = gr.themes.Base(
+        primary_hue="slate",
+        neutral_hue="slate",
+        font_mono=[
+            gr.themes.GoogleFont("IBM Plex Mono"),
+            "ui-monospace",
+            "Menlo",
+            "monospace",
+        ],
+    )
+    settings = {"footer_links": ["gradio"], "run_history": False} | options
+    return build_app(respond, engine).launch(theme=theme, css=CSS, **settings)
