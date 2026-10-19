@@ -27,6 +27,7 @@ class Lora:
     learning_rate: float = 2e-4
     epochs: int = 3
     batch_size: int = 4
+    gradient_accumulation: int = 1  # effective batch = batch_size x this
     max_length: int = 1024
     max_steps: int = -1  # -1 trains for `epochs`
 
