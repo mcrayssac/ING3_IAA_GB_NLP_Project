@@ -2,6 +2,12 @@
 
 from .metrics import observations, summarize, validate_rating
 from .parsing import parse_response
+from .prompt_selection import (
+    adapt_validation,
+    select_prompt,
+    validate_candidate_ids,
+    validate_validation_population,
+)
 from .records import (
     PairingError,
     corpus_case,
@@ -22,6 +28,7 @@ from .statistics import bootstrap_compare, quantile
 __all__ = [
     "PairingError",
     "SamplingError",
+    "adapt_validation",
     "bootstrap_compare",
     "corpus_case",
     "export_review",
@@ -32,9 +39,12 @@ __all__ = [
     "prepare_case",
     "quantile",
     "review_response_count",
+    "select_prompt",
     "select_review_cases",
     "summarize",
+    "validate_candidate_ids",
     "validate_cases",
     "validate_rating",
+    "validate_validation_population",
     "version_codes",
 ]

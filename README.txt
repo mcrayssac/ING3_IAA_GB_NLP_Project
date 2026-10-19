@@ -171,3 +171,34 @@ real validation, mini-test or final cases. Protocol 1.1.0 remains proposed;
 automatic parser/agreement diagnostics are not human ratings. See
 docs/conversation-engine.md for template, token/time bounds, errors and 2.5b,
 2.6 and 2.8 handoffs.
+
+10. Baseline prompt comparison (task 2.5b)
+-----------------------------------------
+
+Prepare the two declared zero-shot instruction orders on all 100 validation
+targets. Validation source cards must be available locally in data/cards/;
+the comparison never rebuilds data or opens mini-test/final cases.
+
+    .venv/bin/python -m scripts.compare_prompts prepare --config configs/baseline-prompts.toml --name 2-5b-validation-prompts
+
+Use the dated run path printed by prepare in both commands below:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.compare_prompts run --run-dir runs/2026-10-19_2-5b-validation-prompts
+    .venv/bin/python -m scripts.compare_prompts score --run-dir runs/2026-10-19_2-5b-validation-prompts
+
+Every candidate uses the same fixed input ledger and generation settings.
+The run preserves raw outputs, failures, native-tokenizer preflight and traces.
+Selection follows the proposed protocol's exact-fraction priorities; it saves
+both candidates and the selected prompt/configuration for the baseline/A
+handoff. An interrupted attempt cannot be silently resumed or selected.
+
+    .venv/bin/python -m pytest -q tests/test_prompt_selection.py tests/test_compare_prompts.py tests/test_conversation_engine.py tests/test_evaluation.py tests/test_runs.py tests/test_race_card.py tests/test_app.py
+
+See docs/baseline-prompts.md for the declared settings, result interpretation,
+artifact hashes and selected-inference loading. Protocol acceptance, human
+ratings, independent review and the collective 3.5 freeze are separate steps.
+
+The retained inference uses configs/baseline-selected.toml and the exact prompt
+identified in configs/baseline-selection.json. The policy-first candidate was
+selected on strict format (75/100 versus 7/100); CALL agreement remained low
+(16/100 versus 6/100). The guide records the raw results and limitations.

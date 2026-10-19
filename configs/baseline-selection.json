@@ -1,0 +1,240 @@
+{
+  "task": "2.5b",
+  "source_run": "2026-10-19_2-5b-validation-prompts",
+  "selected_candidate": "p01-policy-first",
+  "config_file": "configs/baseline-selected.toml",
+  "config_sha256": "3c409cef46c1daac6305aa4842f25212a23027e6f4fa74582425d80c75672585",
+  "prompt_file": "configs/prompts/p01-policy-first.txt",
+  "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+  "model_id": "HuggingFaceTB/SmolLM3-3B",
+  "model_revision": "a07cc9a04f16550a088caea529712d1d335b0ac1",
+  "tokenizer_revision": "a07cc9a04f16550a088caea529712d1d335b0ac1",
+  "template_context": {
+    "strftime_now": "2026-10-19T00:00:00+00:00"
+  },
+  "template_options": {
+    "add_generation_prompt": true,
+    "enable_thinking": false,
+    "padding": false,
+    "truncation": false
+  },
+  "chat_template_sha256": "3e0e275a527f249670056e0078e474eadbdd007c134b4fdfae5a7b3089702814",
+  "generation_settings": {
+    "_from_model_config": null,
+    "assistant_confidence_threshold": null,
+    "assistant_early_exit": null,
+    "assistant_ensemble_weight": null,
+    "assistant_lookbehind": null,
+    "bad_words_ids": null,
+    "begin_suppress_tokens": null,
+    "bos_token_id": 128000,
+    "cache_config": null,
+    "cache_implementation": null,
+    "compile_config": null,
+    "constraints": null,
+    "continuous_batching_config": null,
+    "decoder_start_token_id": null,
+    "disable_compile": null,
+    "diversity_penalty": null,
+    "do_sample": false,
+    "dola_layers": null,
+    "early_stopping": null,
+    "encoder_no_repeat_ngram_size": null,
+    "encoder_repetition_penalty": null,
+    "eos_token_id": 128012,
+    "epsilon_cutoff": null,
+    "eta_cutoff": null,
+    "explicit_overrides": {
+      "do_sample": false,
+      "max_new_tokens": 64,
+      "max_time": 30.0,
+      "num_beams": 1,
+      "num_return_sequences": 1,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "use_cache": true
+    },
+    "exponential_decay_length_penalty": null,
+    "force_words_ids": null,
+    "forced_bos_token_id": null,
+    "forced_eos_token_id": null,
+    "guidance_scale": null,
+    "is_assistant": null,
+    "length_penalty": null,
+    "low_memory": null,
+    "max_cache_len": null,
+    "max_length": null,
+    "max_matching_ngram_size": null,
+    "max_new_tokens": 64,
+    "max_time": 30.0,
+    "min_length": null,
+    "min_new_tokens": null,
+    "min_p": null,
+    "no_repeat_ngram_size": null,
+    "num_assistant_tokens": null,
+    "num_assistant_tokens_schedule": null,
+    "num_beam_groups": null,
+    "num_beams": 1,
+    "num_return_sequences": 1,
+    "output_attentions": null,
+    "output_hidden_states": null,
+    "output_logits": null,
+    "output_scores": null,
+    "pad_token_id": 128004,
+    "penalty_alpha": null,
+    "prefill_chunk_size": null,
+    "prompt_lookup_num_tokens": null,
+    "remove_invalid_values": null,
+    "renormalize_logits": null,
+    "repetition_penalty": null,
+    "return_dict_in_generate": null,
+    "seed": 2026,
+    "seed_active": false,
+    "sequence_bias": null,
+    "speculation_type": null,
+    "stop_strings": null,
+    "suppress_tokens": null,
+    "target_lookbehind": null,
+    "temperature": 1.0,
+    "token_healing": null,
+    "tokenizer_eos_token_id": 128012,
+    "tokenizer_pad_token_id": 128012,
+    "top_h": null,
+    "top_k": null,
+    "top_p": 1.0,
+    "transformers_version": "5.20.1",
+    "typical_p": null,
+    "use_cache": true,
+    "use_mtp": null,
+    "watermarking_config": null
+  },
+  "environment": {
+    "python": "3.13.13",
+    "os": "Darwin 25.6.0",
+    "machine": "arm64",
+    "cpu": "Apple M1",
+    "ram_gb": 17.2,
+    "libraries": {
+      "torch": "2.14.1",
+      "transformers": "5.20.1",
+      "peft": "0.21.2",
+      "trl": "1.16.0",
+      "accelerate": "1.15.0",
+      "datasets": "5.1.0"
+    }
+  },
+  "execution_device": "mps",
+  "execution_dtype": "torch.bfloat16",
+  "cases_sha256": "ba30d2a6832bea4749c017671c7536dd94b51ff63e7d33c6445972a8316e1a9c",
+  "plan_sha256": "21a184ef5c9d15bd5b80c05f62fd856b2fa84994ee0b1bd4f300fe01413befda",
+  "executed_source_sha256": "2c692181b4bb09bde003ab1bf1d21a57f7e878833652bb4444defa6fd3745cc5",
+  "head_sha": "8e3efe6efece7413f3db413b8210b6b47a0220f0",
+  "base_sha": "8e3efe6efece7413f3db413b8210b6b47a0220f0",
+  "protocol_sha256": "9be4649a6d4fa2c7e495b7e797023e32baf4a667de0174ded06f83692c5e5d58",
+  "policy_source_sha256": "7e94cbd62e20c0a5cf3a4681704f004772db76b840e89ec3be246503ff00b376",
+  "all_outputs_sha256": "6283439360332bde46baee64e702bf6ded5e3d75044461749cb3558937fbc3c6",
+  "baseline_outputs_sha256": "b3864934668c62ec1e4dc9f3801af26e0db03a081ea89843b8d0914c27389a6e",
+  "baseline_output_count": 100,
+  "baseline_output_identity": "Byte-identical records filtered from the original candidate ledger; original response/run IDs retained",
+  "selection": {
+    "candidate_ids": [
+      "p01-policy-first",
+      "p02-format-first"
+    ],
+    "exact_values": {
+      "p01-policy-first": {
+        "overall/call_agreement": {
+          "denominator": 25,
+          "numerator": 4
+        },
+        "overall/excessive_refusal_rate": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "overall/macro_family_agreement": {
+          "denominator": 150,
+          "numerator": 23
+        },
+        "overall/macro_label_agreement": {
+          "denominator": 2337,
+          "numerator": 370
+        },
+        "overall/strict_format_rate": {
+          "denominator": 4,
+          "numerator": 3
+        },
+        "overall/unjustified_decision_rate": {
+          "denominator": 10,
+          "numerator": 7
+        }
+      },
+      "p02-format-first": {
+        "overall/call_agreement": {
+          "denominator": 50,
+          "numerator": 3
+        },
+        "overall/excessive_refusal_rate": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "overall/macro_family_agreement": {
+          "denominator": 25,
+          "numerator": 2
+        },
+        "overall/macro_label_agreement": {
+          "denominator": 2337,
+          "numerator": 224
+        },
+        "overall/strict_format_rate": {
+          "denominator": 100,
+          "numerator": 7
+        },
+        "overall/unjustified_decision_rate": {
+          "denominator": 40,
+          "numerator": 1
+        }
+      }
+    },
+    "interpretation": "Conservative validation-only selection; not an overall quality claim or final-study freeze.",
+    "priorities": [
+      {
+        "direction": "higher",
+        "metric": "overall/strict_format_rate"
+      },
+      {
+        "direction": "lower",
+        "metric": "overall/unjustified_decision_rate"
+      },
+      {
+        "direction": "lower",
+        "metric": "overall/excessive_refusal_rate"
+      },
+      {
+        "direction": "higher",
+        "metric": "overall/macro_label_agreement"
+      },
+      {
+        "direction": "higher",
+        "metric": "overall/macro_family_agreement"
+      },
+      {
+        "direction": "higher",
+        "metric": "overall/call_agreement"
+      }
+    ],
+    "protocol_id": "boxbox-eval",
+    "protocol_version": "1.1.0",
+    "ranked_candidate_ids": [
+      "p01-policy-first",
+      "p02-format-first"
+    ],
+    "selected_candidate": "p01-policy-first",
+    "tie_break": "smallest_predeclared_lexicographic_candidate_id"
+  },
+  "protocol_status": "proposed",
+  "acceptance_record": null,
+  "human_ratings": "not performed",
+  "independent_teammate_review": "pending",
+  "final_test_open": false,
+  "scope": "Validation-selected inference for baseline/A; not the collective 3.5 freeze"
+}
