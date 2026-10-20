@@ -39,20 +39,38 @@ class StepMeter(TrainerCallback):
         self.max_gb = max(self.max_gb, memory_gb(self.device))
 
 
+class ReferenceSaver(TrainerCallback):
+    """At every saved checkpoint, store the logits its fresh-process reload must match."""
+
+    def __init__(self, tokenizer, rows, device) -> None:
+        self.tokenizer, self.rows, self.device = tokenizer, rows, device
+
+    def on_save(self, args, state, control, model=None, **kwargs) -> None:
+        folder = Path(args.output_dir) / f"checkpoint-{state.global_step}"
+        _save_reference(model, self.tokenizer, self.rows, folder, self.device)
+
+
 def _trainer(
-    config: RunConfig, model, tokenizer, rows, run_dir: Path, meter
+    config: RunConfig, model, tokenizer, rows, run_dir: Path, callbacks, eval_rows=None
 ) -> SFTTrainer:
     lora = config.lora
+    every_epoch = (
+        "epoch" if eval_rows else "no"
+    )  # checkpoints only when they can be chosen
     args = SFTConfig(
         output_dir=str(run_dir / "trainer"),
         per_device_train_batch_size=lora.batch_size,
+        per_device_eval_batch_size=lora.batch_size,
+        gradient_accumulation_steps=lora.gradient_accumulation,
         learning_rate=lora.learning_rate,
         num_train_epochs=lora.epochs,
         max_steps=lora.max_steps,
         max_length=lora.max_length,
         completion_only_loss=True,
         logging_steps=1,
-        save_strategy="no",
+        eval_strategy=every_epoch,
+        save_strategy=every_epoch,
+        save_only_model=True,
         report_to=[],
         seed=config.seed,
     )
@@ -67,9 +85,10 @@ def _trainer(
         model=model,
         args=args,
         train_dataset=Dataset.from_list(rows),
+        eval_dataset=Dataset.from_list(eval_rows) if eval_rows else None,
         processing_class=tokenizer,
         peft_config=peft_config,
-        callbacks=[meter],
+        callbacks=callbacks,
     )
 
 
@@ -88,39 +107,84 @@ def base_weights_sha256(model: PreTrainedModel) -> str:
     return digest.hexdigest()
 
 
-def _save_reference(model, tokenizer, prompts, run_dir: Path, device) -> None:
+def _prompt_ids(tokenizer, row: dict[str, Any]) -> torch.Tensor:
+    """The prompt part of a row: the pre-tokenized one, or the template's rendering."""
+    if "input_ids" in row:
+        return torch.tensor([row["input_ids"][: row["completion_mask"].index(1)]])
+    return tokenizer.apply_chat_template(
+        row["prompt"], add_generation_prompt=True, return_dict=True, return_tensors="pt"
+    )["input_ids"]
+
+
+def _save_reference(model, tokenizer, rows, folder: Path, device) -> None:
     """Store adapted and base next-token logits for the fresh-process reload check."""
     saved: dict[str, list[torch.Tensor]] = {"input_ids": [], "adapted": [], "base": []}
-    for prompt in prompts:
-        ids = tokenizer.apply_chat_template(
-            prompt, add_generation_prompt=True, return_dict=True, return_tensors="pt"
-        )["input_ids"].to(device)
+    training = model.training
+    model.eval()
+    for row in rows[:REFERENCE_PROBES]:
+        ids = _prompt_ids(tokenizer, row).to(device)
         with torch.no_grad():
             saved["adapted"].append(model(ids).logits[0, -1].float().cpu())
             with model.disable_adapter():
                 saved["base"].append(model(ids).logits[0, -1].float().cpu())
         saved["input_ids"].append(ids.cpu())
-    torch.save(saved, run_dir / "reference.pt")
+    model.train(training)
+    folder.mkdir(parents=True, exist_ok=True)
+    torch.save(saved, folder / "reference.pt")
+
+
+def _checkpoints(run_dir: Path, history: list[dict]) -> list[dict[str, Any]]:
+    """Every saved checkpoint with its epoch, step and validation loss."""
+    evals = {round(log["epoch"]): log for log in history if "eval_loss" in log}
+    found = []
+    for folder in sorted(
+        (run_dir / "trainer").glob("checkpoint-*"),
+        key=lambda f: int(f.name.split("-")[1]),
+    ):
+        step = int(folder.name.split("-")[1])
+        epoch = len(found) + 1
+        found.append(
+            {
+                "epoch": epoch,
+                "step": step,
+                "folder": str(folder.relative_to(run_dir)),
+                "eval_loss": evals.get(epoch, {}).get("eval_loss"),
+            }
+        )
+    return found
 
 
 def train_lora(
-    config: RunConfig, rows: list[dict[str, Any]], run_dir: Path, device: torch.device
+    config: RunConfig,
+    rows: list[dict[str, Any]],
+    run_dir: Path,
+    device: torch.device,
+    eval_rows: list[dict[str, Any]] | None = None,
+    loaded: tuple[Any, Any] | None = None,
 ) -> dict[str, Any]:
-    """Train a LoRA adapter on prompt/completion rows and save it in run_dir/adapter."""
-    model, tokenizer = load_model(config, device)
+    """Train a LoRA adapter and save it in run_dir/adapter.
+
+    Rows are TRL prompt/completion rows or pre-tokenized `input_ids` and
+    `completion_mask`. With `eval_rows`, every epoch is evaluated and saved as a
+    checkpoint with its reload reference. `loaded` reuses a loaded model and tokenizer.
+    """
+    model, tokenizer = loaded or load_model(config, device)
     before = base_weights_sha256(model)
     meter = StepMeter(device)
-    trainer = _trainer(config, model, tokenizer, rows, run_dir, meter)
+    callbacks = [meter] + (
+        [ReferenceSaver(tokenizer, rows, device)] if eval_rows else []
+    )
+    trainer = _trainer(config, model, tokenizer, rows, run_dir, callbacks, eval_rows)
     trainer.train()
     adapted = trainer.model.eval()
     adapted.save_pretrained(run_dir / "adapter")
-    prompts = [row["prompt"] for row in rows[:REFERENCE_PROBES]]
-    _save_reference(adapted, tokenizer, prompts, run_dir, device)
+    _save_reference(adapted, tokenizer, rows, run_dir, device)
     trainable = [
         (n, p.numel()) for n, p in adapted.named_parameters() if p.requires_grad
     ]
     adapter_file = run_dir / "adapter" / "adapter_model.safetensors"
     warm = meter.times[3:] or meter.times  # the first steps include warm-up
+    history = trainer.state.log_history
     return {
         "steps": len(meter.times),
         "seconds_per_step": round(statistics.median(warm), 3),
@@ -130,7 +194,15 @@ def train_lora(
         "only_lora_trainable": all("lora_" in name for name, _ in trainable),
         "base_weights_unchanged": before == base_weights_sha256(adapted),
         "adapter_sha256": hashlib.sha256(adapter_file.read_bytes()).hexdigest(),
-        "train_losses": [
-            log["loss"] for log in trainer.state.log_history if "loss" in log
+        "train_losses": [log["loss"] for log in history if "loss" in log],
+        "eval_losses": [
+            {"epoch": log["epoch"], "step": log["step"], "eval_loss": log["eval_loss"]}
+            for log in history
+            if "eval_loss" in log
         ],
+        "checkpoints": _checkpoints(run_dir, history) if eval_rows else [],
+        "tokens_per_epoch": sum(len(row.get("input_ids", ())) for row in rows),
+        "answer_tokens_per_epoch": sum(
+            sum(row.get("completion_mask", ())) for row in rows
+        ),
     }

@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -526,6 +527,48 @@ class ConversationEngine:
             trace=trace,
         )
 
+    def training_ids(
+        self,
+        card: dict[str, Any],
+        history: list[dict[str, str]],
+        message: str,
+        answer: str,
+    ) -> tuple[list[int], list[int]]:
+        """Prompt and completion token ids for training, rendered like inference.
+
+        The prompt is exactly what `prepare` sends to the model with a fixed history.
+        The completion is the answer and the end-of-turn token that stops generation.
+        """
+        prompt = (
+            self.prepare(card, history, message, fixed_history=True)
+            .input_ids[0]
+            .tolist()
+        )
+        messages = [
+            *self._messages(card, history, message, self.instructions),
+            {"role": "assistant", "content": answer},
+        ]
+        options = {**TEMPLATE_OPTIONS, "add_generation_prompt": False}
+        full = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=True,
+            return_dict=True,
+            strftime_now=self._template_datetime.strftime,
+            **options,
+        )["input_ids"]
+        if full[: len(prompt)] != prompt:
+            raise ConversationEngineError(
+                "training_prompt_mismatch",
+                "the inference prompt is not a prefix of the answer",
+            )
+        completion = full[len(prompt) :]
+        end = self.tokenizer.eos_token_id
+        if end not in completion:
+            raise ConversationEngineError(
+                "training_answer_unterminated", "the answer has no end-of-turn token"
+            )
+        return prompt, completion[: completion.index(end) + 1]  # nothing after the stop
+
     def preflight_candidates(
         self,
         candidates: dict[str, str],
@@ -780,13 +823,18 @@ def load_conversation_engine(
     device: torch.device | None = None,
     attn_implementation: str | None = None,
     instructions: str | None = None,
+    adapter_dir: Path | None = None,
 ) -> ConversationEngine:
-    """Load the pinned base model once using task 1.5 device and dtype choices."""
+    """Load the pinned base model once using task 1.5 device and dtype choices.
+
+    With `adapter_dir`, the saved LoRA adapter is loaded on top; `config.adapter` must
+    then name it ("A" or "B"), and without it the config must say "none".
+    """
     config = config or RunConfig()
-    if config.adapter != "none":
+    if (config.adapter == "none") != (adapter_dir is None):
         raise ConversationEngineError(
             "adapter_load_not_supported",
-            "the baseline loader requires adapter='none'; use a separately loaded adapter model with ConversationEngine",
+            "adapter='none' loads the base model only; adapter A or B needs its adapter_dir",
         )
     device = device or get_device()
     if device.type == "mps":
@@ -807,6 +855,16 @@ def load_conversation_engine(
             "model_load_error",
             f"could not load {config.model_id}@{config.model_revision}: {error}",
         ) from error
+    if adapter_dir is not None:
+        from peft import PeftModel
+
+        try:
+            model = PeftModel.from_pretrained(model, adapter_dir).to(device)
+        except Exception as error:
+            raise ConversationEngineError(
+                "adapter_load_error",
+                f"could not load the adapter in {adapter_dir}: {error}",
+            ) from error
     model.eval()
     engine = ConversationEngine(
         model,
