@@ -300,6 +300,7 @@ def seed_interval(values: list[float]) -> dict[str, Any]:
     """Mean, standard deviation and a 95% t-interval over training seeds."""
     if any(value is None for value in values) or len(values) not in T_95:
         return {"values": values, "mean": None, "sd": None, "low": None, "high": None}
+    values = [float(value) for value in values]  # run files are read back as Decimal
     mean, sd = statistics.fmean(values), statistics.stdev(values)
     half = T_95[len(values)] * sd / math.sqrt(len(values))
     return {

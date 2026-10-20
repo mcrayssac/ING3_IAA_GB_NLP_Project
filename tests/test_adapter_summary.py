@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,9 @@ def test_seed_interval_is_a_student_t_over_seeds() -> None:
         pytest.approx(0.6 + half),
     )
     assert seed_interval([0.5, None, 0.7])["mean"] is None
+    assert seed_interval([Decimal("0.5"), Decimal("0.6"), Decimal("0.7")])[
+        "mean"
+    ] == pytest.approx(0.6)
     assert seed_interval([0.5])["mean"] is None
 
 
