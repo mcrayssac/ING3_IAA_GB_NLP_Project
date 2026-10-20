@@ -208,7 +208,7 @@ if RUN_DEMO:
     launch(inline=True)
 ```
 
-Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. In a hosted notebook such as Colab, Gradio opens a public link unless `launch` gets `share=False`. Task 2.8 decides which it wants. The cell is kept here until task 2.8 puts it in `agent.ipynb`, so the shared notebook is not edited by two people at once.
+Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. In a hosted notebook such as Colab, Gradio opens a public link unless `launch` gets `share=False`. Task 2.8 chose `share=False`, so the demo stays private. The cell is now section 7 of `agent.ipynb`, where it passes the real engine with adapter A to `launch`.
 
 ## Tests
 
