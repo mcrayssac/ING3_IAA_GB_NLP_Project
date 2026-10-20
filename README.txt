@@ -243,7 +243,9 @@ organisation, then records the revision in that file:
     .venv/bin/python -m scripts.train_adapter push runs/2026-10-20_2-6-adapter-a-summary.json --repo ING3NLPProject/boxbox-adapter-a
 
 Tasks 2.7 and 2.8 load adapter A with selected_adapter() from boxbox.model. It
-uses the local run folder or the recorded Hub revision, and refuses an adapter
+returns the config, the adapter folder and the p01 prompt A was trained on, which
+must be passed as instructions to load_conversation_engine. It uses the local
+run folder or the recorded Hub revision, and refuses an adapter, config or prompt
 whose hash differs. The Hub download needs a member's token in HF_TOKEN or
 hf auth login.
 

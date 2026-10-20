@@ -14,7 +14,7 @@ python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR [--baseline OU
 python -m scripts.train_adapter push SUMMARY --repo ING3NLPProject/boxbox-adapter-a
 ```
 
-- `smoke` times 3 validation answers and 10 updates on the longest training rows, then projects the time for all seeds. It stops when memory at the end of an update passes 85% of the cap.
+- `smoke` times 3 validation answers and 10 updates on the longest training rows, then projects the time for all seeds. It stops when memory at the end of an update passes 85% of the cap. This is a rough check only, as the incidents below show.
 - `train` writes `runs/<date>_2-6-adapter-a-s<seed>/` with one checkpoint per epoch.
 - `validate` runs in a new process. It reloads every checkpoint, answers the validation targets and chooses one checkpoint. Like 2.5b, it keeps each answer's generation trace in `validation-attempts.jsonl`.
 - `summarize` gives the seed statistics and names adapter A in `configs/adapter-a-selection.json`. With `--baseline`, it also compares each seed with the 2.5b baseline answers. `--rebuilt` accepts a re-run of the 2.5b baseline, as explained below. It writes a new dated summary and never overwrites one.
@@ -159,16 +159,13 @@ Median here means the middle of this ranking. A is in the middle on the second c
 `configs/adapter-a-selection.json` records adapter A: its run, checkpoint, seed 2028, the adapter and config hashes, the prompt and the cases. Tasks 2.7 and 2.8 load it with:
 
 ```python
-from pathlib import Path
-
 from boxbox.model import load_conversation_engine, selected_adapter
 
-config, adapter_dir = selected_adapter()
-instructions = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
+config, adapter_dir, instructions = selected_adapter()
 engine = load_conversation_engine(config, instructions=instructions, adapter_dir=adapter_dir)
 ```
 
-`selected_adapter` uses the local run folder when it exists, otherwise the Hub revision recorded in the file. It refuses an adapter or a config whose hash differs. It returns the config with seed 2028, so run records name the right seed.
+`selected_adapter` uses the local run folder when it exists, otherwise the Hub revision recorded in the file. It refuses an adapter, a config or a prompt whose hash differs. It returns the config with seed 2028, so run records name the right seed, and the p01 prompt A was trained on. The prompt must be passed: without `instructions`, the engine falls back to its default 2.5a instructions, and A would answer with a prompt it never saw in training.
 
 The summary is in `runs/2026-10-20_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
 
@@ -191,4 +188,5 @@ Each checkpoint saved the next-token logits of 8 training prompts when it was wr
 ## Incidents
 
 - **Out of memory:** the first run of seed 2026, with a batch of 4, stopped at update 12. One batch needed 18.4 of the 18.6 GiB allowed. The smoke run had read 17.7 GB, but only at the end of updates, so it missed the peak inside one. Batch 2 with 2 accumulation steps keeps the effective batch and the update count. The failed run is kept as `runs/2026-10-19_2-6-adapter-a-s2026-oom`. The smoke run now trains on the longest rows and stops when memory at the end of an update passes 85% of the cap. The batch-4 smoke run read 89% there.
+- **Limits of the smoke check:** a 10-update reading is lower than what a full run reaches. On 20 October the smoke run read 14.6 GB on the 40 longest rows at batch 2, while the three runs at the same settings reached 15.6 to 16.7 GB over 360 updates. Memory also peaks inside an update: in the batch-4 run, the update that ran out needed about 2 GB more than the smoke run had read. So the 85% stop catches only clear cases. For B, the stronger evidence is that the three A runs finished at these settings.
 - **iCloud:** iCloud Drive had offloaded files of the project and its environment, and Python stalled reading them. Once they were downloaded again, no file was offloaded and the three seeds ran through.

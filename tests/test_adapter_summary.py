@@ -155,21 +155,29 @@ def test_the_selected_adapter_is_refused_when_its_hash_differs(tmp_path) -> None
     folder.mkdir(parents=True)
     (folder / "adapter_model.safetensors").write_bytes(b"weights")
     config = Path("configs/adapter-a.toml")
+    prompt = tmp_path / "prompt.txt"
+    prompt.write_text("Answer with CALL and WHY.", encoding="utf-8")
     selection = {
         "run": "run",
         "checkpoint": "trainer/checkpoint-120",
         "seed": 2028,
         "config_file": str(config),
         "config_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
+        "prompt_file": str(prompt),
+        "prompt_sha256": hashlib.sha256(prompt.read_bytes()).hexdigest(),
         "adapter_sha256": hashlib.sha256(b"weights").hexdigest(),
         "hub": None,
     }
     file = tmp_path / "selection.json"
     file.write_text(dumps(selection))
-    found, path = selected_adapter(file, tmp_path / "runs")
+    found, path, instructions = selected_adapter(file, tmp_path / "runs")
     assert (found.seed, found.adapter, path) == (2028, "A", folder)
+    assert instructions == "Answer with CALL and WHY."
     (folder / "adapter_model.safetensors").write_bytes(b"other weights")
     with pytest.raises(ValueError, match="not the selected one"):
         selected_adapter(file, tmp_path / "runs")
     with pytest.raises(FileNotFoundError, match="no Hub copy"):
         selected_adapter(file, tmp_path / "elsewhere")
+    prompt.write_text("Another prompt.", encoding="utf-8")
+    with pytest.raises(ValueError, match="changed since the adapter was trained"):
+        selected_adapter(file, tmp_path / "runs")
