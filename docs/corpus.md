@@ -13,7 +13,7 @@ python -m scripts.build_corpus review
 python -m scripts.build_corpus exposure
 ```
 
-`build-b` derives corpus B from the committed `A_train.jsonl` without reading any card (see Corpus B below). `build` also writes B, so both commands give the same files. `exposure` counts the tokens of A and B with the model tokenizer.
+`build-b` derives corpus B from the committed `A_train.jsonl` without reading any card (see Corpus B below). `build` also writes B, so both commands give the same files. `exposure` counts the tokens of A and B with the model tokenizer, in the training rows of 2.6 and in the raw content. It loads the tokenizer only, no model weights.
 
 `build` writes `data/corpus/A_train.jsonl`, `validation.jsonl`, `mini_test.jsonl`, `manifest.json` and `review_sheet.csv` in a few seconds, then refreshes `review.json` from the rebuilt sheet. It stops if a check fails, and it gives the same files every time for the same cards and seed (2026). After editing verdicts or notes, `review` reads the filled sheet and refreshes `review.json`.
 
@@ -65,7 +65,11 @@ B is A with the intervention of the research question and nothing else. It keeps
 
 The 60 variants spread 10 per rule path, as `swap_field` was tagged in 2.2. The removed fields are the gap ahead (20), the gap behind (20), the tyre age (10) and the pit loss (10). `B_pairs.json` lists the 340 shared IDs and the 60 pairs; the manifest records its hash.
 
-B adds no example, so A and B both train on 400 items. They do not show the same amount of text: a variant card has one field fewer and its answer is shorter. The manifest records the characters of each corpus (`exposure_characters`: card JSON and every message, and the answers alone, since training computes the loss on the answers). `exposure` writes the same counts in tokens of the model tokenizer to `exposure.json`. The chat template and the system prompt add the same amount to every row, so they do not change the difference between A and B.
+B adds no example, so A and B both train on 400 items. They do not show the same amount of text: a variant card has one field fewer and its answer is shorter.
+
+What training sees is measured on its actual rows. Task 2.6 turns the 400 items into one row per assistant turn, 480 rows: each row is the engine's prompt (system prompt with the card, the history and the question) followed by the answer and its end-of-turn token, and the completion mask puts the loss on that answer only. `exposure` builds these rows with the 2.6 code and configuration (`configs/adapter-a.toml`, the 2.5b prompt), with the tokenizer only, and writes their tokens per epoch to `exposure.json` under `training_rows`: rows, input tokens, prompt tokens and completion tokens, for A, for B and B minus A. In one epoch, A gives 404,346 input tokens and B 403,098, so B shows 1,248 fewer tokens per epoch. This difference is not the raw-content one: a follow-up row sends its card and history again, so the system prompt, the card and the template weigh on every turn.
+
+`exposure.json` also keeps the raw-content counts under `raw_content`: tokens of the card JSON and every message, without the template, the system prompt or the end-of-turn tokens (A 98,013, B 96,651, a difference of 1,362). The manifest records the same raw content in characters (`exposure_characters`). These raw counts describe the corpora, not what training sees.
 
 Every `build` and `build-b` checks that:
 

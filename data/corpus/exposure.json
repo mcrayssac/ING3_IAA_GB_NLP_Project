@@ -3,19 +3,48 @@
     "model_id": "HuggingFaceTB/SmolLM3-3B",
     "revision": "a07cc9a04f16550a088caea529712d1d335b0ac1"
   },
-  "unit": "tokens of the card JSON and every message, without the chat template",
-  "A_train": {
-    "items": 400,
-    "total": 98013,
-    "completion": 19305
+  "training_rows": {
+    "unit": "tokens of the 2.6 training rows in one epoch: prompt (system prompt with the card, history, question) and completion (answer and end-of-turn token, where the loss falls)",
+    "config_file": "configs/adapter-a.toml",
+    "config_sha256": "d79849a404a69f29a099c201d4d1aa1851a56af3e9f4c96eb279ccfbc0e050dc",
+    "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+    "epochs": 3,
+    "A_train": {
+      "items": 400,
+      "rows": 480,
+      "input_tokens": 404346,
+      "prompt_tokens": 384561,
+      "completion_tokens": 19785
+    },
+    "B_train": {
+      "items": 400,
+      "rows": 480,
+      "input_tokens": 403098,
+      "prompt_tokens": 384345,
+      "completion_tokens": 18753
+    },
+    "B_minus_A": {
+      "rows": 0,
+      "input_tokens": -1248,
+      "prompt_tokens": -216,
+      "completion_tokens": -1032
+    }
   },
-  "B_train": {
-    "items": 400,
-    "total": 96651,
-    "completion": 18273
-  },
-  "B_minus_A": {
-    "total": -1362,
-    "completion": -1032
+  "raw_content": {
+    "unit": "tokens of the card JSON and every message, without the chat template, the system prompt or the end-of-turn tokens",
+    "A_train": {
+      "items": 400,
+      "total": 98013,
+      "completion": 19305
+    },
+    "B_train": {
+      "items": 400,
+      "total": 96651,
+      "completion": 18273
+    },
+    "B_minus_A": {
+      "total": -1362,
+      "completion": -1032
+    }
   }
 }

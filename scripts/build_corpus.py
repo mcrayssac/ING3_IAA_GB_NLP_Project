@@ -9,7 +9,8 @@ Usage, from the repository root:
 `build` reads cards only through boxbox.data.load_cards, so the final split stays
 closed. It keeps the verdicts of the review sheet for every unchanged item.
 `build-b` (task 3.1) derives corpus B from the committed corpus A alone, without
-cards. `exposure` counts the tokens of A and B with the model tokenizer.
+cards. `exposure` counts the tokens of A and B in the 2.6 training rows (prompts,
+answers and completion masks), and their raw content, with the model tokenizer.
 """
 
 from __future__ import annotations
@@ -258,27 +259,92 @@ def cmd_build_b(args: argparse.Namespace) -> int:
     return 0
 
 
+ADAPTER_CONFIG = Path("configs/adapter-a.toml")  # the 2.6 training settings, kept for B
+
+
+def training_exposure(engine: Any, items: list[dict], max_length: int) -> dict:
+    """What one training epoch shows: the 2.6 rows, prompts included, and their masks.
+
+    Every assistant turn is one row: the engine's prompt (system prompt with the card,
+    history and question) followed by the answer and its end-of-turn token. The loss
+    falls on the tokens whose completion mask is 1.
+    """
+    from boxbox.training.rows import build_rows
+
+    rows = build_rows(engine, items, max_length)
+    tokens = sum(len(row["input_ids"]) for row in rows)
+    completion = sum(sum(row["completion_mask"]) for row in rows)
+    return {
+        "items": len(items),
+        "rows": len(rows),
+        "input_tokens": tokens,
+        "prompt_tokens": tokens - completion,
+        "completion_tokens": completion,
+    }
+
+
+def _difference(counts: dict[str, dict[str, int]], keys: tuple[str, ...]) -> dict:
+    return {k: counts["B_train"][k] - counts["A_train"][k] for k in keys}
+
+
+def tokenizer_engine(config: Any, tokenizer: Any) -> Any:
+    """The 2.6 training engine without model weights: rows need only the tokenizer."""
+    import torch
+
+    from boxbox.model import ConversationEngine
+    from scripts.train_adapter import selected_prompt
+
+    return ConversationEngine(
+        torch.nn.Module(),  # no weights: training_ids renders and tokenizes only
+        tokenizer,
+        config,
+        instructions=selected_prompt(),
+        device="cpu",
+        dtype="not loaded",
+    )
+
+
 def cmd_exposure(args: argparse.Namespace) -> int:
-    """Token counts of A and B with the model tokenizer, written to exposure.json."""
+    """Training-row tokens of A and B per epoch, and raw content tokens, to exposure.json."""
     from transformers import AutoTokenizer
 
-    config = RunConfig()
+    from boxbox.config import load_config
+
+    config = load_config(ADAPTER_CONFIG)
     tokenizer = AutoTokenizer.from_pretrained(
         config.model_id, revision=config.model_revision
     )
+    engine = tokenizer_engine(config, tokenizer)
 
     def tokens(text: str) -> int:
         return len(tokenizer(text, add_special_tokens=False)["input_ids"])
 
     sets = {name: load_corpus(name, CORPUS_DIR) for name in ("A_train", "B_train")}
-    counts = {name: exposure(items, tokens) for name, items in sets.items()}
+    rows = {
+        name: training_exposure(engine, items, config.lora.max_length)
+        for name, items in sets.items()
+    }
+    raw = {name: exposure(items, tokens) for name, items in sets.items()}
     report = {
         "tokenizer": {"model_id": config.model_id, "revision": config.model_revision},
-        "unit": "tokens of the card JSON and every message, without the chat template",
-        **counts,
-        "B_minus_A": {
-            k: counts["B_train"][k] - counts["A_train"][k]
-            for k in ("total", "completion")
+        "training_rows": {
+            "unit": "tokens of the 2.6 training rows in one epoch: prompt (system "
+            "prompt with the card, history, question) and completion (answer and "
+            "end-of-turn token, where the loss falls)",
+            "config_file": str(ADAPTER_CONFIG.as_posix()),
+            "config_sha256": hashlib.sha256(ADAPTER_CONFIG.read_bytes()).hexdigest(),
+            "prompt_sha256": hashlib.sha256(engine.instructions.encode()).hexdigest(),
+            "epochs": config.lora.epochs,
+            **rows,
+            "B_minus_A": _difference(
+                rows, ("rows", "input_tokens", "prompt_tokens", "completion_tokens")
+            ),
+        },
+        "raw_content": {
+            "unit": "tokens of the card JSON and every message, without the chat "
+            "template, the system prompt or the end-of-turn tokens",
+            **raw,
+            "B_minus_A": _difference(raw, ("total", "completion")),
         },
     }
     _write(CORPUS_DIR / EXPOSURE, json.dumps(report, indent=2) + "\n")
@@ -334,7 +400,7 @@ def main(argv: list[str] | None = None) -> int:
         help="derive corpus B from corpus A and add its 60 variants to review",
     )
     commands.add_parser("review", help="summarise the filled review sheet")
-    commands.add_parser("exposure", help="count the tokens of A and B")
+    commands.add_parser("exposure", help="count the training-row tokens of A and B")
     args = parser.parse_args(argv)
     run = {
         "build": cmd_build,

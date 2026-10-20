@@ -104,6 +104,37 @@ def test_exposure_counts_cards_conversations_and_answers(a_items) -> None:
     assert exposure(shared)["total"] < chars["total"]
 
 
+class _RowEngine:
+    """Stand-in for the 2.6 engine: one token per word, the card in the prompt."""
+
+    def training_ids(self, card, history, message, answer):
+        prompt = " ".join(
+            [
+                json.dumps(card, sort_keys=True),
+                *(m["content"] for m in history),
+                message,
+            ]
+        ).split()
+        return list(range(len(prompt))), list(range(len(answer.split()) + 1))
+
+
+def test_training_exposure_counts_rows_prompts_and_masks(a_items) -> None:
+    from scripts.build_corpus import training_exposure
+
+    b_items = corpus_b(a_items)
+    a = training_exposure(_RowEngine(), a_items, 10_000)
+    b = training_exposure(_RowEngine(), b_items, 10_000)
+    turns = sum(len(item["messages"]) // 2 for item in a_items)
+    assert a["items"] == 400 and a["rows"] == turns > 400  # follow-ups add rows
+    assert a["input_tokens"] == a["prompt_tokens"] + a["completion_tokens"]
+    # every turn re-sends its card and history, so rows weigh more than raw content
+    assert a["input_tokens"] > exposure(a_items, lambda t: len(t.split()))["total"]
+    assert b["rows"] == a["rows"]  # a variant keeps the question
+    assert b["completion_tokens"] < a["completion_tokens"]  # shorter NO CALL answers
+    with pytest.raises(ValueError, match="over max_length"):
+        training_exposure(_RowEngine(), a_items[:1], 5)
+
+
 def test_build_b_writes_b_without_cards_and_keeps_a(monkeypatch, tmp_path) -> None:
     from scripts import build_corpus
 
