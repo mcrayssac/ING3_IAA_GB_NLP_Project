@@ -3,6 +3,7 @@
 from .metrics import observations, summarize, validate_rating
 from .parsing import parse_response
 from .prompt_selection import (
+    adapt_split,
     adapt_validation,
     select_prompt,
     validate_candidate_ids,
@@ -28,6 +29,7 @@ from .statistics import bootstrap_compare, quantile
 __all__ = [
     "PairingError",
     "SamplingError",
+    "adapt_split",
     "adapt_validation",
     "bootstrap_compare",
     "corpus_case",

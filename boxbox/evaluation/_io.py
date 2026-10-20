@@ -100,12 +100,14 @@ def read_jsonl(path: str | Path) -> tuple[list[dict[str, Any]], str]:
 
 
 def write_json(path: Path, value: Any) -> None:
-    with path.open("x", encoding="utf-8") as stream:
+    with path.open("x", encoding="utf-8", newline="\n") as stream:
         stream.write(dumps(value) + "\n")
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> str:
     data = "".join(dumps(row) + "\n" for row in rows)
-    with path.open("x", encoding="utf-8") as stream:
+    # newline="\n": on Windows, text mode would write CRLF and the hash would not
+    # describe the file's bytes.
+    with path.open("x", encoding="utf-8", newline="\n") as stream:
         stream.write(data)
     return sha256(data)

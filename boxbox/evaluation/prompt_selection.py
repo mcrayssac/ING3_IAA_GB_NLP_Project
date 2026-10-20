@@ -52,6 +52,9 @@ def validate_candidate_ids(candidate_ids: Sequence[str]) -> tuple[str, ...]:
     return tuple(sorted(candidate_ids))
 
 
+_EVALUATION_SPLITS = {"validation", "mini_test"}
+
+
 def adapt_validation(
     items: list[dict],
     source_records: list[dict],
@@ -66,8 +69,26 @@ def adapt_validation(
     validates structure/policy consistency; it does not judge English or certify
     that a human reviewed these derived annotations.
     """
+    return adapt_split(
+        items, source_records, split_document, "validation", history_turns
+    )
+
+
+def adapt_split(
+    items: list[dict],
+    source_records: list[dict],
+    split_document: dict,
+    split: str,
+    history_turns: int = 3,
+) -> list[dict]:
+    """`adapt_validation` for one evaluation split: validation or the mini-test (2.7).
+
+    The final split is refused here; it has its own gate and task (4.1).
+    """
+    if split not in _EVALUATION_SPLITS:
+        raise ValueError(f"cases can be adapted for {sorted(_EVALUATION_SPLITS)} only")
     if not isinstance(split_document.get("races"), dict) or not isinstance(
-        split_document.get("splits", {}).get("validation"), list
+        split_document.get("splits", {}).get(split), list
     ):
         raise TypeError("the full checked split document is required")
     sources = {}
@@ -75,13 +96,13 @@ def adapt_validation(
         identifier = source.get("card_id")
         if not isinstance(identifier, str) or not identifier or identifier in sources:
             raise ValueError("missing or duplicate source card ID")
-        if source.get("split") != "validation":
-            raise ValueError("source records must belong to validation only")
+        if source.get("split") != split:
+            raise ValueError(f"source records must belong to {split} only")
         sources[identifier] = source
     seen, cases = set(), []
     for item in items:
-        if item.get("split") != "validation":
-            raise ValueError("prompt comparison accepts validation items only")
+        if item.get("split") != split:
+            raise ValueError(f"this adaptation accepts {split} items only")
         identifier = item.get("id")
         if not isinstance(identifier, str) or not identifier or identifier in seen:
             raise ValueError("missing or duplicate corpus item ID")
@@ -94,7 +115,7 @@ def adapt_validation(
         race = f"{source_card['race']['season']}-{source_card['race']['round']:02d}"
         metadata = split_document["races"].get(race)
         if (
-            race not in split_document["splits"]["validation"]
+            race not in split_document["splits"][split]
             or not isinstance(metadata, dict)
             or not isinstance(provenance, dict)
             or not isinstance(provenance.get("source"), str)
@@ -227,9 +248,7 @@ def adapt_validation(
             else None,
         }
         cases.append(
-            corpus_case(
-                item, annotation, "validation", history_turns, source_record=source
-            )
+            corpus_case(item, annotation, split, history_turns, source_record=source)
         )
     validate_cases(cases, split_document)
     return cases
