@@ -12,18 +12,24 @@ from .sets import (
     corpus_a,
     eval_set,
 )
+from .variants import B_SHARED, check_corpus_b, corpus_b, exposure, pairs
 
 __all__ = [
     "A_KINDS",
+    "B_SHARED",
     "EVAL_KINDS",
     "TRACK_ITEMS",
     "check_corpus_a",
+    "check_corpus_b",
     "check_set",
     "check_unseen",
     "complete",
     "corpus_a",
+    "corpus_b",
     "eval_set",
+    "exposure",
     "load_corpus",
+    "pairs",
     "path_of",
     "remove_field",
 ]

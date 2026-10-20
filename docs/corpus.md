@@ -1,4 +1,4 @@
-# Corpus (task 2.2)
+# Corpus (tasks 2.2 and 3.1)
 
 The dialogues for adapter A, validation and the mini-test come from the race cards of 2.1. Every answer follows the two-line CALL/WHY format of `docs/race-card-contract.md`, under policy 1.1 with per-compound tyre ages, and the manifest records that version. Cards are read only through `boxbox.data.load_cards`, so the final split stays closed.
 
@@ -8,8 +8,12 @@ From the repository root:
 
 ```text
 python -m scripts.build_corpus build
+python -m scripts.build_corpus build-b
 python -m scripts.build_corpus review
+python -m scripts.build_corpus exposure
 ```
+
+`build-b` derives corpus B from the committed `A_train.jsonl` without reading any card (see Corpus B below). `build` also writes B, so both commands give the same files. `exposure` counts the tokens of A and B with the model tokenizer, in the training rows of 2.6 and in the raw content. It loads the tokenizer only, no model weights.
 
 `build` writes `data/corpus/A_train.jsonl`, `validation.jsonl`, `mini_test.jsonl`, `manifest.json` and `review_sheet.csv` in a few seconds, then refreshes `review.json` from the rebuilt sheet. It stops if a check fails, and it gives the same files every time for the same cards and seed (2026). After editing verdicts or notes, `review` reads the filled sheet and refreshes `review.json`.
 
@@ -49,6 +53,36 @@ Complete items per path and compound:
 The last path is rare in the races, so it gives every card it can and the other paths fill the rest. Its 4 MEDIUM items are all the MEDIUM cards it has in the train races. Every other compound holds at least a fifth of its path's items. Over the 400 items the calls are 190 STAY OUT, 150 BOX and 60 NO CALL, from 42 races and 287 race-driver pairs, with 282 distinct first questions.
 
 60 complete items carry `swap_field`, 10 per path. It names a field the rule needs on that path. Task 3.1 removes it to build the matched B item, whose rule answer is NO CALL.
+
+## Corpus B (task 3.1, 400 items, train races)
+
+B is A with the intervention of the research question and nothing else. It keeps the 400 items of A in the same order. The 340 items without `swap_field` are byte for byte the same in both files. Each of the 60 swap items is replaced, at its position, by one variant with the ID `<A id>-B`:
+
+- the card of the A item with `swap_field` made unknown (`remove_field`, the contract's unknown value), recorded as `removed_field`;
+- the same question as the A item;
+- the rule's answer on that card, which is NO CALL with the missing field named in the WHY (`format_answer`);
+- `kind` set to `missing` and `source_id` set to the A item; every other field stays as in A.
+
+The 60 variants spread 10 per rule path, as `swap_field` was tagged in 2.2. The removed fields are the gap ahead (20), the gap behind (20), the tyre age (10) and the pit loss (10). `B_pairs.json` lists the 340 shared IDs and the 60 pairs; the manifest records its hash.
+
+B adds no example, so A and B both train on 400 items. They do not show the same amount of text: a variant card has one field fewer and its answer is shorter.
+
+What training sees is measured on its actual rows. Task 2.6 turns the 400 items into one row per assistant turn, 480 rows: each row is the engine's prompt (system prompt with the card, the history and the question) followed by the answer and its end-of-turn token, and the completion mask puts the loss on that answer only. `exposure` builds these rows with the 2.6 code and configuration (`configs/adapter-a.toml`, the 2.5b prompt), with the tokenizer only, and writes their tokens per epoch to `exposure.json` under `training_rows`: rows, input tokens, prompt tokens and completion tokens, for A, for B and B minus A. In one epoch, A gives 404,346 input tokens and B 403,098, so B shows 1,248 fewer tokens per epoch. This difference is not the raw-content one: a follow-up row sends its card and history again, so the system prompt, the card and the template weigh on every turn.
+
+`exposure.json` also keeps the raw-content counts under `raw_content`: tokens of the card JSON and every message, without the template, the system prompt or the end-of-turn tokens (A 98,013, B 96,651, a difference of 1,362). The manifest records the same raw content in characters (`exposure_characters`). These raw counts describe the corpora, not what training sees.
+
+Every `build` and `build-b` checks that:
+
+- A and B have 400 items each, 340 identical at the same positions and 60 variants, 10 per path, with unique IDs
+- each variant removes the swap field of its source and nothing else, keeps the question and every other field
+- the source card gets a call, the removed field is one its path needs, and the variant gets NO CALL with the rule's answer in two CALL/WHY lines
+- every B card comes from a train race
+
+`build-b` first reads A through `load_corpus`, so it stops if `A_train.jsonl` differs from its manifest hash. It writes UTF-8 with LF line ends on every OS. `tests/test_corpus_b.py` repeats the checks on synthetic cards, catches a changed shared item, a missing item, a variant that still gets a call, a changed question, card or metadata, a wrong removed field and a race outside train, and checks that the committed B is the matched corpus of the committed A.
+
+### Review of the 60 variants
+
+`build-b` adds one row per variant to `review_sheet.csv`, after the rows of 2.2, with an empty verdict. The A row of the same ID holds the source card. A reviewer reads every variant against its source and the policy, and checks that the removed field is needed on that path (the source card gets a call), the answer is NO CALL for that missing field, and the race is a train race. The verdict is `ok` or `fix` with a `confirmed:` note. `review` then counts them; the review of B is complete when none of the 60 rows is pending and no fix remains.
 
 ## Validation (100 items, 7 races) and mini-test (40 items, 5 races)
 
