@@ -1,0 +1,31 @@
+model_id = "HuggingFaceTB/SmolLM3-3B"
+model_revision = "a07cc9a04f16550a088caea529712d1d335b0ac1"
+data_source = "openf1"
+abstention_share = 0.0
+prompt_variant = "p01-policy-first"
+history_turns = 3
+adapter = "A"
+seed = 2026
+final_test_open = false
+mps_memory_cap_gb = 20.0
+chat_template_date = "2026-10-19"
+
+[decoding]
+max_new_tokens = 64
+do_sample = false
+temperature = 1.0
+top_p = 1.0
+max_context_tokens = 8192
+max_generation_seconds = 30.0
+
+[lora]
+r = 16
+alpha = 32
+dropout = 0.0
+target_modules = "all-linear"
+learning_rate = 0.0002
+epochs = 3
+batch_size = 2
+gradient_accumulation = 2
+max_length = 1024
+max_steps = -1

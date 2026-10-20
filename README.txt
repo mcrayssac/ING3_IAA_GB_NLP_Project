@@ -177,3 +177,86 @@ real validation, mini-test or final cases. Protocol 1.1.0 remains proposed;
 automatic parser/agreement diagnostics are not human ratings. See
 docs/conversation-engine.md for template, token/time bounds, errors and 2.5b,
 2.6 and 2.8 handoffs.
+
+10. Baseline prompt comparison (task 2.5b)
+-----------------------------------------
+
+Prepare the two declared zero-shot instruction orders on all 100 validation
+targets. Validation source cards must be available locally in data/cards/;
+the comparison never rebuilds data or opens mini-test/final cases.
+
+    .venv/bin/python -m scripts.compare_prompts prepare --config configs/baseline-prompts.toml --name 2-5b-validation-prompts
+
+Use the dated run path printed by prepare in both commands below:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.compare_prompts run --run-dir runs/2026-10-19_2-5b-validation-prompts
+    .venv/bin/python -m scripts.compare_prompts score --run-dir runs/2026-10-19_2-5b-validation-prompts
+
+Every candidate uses the same fixed input ledger and generation settings.
+The run preserves raw outputs, failures, native-tokenizer preflight and traces.
+Selection follows the proposed protocol's exact-fraction priorities; it saves
+both candidates and the selected prompt/configuration for the baseline/A
+handoff. An interrupted attempt cannot be silently resumed or selected.
+
+    .venv/bin/python -m pytest -q tests/test_prompt_selection.py tests/test_compare_prompts.py tests/test_conversation_engine.py tests/test_evaluation.py tests/test_runs.py tests/test_race_card.py tests/test_app.py
+
+See docs/baseline-prompts.md for the declared settings, result interpretation,
+artifact hashes and selected-inference loading. Protocol acceptance, human
+ratings, independent review and the collective 3.5 freeze are separate steps.
+
+The retained inference uses configs/baseline-selected.toml and the exact prompt
+identified in configs/baseline-selection.json. The policy-first candidate was
+selected on strict format (75/100 versus 7/100); CALL agreement remained low
+(16/100 versus 6/100). The guide records the raw results and limitations.
+
+11. Adapter A (task 2.6)
+------------------------
+
+Adapter A is a LoRA adapter on the frozen SmolLM3-3B, trained on corpus A with
+the inference prompt selected in 2.5b. It is trained with seeds 2026, 2027 and
+2028. Check time and memory first, then train and validate each seed:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter smoke
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter train --seed 2026
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter validate runs/2026-10-19_2-6-adapter-a-s2026
+
+Each seed takes about 72 minutes of training and 10 of validation on an Apple
+M3 Max. validate runs in a new process: it reloads the three epoch checkpoints,
+answers the 100 validation targets and keeps one checkpoint. Then summarise
+the three seeds and name adapter A, the median seed:
+
+    .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
+
+Add --baseline with the 2.5b baseline answers to compare each seed with the
+baseline through the race bootstrap. The original 2.5b run folder is not
+available, so the baseline was re-run with scripts.compare_prompts (section 10)
+and is passed with --rebuilt:
+
+    .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028 --baseline runs/2026-10-20_2-5b-validation-prompts/selected/baseline-outputs.jsonl --rebuilt
+
+--rebuilt accepts the re-run only when its prompt, cases and selection
+measures equal the 2.5b record. Draw the loss curves into
+docs/diagrams/adapter-a-losses.png with the same three run folders:
+
+    .venv/bin/python -m scripts.train_adapter curves runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
+    .venv/bin/python -m pytest -q tests/test_training_rows.py tests/test_adapter_summary.py
+
+summarize writes a new dated summary and configs/adapter-a-selection.json,
+which records adapter A. push uploads the three selected checkpoints, the
+summary and docs/adapter-a-card.md to the private repo of the team
+organisation, then records the revision in that file:
+
+    .venv/bin/python -m scripts.train_adapter push runs/2026-10-20_2-6-adapter-a-summary.json --repo ING3NLPProject/boxbox-adapter-a
+
+Tasks 2.7 and 2.8 load adapter A with selected_adapter() from boxbox.model. It
+returns the config, the adapter folder and the p01 prompt A was trained on, which
+must be passed as instructions to load_conversation_engine. It uses the local
+run folder or the recorded Hub revision, and refuses an adapter, config or prompt
+whose hash differs. The Hub download needs a member's token in HF_TOKEN or
+hf auth login.
+
+Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
+0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.
+A still makes a call on 19 of the 20 targets with a missing field, which B
+targets, and 4 or 5 answers per seed stop at the 64-token limit. See docs/adapter-a.md for the settings, the checkpoint table, the
+seed intervals, the reload check and the incidents.
