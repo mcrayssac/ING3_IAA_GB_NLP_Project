@@ -5,6 +5,7 @@ Usage, from the repository root:
     python -m scripts.train_adapter train --seed 2026
     python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
     python -m scripts.train_adapter summarize RUN_DIR [RUN_DIR ...] [--baseline OUTPUTS]
+    python -m scripts.train_adapter curves RUN_DIR [RUN_DIR ...] [--out PNG]
 
 Training and validation use the inference prompt chosen in task 2.5b
 (configs/baseline-selection.json), so the adapter learns from the exact tokens it sees
@@ -372,6 +373,59 @@ def summarise(runs: list[Path], baseline_file: Path | None) -> Path:
     return out
 
 
+def plot_losses(runs: list[Path], out: Path) -> Path:
+    """Training loss per update and validation loss per epoch, one colour per seed."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(11, 4), layout="constrained")
+    for run in runs:
+        metrics = loads((run / "metrics.json").read_text())
+        chosen = loads((run / "selection.json").read_text())["selected_candidate"]
+        seed = run.name.rsplit("-s", 1)[1]
+        losses = [float(x) for x in metrics["train_losses"]]
+        smooth = [
+            statistics.fmean(losses[max(0, i - 9) : i + 1]) for i in range(len(losses))
+        ]
+        steps = range(1, len(losses) + 1)
+        (line,) = left.plot(steps, smooth, label=f"seed {seed}")
+        left.plot(steps, losses, color=line.get_color(), alpha=0.2, linewidth=0.8)
+        epochs = [int(e["epoch"]) for e in metrics["eval_losses"]]
+        evals = [float(e["eval_loss"]) for e in metrics["eval_losses"]]
+        right.plot(
+            epochs, evals, marker="o", color=line.get_color(), label=f"seed {seed}"
+        )
+        best = int(chosen.rsplit("-e", 1)[1])
+        right.scatter(
+            [best],
+            [evals[epochs.index(best)]],
+            s=160,
+            facecolors="none",
+            edgecolors=line.get_color(),
+            linewidths=2,
+        )
+    for step in (120, 240):
+        left.axvline(step, color="grey", linestyle=":", linewidth=1)
+    left.set(
+        yscale="log",
+        xlabel="update",
+        ylabel="loss on answer tokens",
+        title="Training loss (faint: per update, solid: mean of 10)",
+    )
+    right.set(
+        xticks=[1, 2, 3],
+        xlabel="epoch",
+        ylabel="loss on answer tokens",
+        title="Validation loss (ring: selected checkpoint)",
+    )
+    left.legend()
+    right.legend()
+    fig.savefig(out, dpi=150)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -385,6 +439,11 @@ def main(argv: list[str] | None = None) -> int:
     summary = commands.add_parser("summarize")
     summary.add_argument("runs", type=Path, nargs="+")
     summary.add_argument("--baseline", type=Path)
+    curves = commands.add_parser("curves")
+    curves.add_argument("runs", type=Path, nargs="+")
+    curves.add_argument(
+        "--out", type=Path, default=Path("docs/diagrams/adapter-a-losses.png")
+    )
     args = parser.parse_args(argv)
     if args.command == "smoke":
         return smoke()
@@ -392,6 +451,8 @@ def main(argv: list[str] | None = None) -> int:
         train(args.seed)
     elif args.command == "validate":
         validate(args.run)
+    elif args.command == "curves":
+        print(plot_losses(args.runs, args.out))
     else:
         summarise(args.runs, args.baseline)
     return 0

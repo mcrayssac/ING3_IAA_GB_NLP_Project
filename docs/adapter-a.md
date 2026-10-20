@@ -17,6 +17,7 @@ python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR [--baseline OU
 - `train` writes `runs/<date>_2-6-adapter-a-s<seed>/` with one checkpoint per epoch.
 - `validate` runs in a new process. It reloads every checkpoint, answers the validation targets and chooses one checkpoint.
 - `summarize` gives the seed statistics and names adapter A. With `--baseline`, it also compares each seed with the 2.5b baseline answers.
+- `curves` draws the training and validation losses of the given runs into `docs/diagrams/adapter-a-losses.png`.
 
 The settings are in `configs/adapter-a.toml`.
 
@@ -45,6 +46,12 @@ The conversation engine builds every training row with the same `prepare` call i
 - the fixed template date
 
 The answer follows, up to the end-of-turn token that stops generation. Each row is checked so that its prompt is exactly the start of the full conversation the template renders. The adapter therefore learns from the tokens it later sees. The 1.5 feasibility trainer did not do this: it put the card in the user turn and rendered in thinking mode.
+
+## Losses
+
+![Training loss per update and validation loss per epoch for the three seeds](diagrams/adapter-a-losses.png)
+
+The mean training loss falls from about 0.14 in epoch 1 to 0.03 in epoch 2 and 0.02 in epoch 3, for every seed. Validation loss stays between 0.167 and 0.213. From epoch 2 on, the adapter fits its training answers several times more closely than unseen ones. The figure comes from `python -m scripts.train_adapter curves RUN_DIR RUN_DIR RUN_DIR`.
 
 ## Checkpoint choice on validation
 
@@ -99,7 +106,21 @@ The three selected checkpoints, ranked with the same 2.3a order, are seed 2026 e
 
 The middle one is adapter A: `runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkpoint-120`, with adapter file hash `3322b5b3158e`. Tasks 2.7 and 2.8 pass that folder as `adapter_dir` to `load_conversation_engine`, with `configs/adapter-a.toml` and the p01 prompt.
 
-The summary is in `runs/2026-10-19_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git. Adapter A goes to the Hugging Face Hub once the team agrees.
+The summary is in `runs/2026-10-19_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
+
+The three selected checkpoints are in the private Hugging Face repo `H0py/boxbox-adapter-a` at revision `2f29539bfe1d6297f20d61190208d088d550b053`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`. The adapter files on the Hub have the same SHA-256 as the local ones. To load A on another machine:
+
+```python
+from pathlib import Path
+from huggingface_hub import snapshot_download
+
+local = snapshot_download(
+    "H0py/boxbox-adapter-a",
+    revision="2f29539bfe1d6297f20d61190208d088d550b053",
+    allow_patterns="s2028-e1/*",
+)
+adapter_dir = Path(local) / "s2028-e1"
+```
 
 ## Reload check
 
