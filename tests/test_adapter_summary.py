@@ -10,9 +10,15 @@ from pathlib import Path
 import pytest
 
 from boxbox.config import load_config
+from boxbox.evaluation._io import dumps, loads
 from boxbox.model import ConversationEngineError, load_conversation_engine
 from boxbox.training.lora import _checkpoints
-from scripts.train_adapter import planned_updates, seed_interval
+from scripts.train_adapter import (
+    SELECTION,
+    check_rebuilt_baseline,
+    planned_updates,
+    seed_interval,
+)
 
 CONFIG = load_config(Path("configs/adapter-a.toml"))
 
@@ -54,3 +60,36 @@ def test_the_loader_needs_an_adapter_folder_exactly_for_an_adapter(tmp_path) -> 
         load_conversation_engine(CONFIG)
     with pytest.raises(ConversationEngineError, match="adapter_dir"):
         load_conversation_engine(replace(CONFIG, adapter="none"), adapter_dir=tmp_path)
+
+
+def _rebuilt_run(
+    folder: Path, prompt_sha256: str | None = None, measures: dict | None = None
+) -> list[dict]:
+    """A minimal re-run folder of the 2.5b baseline, with its lock and measures."""
+    selection = loads(SELECTION.read_text())
+    chosen = selection["selected_candidate"]
+    (folder / "selected").mkdir(parents=True)
+    lock = {
+        "selected_candidate": chosen,
+        "prompt_sha256": prompt_sha256 or selection["prompt_sha256"],
+        "cases_sha256": selection["cases_sha256"],
+    }
+    (folder / "selected" / "inference-lock.json").write_text(dumps(lock))
+    exact = measures or selection["selection"]["exact_values"][chosen]
+    (folder / "selection.json").write_text(dumps({"exact_values": {chosen: exact}}))
+    record = {"version_id": chosen, "cases_sha256": selection["cases_sha256"]}
+    return [record] * selection["baseline_output_count"]
+
+
+def test_a_rebuilt_baseline_needs_the_2_5b_prompt_cases_and_measures(tmp_path) -> None:
+    records = _rebuilt_run(tmp_path / "same")
+    check_rebuilt_baseline(records, tmp_path / "same")
+    with pytest.raises(ValueError, match="answers"):
+        check_rebuilt_baseline(records[1:], tmp_path / "same")
+    records = _rebuilt_run(tmp_path / "prompt", prompt_sha256="0" * 64)
+    with pytest.raises(ValueError, match="selected prompt"):
+        check_rebuilt_baseline(records, tmp_path / "prompt")
+    other = {"overall/strict_format_rate": {"numerator": 1, "denominator": 2}}
+    records = _rebuilt_run(tmp_path / "measures", measures=other)
+    with pytest.raises(ValueError, match="measures"):
+        check_rebuilt_baseline(records, tmp_path / "measures")

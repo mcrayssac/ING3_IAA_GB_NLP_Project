@@ -222,7 +222,14 @@ the three seeds and name adapter A, the median seed:
     .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
 
 Add --baseline with the 2.5b baseline answers to compare each seed with the
-baseline through the race bootstrap. Draw the loss curves into
+baseline through the race bootstrap. The original 2.5b run folder is not
+available, so the baseline was re-run with scripts.compare_prompts (section 10)
+and is passed with --rebuilt:
+
+    .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028 --baseline runs/2026-10-20_2-5b-validation-prompts/selected/baseline-outputs.jsonl --rebuilt
+
+--rebuilt accepts the re-run only when its prompt, cases and selection
+measures equal the 2.5b record. Draw the loss curves into
 docs/diagrams/adapter-a-losses.png with the same three run folders:
 
     .venv/bin/python -m scripts.train_adapter curves runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028

@@ -10,13 +10,13 @@ From the repository root, with the pinned model cached:
 python -m scripts.train_adapter smoke
 python -m scripts.train_adapter train --seed 2026
 python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
-python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR [--baseline OUTPUTS]
+python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR [--baseline OUTPUTS [--rebuilt]]
 ```
 
 - `smoke` times 3 validation answers and 10 updates, then projects the time for all seeds.
 - `train` writes `runs/<date>_2-6-adapter-a-s<seed>/` with one checkpoint per epoch.
 - `validate` runs in a new process. It reloads every checkpoint, answers the validation targets and chooses one checkpoint.
-- `summarize` gives the seed statistics and names adapter A. With `--baseline`, it also compares each seed with the 2.5b baseline answers.
+- `summarize` gives the seed statistics and names adapter A. With `--baseline`, it also compares each seed with the 2.5b baseline answers. `--rebuilt` accepts a re-run of the 2.5b baseline, as explained below.
 - `curves` draws the training and validation losses of the given runs into `docs/diagrams/adapter-a-losses.png`.
 
 The settings are in `configs/adapter-a.toml`.
@@ -97,8 +97,42 @@ The selected checkpoints give:
 
 - **The interval:** a Student t interval over the 3 seeds, with t = 4.303. It measures training variability, which the race bootstrap does not. With three runs it is wide.
 - **Negative bound:** the formula is applied as it is, so the excessive-refusal interval goes below 0, which a rate cannot do.
-- **The baseline, for scale:** on the same 100 targets and with the same prompt, the 2.5b baseline scored 0.75 strict format, 0.16 CALL agreement, 0.70 unjustified decisions, 0 excessive refusals, 0.158 macro-label and 0.153 macro-family agreement (`docs/baseline-prompts.md`).
-- **Against the baseline:** the race bootstrap of A minus the baseline, per seed, needs Paul's baseline answers (`selected/baseline-outputs.jsonl`, checked against the hash in `configs/baseline-selection.json`). It is still pending.
+
+## Against the baseline
+
+### The baseline answers were re-run
+
+The original 2.5b run folder is not available, so its baseline answers were generated again on the M3 Max, with the 2.5b script, at commit `07ba402`. The new run is `runs/2026-10-20_2-5b-validation-prompts`:
+- same 100 targets (cases hash `ba30d2a6832b`)
+- same two prompts and generation settings
+- 200 answers, no generation error, and p01 selected again
+
+Every measure recorded in `docs/baseline-prompts.md` comes out the same:
+- the six selection fractions of both prompts
+- decision coverage, eligible decision coverage and unusable labels
+- the strict-format bootstrap, -0.68 (-0.7957 to -0.5195)
+
+The bytes differ, though. The 100 baseline answers hash to `3180af7a9d92` instead of `b3864934668c`, even with the original run name and configuration hash put back. The configuration file now also lists `gradient_accumulation = 1`, which inference does not read. The number of answers stopped by the 64-token limit also differs: 18 for p01 and 22 for p02 here, against 24 and 16 recorded. So some answer texts differ between the M1 and the M3 Max, while every recorded measure stays the same. The original file is needed to say which answers changed.
+
+`summarize --rebuilt` accepts a re-run only when its prompt, cases and six selection measures equal those in `configs/baseline-selection.json`. The summary records the file hash and `same_bytes_as_2_5b: false`. A and the baseline now also come from the same machine.
+
+### Race bootstrap of A minus the baseline
+
+Each seed's selected checkpoint is compared with the baseline on the same 100 targets, through the race bootstrap of 2.3a: 7 validation races, 10,000 draws, seed 2026. Each cell gives the difference and its 95% percentile interval.
+
+| Metric | Baseline | Seed 2026 | Seed 2027 | Seed 2028 (A) |
+|---|---:|---:|---:|---:|
+| Strict format | 0.750 | +0.250 (0.160 to 0.364) | +0.250 (0.160 to 0.364) | +0.250 (0.160 to 0.364) |
+| CALL agreement | 0.160 | +0.610 (0.519 to 0.705) | +0.590 (0.504 to 0.692) | +0.540 (0.454 to 0.662) |
+| Unjustified decisions (Z) | 0.700 | -0.175 (-0.346 to -0.023) | -0.100 (-0.214 to 0.027) | -0.125 (-0.229 to -0.041) |
+| Excessive refusals (D) | 0.000 | 0.000 (0.000 to 0.000) | 0.000 (0.000 to 0.000) | +0.017 (0.000 to 0.041) |
+| Macro-label agreement | 0.158 | +0.650 (0.544 to 0.770) | +0.624 (0.526 to 0.747) | +0.555 (0.461 to 0.701) |
+| Macro-family agreement | 0.153 | +0.643 (0.555 to 0.740) | +0.636 (0.564 to 0.725) | +0.602 (0.536 to 0.688) |
+
+- **Format and agreement:** every seed beats the baseline on strict format, CALL agreement and both macro agreements, with intervals far above 0.
+- **Unjustified decisions** fall for every seed, by 4 to 7 of the 40 Z targets. The interval excludes 0 for seeds 2026 and 2028, but not for seed 2027. A still decides on more than half of the Z targets, as shown above.
+- **Excessive refusals:** only seed 2028 refuses once, on 1 of the 60 D targets, and its interval reaches 0.
+- **What the interval measures:** it resamples the validation races, so it covers variation over races. The seed interval above covers variation over training runs. For macro-family agreement, 4 of the 10,000 draws have no valid value, and the interval uses the others.
 
 ## Adapter A
 
@@ -108,7 +142,7 @@ The middle one is adapter A: `runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkp
 
 The summary is in `runs/2026-10-19_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
 
-The three selected checkpoints are in the private Hugging Face repo `H0py/boxbox-adapter-a` at revision `2f29539bfe1d6297f20d61190208d088d550b053`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`. The adapter files on the Hub have the same SHA-256 as the local ones. To load A on another machine:
+The three selected checkpoints are in the private Hugging Face repo `H0py/boxbox-adapter-a` at revision `987891d65ed185dd460abcd6b241fb106599d471`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`, with the seed statistics and the bootstrap against the baseline. The adapter files on the Hub have the same SHA-256 as the local ones. To load A on another machine:
 
 ```python
 from pathlib import Path
@@ -116,7 +150,7 @@ from huggingface_hub import snapshot_download
 
 local = snapshot_download(
     "H0py/boxbox-adapter-a",
-    revision="2f29539bfe1d6297f20d61190208d088d550b053",
+    revision="987891d65ed185dd460abcd6b241fb106599d471",
     allow_patterns="s2028-e1/*",
 )
 adapter_dir = Path(local) / "s2028-e1"

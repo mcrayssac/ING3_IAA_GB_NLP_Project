@@ -4,7 +4,7 @@ Usage, from the repository root:
     python -m scripts.train_adapter smoke
     python -m scripts.train_adapter train --seed 2026
     python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
-    python -m scripts.train_adapter summarize RUN_DIR [RUN_DIR ...] [--baseline OUTPUTS]
+    python -m scripts.train_adapter summarize RUN_DIR [RUN_DIR ...] [--baseline OUTPUTS [--rebuilt]]
     python -m scripts.train_adapter curves RUN_DIR [RUN_DIR ...] [--out PNG]
 
 Training and validation use the inference prompt chosen in task 2.5b
@@ -342,7 +342,30 @@ def against_baseline(run: Path, version: str, baseline: list[dict]) -> dict:
     return bootstrap_compare(observations(cases, paired), old, version)
 
 
-def summarise(runs: list[Path], baseline_file: Path | None) -> Path:
+def check_rebuilt_baseline(records: list[dict], run: Path) -> None:
+    """Accept a re-run of the 2.5b baseline only with its prompt, cases and measures."""
+    selection = loads(SELECTION.read_text())
+    chosen, cases = selection["selected_candidate"], selection["cases_sha256"]
+    lock = loads((run / "selected" / "inference-lock.json").read_text())
+    measures = loads((run / "selection.json").read_text())["exact_values"][chosen]
+    checks = {
+        "selected prompt": lock["selected_candidate"] == chosen
+        and lock["prompt_sha256"] == selection["prompt_sha256"],
+        "cases": lock["cases_sha256"] == cases,
+        "answers": len(records) == selection["baseline_output_count"]
+        and all(
+            r["version_id"] == chosen and r["cases_sha256"] == cases for r in records
+        ),
+        "measures": measures == selection["selection"]["exact_values"][chosen],
+    }
+    failed = [name for name, ok in checks.items() if not ok]
+    if failed:
+        raise ValueError(f"rebuilt baseline differs from 2.5b: {', '.join(failed)}")
+
+
+def summarise(
+    runs: list[Path], baseline_file: Path | None, rebuilt: bool = False
+) -> Path:
     """Seed means and intervals, A minus baseline per seed, and the median seed as A."""
     seeds = [_seed_result(run) for run in runs]
     stats = {m: seed_interval([s["metrics"][m] for s in seeds]) for m in METRICS}
@@ -350,11 +373,22 @@ def summarise(runs: list[Path], baseline_file: Path | None) -> Path:
     ranking = select_prompt({s["version"]: s["summary"] for s in seeds}, versions)
     median = ranking["ranked_candidate_ids"][len(seeds) // 2]
     chosen = runs[versions.index(median)]
-    baseline, bootstraps = None, {}
+    source, bootstraps = "pending: no baseline outputs given", {}
     if baseline_file is not None:
         baseline, digest = read_jsonl(baseline_file)
-        if digest != loads(SELECTION.read_text())["baseline_outputs_sha256"]:
-            raise ValueError("baseline outputs differ from the 2.5b selection")
+        same = digest == loads(SELECTION.read_text())["baseline_outputs_sha256"]
+        if not same:
+            if not rebuilt:
+                raise ValueError(
+                    "baseline outputs differ from 2.5b; a re-run needs --rebuilt"
+                )
+            check_rebuilt_baseline(baseline, baseline_file.parent.parent)
+        source = {
+            "file": str(baseline_file),
+            "sha256": digest,
+            "run": baseline[0]["run_id"],
+            "same_bytes_as_2_5b": same,
+        }
         bootstraps = {
             s["version"]: against_baseline(r, s["version"], baseline)
             for s, r in zip(seeds, runs)
@@ -365,6 +399,7 @@ def summarise(runs: list[Path], baseline_file: Path | None) -> Path:
         "interval_note": "95% Student t over training seeds; wide with this few runs",
         "ranking": ranking,
         "adapter_a": {"run": chosen.name, "version": median},
+        "baseline": source,
         "against_baseline": bootstraps or "pending: no baseline outputs given",
     }
     out = chosen.parent / f"{chosen.name.split('_')[0]}_2-6-adapter-a-summary.json"
@@ -439,6 +474,11 @@ def main(argv: list[str] | None = None) -> int:
     summary = commands.add_parser("summarize")
     summary.add_argument("runs", type=Path, nargs="+")
     summary.add_argument("--baseline", type=Path)
+    summary.add_argument(
+        "--rebuilt",
+        action="store_true",
+        help="the baseline is a re-run of 2.5b: same prompt, cases and measures",
+    )
     curves = commands.add_parser("curves")
     curves.add_argument("runs", type=Path, nargs="+")
     curves.add_argument(
@@ -454,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "curves":
         print(plot_losses(args.runs, args.out))
     else:
-        summarise(args.runs, args.baseline)
+        summarise(args.runs, args.baseline, args.rebuilt)
     return 0
 
 
