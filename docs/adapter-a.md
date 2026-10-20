@@ -142,15 +142,15 @@ The middle one is adapter A: `runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkp
 
 The summary is in `runs/2026-10-19_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
 
-The three selected checkpoints are in the private Hugging Face repo `H0py/boxbox-adapter-a` at revision `987891d65ed185dd460abcd6b241fb106599d471`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`, with the seed statistics and the bootstrap against the baseline. The adapter files on the Hub have the same SHA-256 as the local ones. To load A on another machine:
+The three selected checkpoints are in `ING3NLPProject/boxbox-adapter-a`, a private repo of the team organisation on Hugging Face, at revision `255613f3bcacbb50eff6239c4b03cc327aeb7095`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`, with the seed statistics and the bootstrap against the baseline. The adapter files on the Hub have the same SHA-256 as the local ones. Members of the organisation can download the repo. To load A on another machine:
 
 ```python
 from pathlib import Path
 from huggingface_hub import snapshot_download
 
 local = snapshot_download(
-    "H0py/boxbox-adapter-a",
-    revision="987891d65ed185dd460abcd6b241fb106599d471",
+    "ING3NLPProject/boxbox-adapter-a",
+    revision="255613f3bcacbb50eff6239c4b03cc327aeb7095",
     allow_patterns="s2028-e1/*",
 )
 adapter_dir = Path(local) / "s2028-e1"

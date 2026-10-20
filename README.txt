@@ -235,9 +235,9 @@ docs/diagrams/adapter-a-losses.png with the same three run folders:
     .venv/bin/python -m scripts.train_adapter curves runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
     .venv/bin/python -m pytest -q tests/test_training_rows.py tests/test_adapter_summary.py
 
-The three selected checkpoints are in the private Hugging Face repo
-H0py/boxbox-adapter-a, with adapter A in the folder s2028-e1. The revision and
-the download code are in docs/adapter-a.md.
+The three selected checkpoints are in ING3NLPProject/boxbox-adapter-a, a
+private repo of the team organisation on Hugging Face, with adapter A in the
+folder s2028-e1. The revision and the download code are in docs/adapter-a.md.
 
 Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
 0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.
