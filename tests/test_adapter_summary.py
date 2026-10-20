@@ -1,4 +1,4 @@
-"""Seed statistics, update budget and adapter loading of task 2.6."""
+"""Seed statistics, update budget and adapter loading of tasks 2.6 and 3.2."""
 
 from __future__ import annotations
 
@@ -19,12 +19,21 @@ from boxbox.model import (
 )
 from boxbox.training.lora import _checkpoints
 from scripts.train_adapter import (
+    ADAPTERS,
+    METRICS,
     SELECTION,
+    against_a,
+    all_seeds,
     baseline_source,
     check_rebuilt_baseline,
+    equal_updates,
     median_version,
+    paired_differences,
     planned_updates,
+    run_name,
     seed_interval,
+    seed_of,
+    training_rows,
 )
 
 CONFIG = load_config(Path("configs/adapter-a.toml"))
@@ -181,3 +190,99 @@ def test_the_selected_adapter_is_refused_when_its_hash_differs(tmp_path) -> None
     prompt.write_text("Another prompt.", encoding="utf-8")
     with pytest.raises(ValueError, match="changed since the adapter was trained"):
         selected_adapter(file, tmp_path / "runs")
+
+
+def test_b_has_the_settings_of_a_except_its_corpus() -> None:
+    a, b = (load_config(ADAPTERS[x]["config"]) for x in ("A", "B"))
+    assert (b.adapter, b.abstention_share) == ("B", 0.15)
+    assert replace(b, adapter=a.adapter, abstention_share=a.abstention_share) == a
+
+
+def test_names_follow_the_adapter_and_its_task() -> None:
+    assert run_name("A", "s2026") == "2-6-adapter-a-s2026"
+    assert run_name("B", "summary") == "3-2-adapter-b-summary"
+    assert seed_of("2026-10-19_2-6-adapter-a-s2028") == 2028
+
+
+def test_training_rows_read_the_corpus_of_the_adapter(monkeypatch) -> None:
+    import boxbox.corpus
+    import boxbox.training
+
+    read = []
+    monkeypatch.setattr(boxbox.corpus, "load_corpus", lambda name: read.append(name))
+    monkeypatch.setattr(boxbox.training, "build_rows", lambda engine, items, n: [])
+    b = load_config(ADAPTERS["B"]["config"])
+    training_rows(None, b)
+    training_rows(None, CONFIG)
+    assert read == ["B_train", "validation", "A_train", "validation"]
+
+
+def test_paired_differences_are_taken_seed_by_seed() -> None:
+    mine = [{m: value for m in METRICS} for value in (0.7, 0.8, 0.9)]
+    theirs = [{m: 0.6 for m in METRICS} for _ in range(3)]
+    result = paired_differences(mine, theirs)["overall/call_agreement"]
+    half = 4.303 * 0.1 / math.sqrt(3)
+    assert result["values"] == pytest.approx([0.1, 0.2, 0.3])
+    assert (result["mean"], result["low"]) == (
+        pytest.approx(0.2),
+        pytest.approx(0.2 - half),
+    )
+
+
+def test_b_against_a_needs_an_a_summary_with_the_same_seeds(tmp_path) -> None:
+    summary = tmp_path / "2026-10-20_2-6-adapter-a-summary.json"
+    seeds = [{"run": "2026-10-19_2-6-adapter-a-s2026", "version": "A-s2026-e3"}]
+    summary.write_text(dumps({"adapter_a": {}, "seeds": seeds}))
+    runs = [tmp_path / "2026-10-21_3-2-adapter-b-s2028"]
+    with pytest.raises(ValueError, match=r"no A run for seeds \[2028\]"):
+        against_a(runs, [{}], summary)
+    summary.write_text(dumps({"adapter_b": {}, "seeds": seeds}))
+    with pytest.raises(ValueError, match="not a summary of adapter A"):
+        against_a(runs, [{}], summary)
+
+
+def _validated(folder: Path, letter: str, values: dict[int, float]) -> Path:
+    """A run folder whose validation summaries give every metric one value per epoch."""
+    folder.mkdir()
+    summaries = {
+        f"{letter}-s2026-e{epoch}": {"metrics": {m: {"value": v} for m in METRICS}}
+        for epoch, v in values.items()
+    }
+    (folder / "validation-summaries.json").write_text(dumps(summaries))
+    return folder
+
+
+def test_equal_updates_compares_b_and_a_at_the_same_epoch(tmp_path) -> None:
+    b = _validated(tmp_path / "b", "B", {1: 0.5, 2: 0.7, 3: 0.8})
+    a = _validated(tmp_path / "a", "A", {1: 0.4, 2: 0.6, 3: 0.8})
+    result = equal_updates([b], [a])
+    assert list(result) == ["epoch 1", "epoch 2", "epoch 3"]
+    values = [result[k]["overall/call_agreement"]["values"] for k in result]
+    assert values == [pytest.approx([0.1]), pytest.approx([0.1]), pytest.approx([0.0])]
+    short = _validated(tmp_path / "short", "A", {1: 0.4, 2: 0.6})
+    with pytest.raises(ValueError, match="same epochs"):
+        equal_updates([b], [short])
+
+
+def test_a_failed_seed_does_not_stop_the_next_ones(tmp_path, monkeypatch) -> None:
+    import subprocess
+
+    calls = []
+
+    def fake_run(command, check, stdout, stderr):
+        args = command[3:]
+        calls.append(args[0])
+        if args[0] == "train":
+            seed = args[args.index("--seed") + 1]
+            if seed == "2026":
+                return subprocess.CompletedProcess(command, 1)
+            (tmp_path / "runs" / f"2026-10-21_3-2-adapter-b-s{seed}").mkdir()
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    statuses = all_seeds("B")
+    assert [s.split(": ")[1] for s in statuses] == ["train failed", "ok", "ok"]
+    assert calls == ["train", "train", "validate", "train", "validate"]
+    status_file = tmp_path / "runs" / "3-2-logs" / "status.txt"
+    assert status_file.read_text().count("seed") == 3
