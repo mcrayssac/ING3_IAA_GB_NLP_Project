@@ -202,3 +202,32 @@ The retained inference uses configs/baseline-selected.toml and the exact prompt
 identified in configs/baseline-selection.json. The policy-first candidate was
 selected on strict format (75/100 versus 7/100); CALL agreement remained low
 (16/100 versus 6/100). The guide records the raw results and limitations.
+
+11. Adapter A (task 2.6)
+------------------------
+
+Adapter A is a LoRA adapter on the frozen SmolLM3-3B, trained on corpus A with
+the inference prompt selected in 2.5b. It is trained with seeds 2026, 2027 and
+2028. Check time and memory first, then train and validate each seed:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter smoke
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter train --seed 2026
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter validate runs/2026-10-19_2-6-adapter-a-s2026
+
+Each seed takes about 72 minutes of training and 10 of validation on an Apple
+M3 Max. validate runs in a new process: it reloads the three epoch checkpoints,
+answers the 100 validation targets and keeps one checkpoint. Then summarise
+the three seeds and name adapter A, the median seed:
+
+    .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
+
+Add --baseline with the 2.5b baseline answers to compare each seed with the
+baseline through the race bootstrap.
+
+    .venv/bin/python -m pytest -q tests/test_training_rows.py tests/test_adapter_summary.py
+
+Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
+0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.
+A still makes a call on 19 of the 20 targets with a missing field, which B
+targets. See docs/adapter-a.md for the settings, the checkpoint table, the
+seed intervals, the reload check and the incidents.
