@@ -11,12 +11,14 @@ python -m scripts.train_adapter smoke
 python -m scripts.train_adapter train --seed 2026
 python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
 python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR [--baseline OUTPUTS [--rebuilt]]
+python -m scripts.train_adapter push SUMMARY --repo ING3NLPProject/boxbox-adapter-a
 ```
 
-- `smoke` times 3 validation answers and 10 updates, then projects the time for all seeds.
+- `smoke` times 3 validation answers and 10 updates on the longest training rows, then projects the time for all seeds. It stops when memory at the end of an update passes 85% of the cap.
 - `train` writes `runs/<date>_2-6-adapter-a-s<seed>/` with one checkpoint per epoch.
-- `validate` runs in a new process. It reloads every checkpoint, answers the validation targets and chooses one checkpoint.
-- `summarize` gives the seed statistics and names adapter A. With `--baseline`, it also compares each seed with the 2.5b baseline answers. `--rebuilt` accepts a re-run of the 2.5b baseline, as explained below.
+- `validate` runs in a new process. It reloads every checkpoint, answers the validation targets and chooses one checkpoint. Like 2.5b, it keeps each answer's generation trace in `validation-attempts.jsonl`.
+- `summarize` gives the seed statistics and names adapter A in `configs/adapter-a-selection.json`. With `--baseline`, it also compares each seed with the 2.5b baseline answers. `--rebuilt` accepts a re-run of the 2.5b baseline, as explained below. It writes a new dated summary and never overwrites one.
+- `push` uploads the selected checkpoints, the summary and the model card to the Hub, then records the revision.
 - `curves` draws the training and validation losses of the given runs into `docs/diagrams/adapter-a-losses.png`.
 
 The settings are in `configs/adapter-a.toml`.
@@ -80,7 +82,18 @@ Bold marks the checkpoint each seed selected.
 - **Seed 2028** selected epoch 1. Its unjustified-decision rate there (0.575) is lower than at epochs 2 and 3 (0.600), and that criterion comes before agreement.
 - **Unjustified decisions** stay high in every checkpoint, from 0.525 to 0.625. Almost all of them come from the 20 validation targets with a missing field: each selected checkpoint answers BOX or STAY OUT on 19 of them. Corpus A has no such example, since its abstention share is 0. Corpus B (task 3.1) adds them, and B is trained on it in task 3.2.
 - **The other 20 NO CALL targets** are out-of-scope requests and safety-car or VSC cards. The selected checkpoints make a call on 2, 4 and 5 of them (seeds 2026, 2028 and 2027). Seeds 2027 and 2028 make a call on all 4 safety-car or VSC cards, and seed 2026 on none.
-- **Format:** every answer of the selected checkpoints is in the strict CALL/WHY format, and no generation failed.
+- **Format:** every answer of the selected checkpoints passes the strict CALL/WHY check, and no generation failed. But 4 or 5 of them per seed stop mid-sentence at the token limit, as the next section shows.
+- **Repeat:** validation ran a second time on 20 October to keep the generation traces. Its answers, summaries and selections are byte-identical to the first run's for all three seeds. The first files are kept in each run's `superseded-validation/`.
+
+## Answers cut at 64 tokens
+
+Inference stops after 64 new tokens, the 2.5b setting. Some corpus answers are longer than that:
+- 8 of the 480 training answers and 4 of the 120 validation answers have more than 63 tokens, up to 71 and 80
+- all of them are stated-gap follow-ups, whose WHY first corrects the gap stated in the message
+
+A learns these answers but cannot finish them. Every selected checkpoint stops at the limit on those 4 validation targets (V-037, V-041, V-045 and V-049). Seeds 2026 and 2028 also make one other answer longer than its reference (V-035 and V-031), which gives 5, 4 and 5 cut answers for seeds 2026, 2027 and 2028. The baseline stops at the limit on 18 answers. Adapter A's answer to V-049, for example, ends with "plus the 2.".
+
+The strict format check still accepts these answers, so a strict format of 1.000 includes them. The mini-test and the demo use the same limit and will cut the same kind of answer. A longer limit is a team decision, since 64 tokens is a 2.5b setting shared with the baseline. It would mean running the baseline and the validation of the three seeds again, without new training.
 
 ## Over the three seeds
 
@@ -97,6 +110,7 @@ The selected checkpoints give:
 
 - **The interval:** a Student t interval over the 3 seeds, with t = 4.303. It measures training variability, which the race bootstrap does not. With three runs it is wide.
 - **Negative bound:** the formula is applied as it is, so the excessive-refusal interval goes below 0, which a rate cannot do.
+- **Optimistic numbers:** the checkpoints were chosen on these same 100 targets, as the p01 prompt was in 2.5b. These validation numbers, and the comparison with the baseline below, therefore favour both. The mini-test (2.7) gives the fair comparison.
 
 ## Against the baseline
 
@@ -114,7 +128,9 @@ Every measure recorded in `docs/baseline-prompts.md` comes out the same:
 
 The bytes differ, though. The 100 baseline answers hash to `3180af7a9d92` instead of `b3864934668c`, even with the original run name and configuration hash put back. The configuration file now also lists `gradient_accumulation = 1`, which inference does not read. The number of answers stopped by the 64-token limit also differs: 18 for p01 and 22 for p02 here, against 24 and 16 recorded. So some answer texts differ between the M1 and the M3 Max, while every recorded measure stays the same. The original file is needed to say which answers changed.
 
-`summarize --rebuilt` accepts a re-run only when its prompt, cases and six selection measures equal those in `configs/baseline-selection.json`. The summary records the file hash and `same_bytes_as_2_5b: false`. A and the baseline now also come from the same machine.
+`summarize --rebuilt` accepts a re-run only when its prompt, cases, answer count and six selection measures equal those in `configs/baseline-selection.json`, and when the file holds exactly the p01 lines of the run's own ledger. The summary records the file hash and `same_bytes_as_2_5b: false`. A and the baseline now also come from the same machine.
+
+The generation traces show that A and the baseline saw the same prompts. For each seed, all 100 prompt-token hashes of A's validation equal the baseline's.
 
 ### Race bootstrap of A minus the baseline
 
@@ -132,29 +148,31 @@ Each seed's selected checkpoint is compared with the baseline on the same 100 ta
 - **Format and agreement:** every seed beats the baseline on strict format, CALL agreement and both macro agreements, with intervals far above 0.
 - **Unjustified decisions** fall for every seed, by 4 to 7 of the 40 Z targets. The interval excludes 0 for seeds 2026 and 2028, but not for seed 2027. A still decides on more than half of the Z targets, as shown above.
 - **Excessive refusals:** only seed 2028 refuses once, on 1 of the 60 D targets, and its interval reaches 0.
-- **What the interval measures:** it resamples the validation races, so it covers variation over races. The seed interval above covers variation over training runs. For macro-family agreement, 4 of the 10,000 draws have no valid value, and the interval uses the others.
+- **What the interval measures:** it resamples the validation races, so it covers variation over races. The seed interval above covers variation over training runs. For macro-family agreement, 4 of the 10,000 draws have no valid value, and the interval uses the others. Both sides were chosen on these targets, so the mini-test is the fair test.
 
 ## Adapter A
 
-The three selected checkpoints, ranked with the same 2.3a order, are seed 2026 epoch 3, then seed 2028 epoch 1, then seed 2027 epoch 3.
+The three selected checkpoints, ranked with the same 2.3a order, are seed 2026 epoch 3, then seed 2028 epoch 1, then seed 2027 epoch 3. The middle one is adapter A: `runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkpoint-120`, with adapter file hash `3322b5b3158e`.
 
-The middle one is adapter A: `runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkpoint-120`, with adapter file hash `3322b5b3158e`. Tasks 2.7 and 2.8 pass that folder as `adapter_dir` to `load_conversation_engine`, with `configs/adapter-a.toml` and the p01 prompt.
+Median here means the middle of this ranking. A is in the middle on the second criterion, unjustified decisions, only. On CALL agreement and both macro agreements, it is the lowest of the three (0.700, 0.714 and 0.755). Its epoch 1 also beat epoch 2 by one Z target, 23 unjustified decisions against 24. So the mini-test tests a checkpoint that is not the best of the three on agreement.
 
-The summary is in `runs/2026-10-19_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
-
-The three selected checkpoints are in `ING3NLPProject/boxbox-adapter-a`, a private repo of the team organisation on Hugging Face, at revision `255613f3bcacbb50eff6239c4b03cc327aeb7095`. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. The repo also holds `summary.json`, with the seed statistics and the bootstrap against the baseline. The adapter files on the Hub have the same SHA-256 as the local ones. Members of the organisation can download the repo. To load A on another machine:
+`configs/adapter-a-selection.json` records adapter A: its run, checkpoint, seed 2028, the adapter and config hashes, the prompt and the cases. Tasks 2.7 and 2.8 load it with:
 
 ```python
 from pathlib import Path
-from huggingface_hub import snapshot_download
 
-local = snapshot_download(
-    "ING3NLPProject/boxbox-adapter-a",
-    revision="255613f3bcacbb50eff6239c4b03cc327aeb7095",
-    allow_patterns="s2028-e1/*",
-)
-adapter_dir = Path(local) / "s2028-e1"
+from boxbox.model import load_conversation_engine, selected_adapter
+
+config, adapter_dir = selected_adapter()
+instructions = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
+engine = load_conversation_engine(config, instructions=instructions, adapter_dir=adapter_dir)
 ```
+
+`selected_adapter` uses the local run folder when it exists, otherwise the Hub revision recorded in the file. It refuses an adapter or a config whose hash differs. It returns the config with seed 2028, so run records name the right seed.
+
+The summary is in `runs/2026-10-20_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
+
+`push` uploads the three selected checkpoints, the summary and the model card `docs/adapter-a-card.md` to `ING3NLPProject/boxbox-adapter-a`, a private repo of the team organisation on Hugging Face. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. `push` checks that the Hub copy of adapter A has the recorded hash, then writes the repo and revision under `hub` in `configs/adapter-a-selection.json`. Members of the organisation can download the repo.
 
 ## Reload check
 
@@ -172,5 +190,5 @@ Each checkpoint saved the next-token logits of 8 training prompts when it was wr
 
 ## Incidents
 
-- **Out of memory:** the first run of seed 2026, with a batch of 4, stopped at update 12. One batch needed 18.4 of the 18.6 GiB allowed. The smoke run had read 17.7 GB, but only at the end of updates, so it missed the peak inside one. Batch 2 with 2 accumulation steps keeps the effective batch and the update count. The failed run is kept as `runs/2026-10-19_2-6-adapter-a-s2026-oom`.
+- **Out of memory:** the first run of seed 2026, with a batch of 4, stopped at update 12. One batch needed 18.4 of the 18.6 GiB allowed. The smoke run had read 17.7 GB, but only at the end of updates, so it missed the peak inside one. Batch 2 with 2 accumulation steps keeps the effective batch and the update count. The failed run is kept as `runs/2026-10-19_2-6-adapter-a-s2026-oom`. The smoke run now trains on the longest rows and stops when memory at the end of an update passes 85% of the cap. The batch-4 smoke run read 89% there.
 - **iCloud:** iCloud Drive had offloaded files of the project and its environment, and Python stalled reading them. Once they were downloaded again, no file was offloaded and the three seeds ran through.

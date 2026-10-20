@@ -1,5 +1,6 @@
 """Model loading and observation helpers."""
 
+from .adapter import selected_adapter
 from .conversation import (
     ConversationEngine,
     ConversationEngineError,
@@ -28,6 +29,7 @@ __all__ = [
     "memory_gb",
     "model_dtype",
     "next_token_probs",
+    "selected_adapter",
     "synchronize",
     "top_tokens",
 ]

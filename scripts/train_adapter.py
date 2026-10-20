@@ -6,6 +6,7 @@ Usage, from the repository root:
     python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
     python -m scripts.train_adapter summarize RUN_DIR [RUN_DIR ...] [--baseline OUTPUTS [--rebuilt]]
     python -m scripts.train_adapter curves RUN_DIR [RUN_DIR ...] [--out PNG]
+    python -m scripts.train_adapter push SUMMARY --repo ORG/NAME
 
 Training and validation use the inference prompt chosen in task 2.5b
 (configs/baseline-selection.json), so the adapter learns from the exact tokens it sees
@@ -18,9 +19,11 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import statistics
 import time
 from dataclasses import replace
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +49,8 @@ from boxbox.runs import finish_run, start_run
 
 CONFIG = Path("configs/adapter-a.toml")
 SELECTION = Path("configs/baseline-selection.json")
+ADAPTER_SELECTION = Path("configs/adapter-a-selection.json")
+CARD = Path("docs/adapter-a-card.md")
 SEEDS = (2026, 2027, 2028)
 METRICS = (
     "overall/strict_format_rate",
@@ -59,6 +64,8 @@ T_95 = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776}  # two-sided 95% Student t by r
 SMOKE_STEPS = 10
 SMOKE_GENERATIONS = 3
 BUDGET_HOURS = 5.0  # above this for all seeds, the gate stops before training
+# Update-end reads miss the peak inside an update: the batch-4 run read 0.89 of the cap.
+MEMORY_SHARE = 0.85
 
 
 def selected_prompt() -> str:
@@ -123,21 +130,27 @@ def training_rows(engine, config) -> tuple[list[dict], list[dict]]:
     return train, build_rows(engine, load_corpus("validation"), limit)
 
 
-def generate(engine, cases, cases_hash, run_id, version, identity) -> list[dict]:
-    """One answer per validation target, kept raw, never retried (2.5b protocol)."""
+def generate(
+    engine, cases, cases_hash, run_id, version, identity
+) -> tuple[list[dict], list[dict]]:
+    """One answer per validation target, kept raw with its trace, never retried (2.5b)."""
     from boxbox.model import ConversationEngineError
 
-    rows = []
+    rows, attempts = [], []
     for case in cases:
         try:
-            raw, _ = engine.respond_with_trace(
+            raw, trace = engine.respond_with_trace(
                 **loads(case["input_json"]),
                 fixed_history=True,
                 required_history_turns=int(case["attributes"]["history_sensitive"]),
             )
             error = None
         except ConversationEngineError as failure:
-            raw, error = failure.partial_response, failure.as_record()
+            raw, trace, error = (
+                failure.partial_response,
+                failure.trace,
+                failure.as_record(),
+            )
         rows.append(
             {
                 "response_id": f"{run_id}:{version}:{case['case_id']}",
@@ -154,7 +167,16 @@ def generate(engine, cases, cases_hash, run_id, version, identity) -> list[dict]
                 "error": error,
             }
         )
-    return rows
+        attempts.append(
+            {
+                "response_id": rows[-1]["response_id"],
+                "case_id": case["case_id"],
+                "version_id": version,
+                "input_sha256": case["input_sha256"],
+                "trace": trace,
+            }
+        )
+    return rows, attempts
 
 
 def planned_updates(config, rows: int) -> int:
@@ -203,9 +225,11 @@ def smoke() -> int:
     generation = (time.perf_counter() - started) / SMOKE_GENERATIONS
     rows, _ = training_rows(engine, config)
     short = replace(config, lora=replace(config.lora, max_steps=SMOKE_STEPS))
+    needed = SMOKE_STEPS * config.lora.batch_size * config.lora.gradient_accumulation
+    longest = sorted(rows, key=lambda row: len(row["input_ids"]), reverse=True)
     run = start_run("2-6-smoke", short, str(device), engine.dtype)
     metrics = train_lora(
-        short, rows, run, device, loaded=(engine.model, engine.tokenizer)
+        short, longest[:needed], run, device, loaded=(engine.model, engine.tokenizer)
     )
     updates = planned_updates(config, len(rows))
     per_seed = metrics["seconds_per_step"] * updates + generation * len(cases) * 3
@@ -214,7 +238,8 @@ def smoke() -> int:
         "planned_updates_per_seed": updates,
         "projected_hours_all_seeds": round(per_seed * len(SEEDS) / 3600, 2),
     }
-    over_memory = metrics["max_memory_gb_at_step_end"] > config.mps_memory_cap_gb
+    limit = MEMORY_SHARE * config.mps_memory_cap_gb
+    over_memory = metrics["max_memory_gb_at_step_end"] > limit
     metrics["gate"] = (
         "stop"
         if over_memory or metrics["projected_hours_all_seeds"] > BUDGET_HOURS
@@ -240,7 +265,7 @@ def validate(run: Path) -> Path:
     engine, device = load_engine(config)
     cases, splits = validation_cases(config)
     cases_hash = write_jsonl(run / "validation-cases.jsonl", cases)
-    model, outputs, versions, reloads = None, [], [], {}
+    model, outputs, attempts, versions, reloads = None, [], [], [], {}
     for checkpoint in metrics["checkpoints"]:
         version = f"A-s{config.seed}-e{checkpoint['epoch']}"
         folder = run / checkpoint["folder"]
@@ -271,10 +296,14 @@ def validate(run: Path) -> Path:
             device=device,
             dtype=engine.dtype,
         )
-        outputs += generate(adapted, cases, cases_hash, run.name, version, identity)
+        answers, traces = generate(
+            adapted, cases, cases_hash, run.name, version, identity
+        )
+        outputs, attempts = outputs + answers, attempts + traces
         versions.append(version)
         print(f"answered validation with {version}", flush=True)
     write_jsonl(run / "validation-outputs.jsonl", outputs)
+    write_jsonl(run / "validation-attempts.jsonl", attempts)
     return _choose(run, cases, outputs, versions, cases_hash, splits, reloads)
 
 
@@ -313,6 +342,26 @@ def seed_interval(values: list[float]) -> dict[str, Any]:
     }
 
 
+def cut_answers(attempts_file: Path, version: str) -> int | None:
+    """Answers of one version stopped by the token limit, when traces were kept."""
+    if not attempts_file.exists():
+        return None
+    return sum(
+        a["trace"].get("possibly_truncated") is True
+        for a in read_jsonl(attempts_file)[0]
+        if a["version_id"] == version
+    )
+
+
+def prompt_hashes(attempts_file: Path, version: str) -> dict[str, str]:
+    """Prompt-token hash of every case one version answered."""
+    return {
+        a["case_id"]: a["trace"].get("prompt_token_ids_sha256")
+        for a in read_jsonl(attempts_file)[0]
+        if a["version_id"] == version
+    }
+
+
 def _seed_result(run: Path) -> dict[str, Any]:
     selection = loads((run / "selection.json").read_text())
     summaries = loads((run / "validation-summaries.json").read_text())
@@ -322,6 +371,7 @@ def _seed_result(run: Path) -> dict[str, Any]:
         "version": version,
         "summary": summaries[version],
         "metrics": {m: summaries[version]["metrics"][m]["value"] for m in METRICS},
+        "cut_at_limit": cut_answers(run / "validation-attempts.jsonl", version),
     }
 
 
@@ -348,7 +398,10 @@ def check_rebuilt_baseline(records: list[dict], run: Path) -> None:
     chosen, cases = selection["selected_candidate"], selection["cases_sha256"]
     lock = loads((run / "selected" / "inference-lock.json").read_text())
     measures = loads((run / "selection.json").read_text())["exact_values"][chosen]
+    ledger, ledger_hash = read_jsonl(run / "outputs.jsonl")
     checks = {
+        "ledger": ledger_hash == lock["outputs_sha256"]
+        and [r for r in ledger if r["version_id"] == chosen] == records,
         "selected prompt": lock["selected_candidate"] == chosen
         and lock["prompt_sha256"] == selection["prompt_sha256"],
         "cases": lock["cases_sha256"] == cases,
@@ -363,36 +416,62 @@ def check_rebuilt_baseline(records: list[dict], run: Path) -> None:
         raise ValueError(f"rebuilt baseline differs from 2.5b: {', '.join(failed)}")
 
 
+def baseline_source(baseline_file: Path, rebuilt: bool) -> tuple[list[dict], dict]:
+    """The baseline answers and their origin, refused unless they are the 2.5b ones."""
+    baseline, digest = read_jsonl(baseline_file)
+    same = digest == loads(SELECTION.read_text())["baseline_outputs_sha256"]
+    run = baseline_file.parent.parent
+    if not same:
+        if not rebuilt:
+            raise ValueError(
+                "baseline outputs differ from 2.5b; a re-run needs --rebuilt"
+            )
+        check_rebuilt_baseline(baseline, run)
+    return baseline, {
+        "file": str(baseline_file),
+        "sha256": digest,
+        "run": baseline[0]["run_id"],
+        "same_bytes_as_2_5b": same,
+        "cut_at_limit": cut_answers(run / "attempts.jsonl", baseline[0]["version_id"]),
+    }
+
+
+def same_prompts(run: Path, version: str, baseline_file: Path, old: str) -> dict | None:
+    """How many validation prompts this checkpoint and the baseline saw token for token."""
+    theirs_file = baseline_file.parent.parent / "attempts.jsonl"
+    mine_file = run / "validation-attempts.jsonl"
+    if not (theirs_file.exists() and mine_file.exists()):
+        return None
+    theirs, mine = prompt_hashes(theirs_file, old), prompt_hashes(mine_file, version)
+    same = sum(h is not None and theirs.get(c) == h for c, h in mine.items())
+    return {"compared": len(mine), "same": same}
+
+
+def median_version(seeds: list[dict]) -> tuple[dict, str]:
+    """Rank the seeds' selected checkpoints in the 2.3a order and take the middle one."""
+    versions = [s["version"] for s in seeds]
+    ranking = select_prompt({s["version"]: s["summary"] for s in seeds}, versions)
+    return ranking, ranking["ranked_candidate_ids"][len(seeds) // 2]
+
+
 def summarise(
     runs: list[Path], baseline_file: Path | None, rebuilt: bool = False
 ) -> Path:
     """Seed means and intervals, A minus baseline per seed, and the median seed as A."""
+    out = runs[0].parent / f"{date.today().isoformat()}_2-6-adapter-a-summary.json"
+    if out.exists():
+        raise FileExistsError(f"{out} exists; a summary is never overwritten")
     seeds = [_seed_result(run) for run in runs]
     stats = {m: seed_interval([s["metrics"][m] for s in seeds]) for m in METRICS}
-    versions = [s["version"] for s in seeds]
-    ranking = select_prompt({s["version"]: s["summary"] for s in seeds}, versions)
-    median = ranking["ranked_candidate_ids"][len(seeds) // 2]
-    chosen = runs[versions.index(median)]
-    source, bootstraps = "pending: no baseline outputs given", {}
+    ranking, median = median_version(seeds)
+    chosen = runs[[s["version"] for s in seeds].index(median)]
+    source, bootstraps, prompts = "pending: no baseline outputs given", {}, {}
     if baseline_file is not None:
-        baseline, digest = read_jsonl(baseline_file)
-        same = digest == loads(SELECTION.read_text())["baseline_outputs_sha256"]
-        if not same:
-            if not rebuilt:
-                raise ValueError(
-                    "baseline outputs differ from 2.5b; a re-run needs --rebuilt"
-                )
-            check_rebuilt_baseline(baseline, baseline_file.parent.parent)
-        source = {
-            "file": str(baseline_file),
-            "sha256": digest,
-            "run": baseline[0]["run_id"],
-            "same_bytes_as_2_5b": same,
-        }
-        bootstraps = {
-            s["version"]: against_baseline(r, s["version"], baseline)
-            for s, r in zip(seeds, runs)
-        }
+        baseline, source = baseline_source(baseline_file, rebuilt)
+        old = baseline[0]["version_id"]
+        for s, r in zip(seeds, runs):
+            bootstraps[s["version"]] = against_baseline(r, s["version"], baseline)
+            prompts[s["version"]] = same_prompts(r, s["version"], baseline_file, old)
     result = {
         "seeds": [{k: v for k, v in s.items() if k != "summary"} for s in seeds],
         "seed_intervals": stats,
@@ -400,12 +479,105 @@ def summarise(
         "ranking": ranking,
         "adapter_a": {"run": chosen.name, "version": median},
         "baseline": source,
+        "same_prompts_as_baseline": prompts or None,
         "against_baseline": bootstraps or "pending: no baseline outputs given",
     }
-    out = chosen.parent / f"{chosen.name.split('_')[0]}_2-6-adapter-a-summary.json"
     out.write_text(dumps(result) + "\n")
+    write_selection(chosen, median, out)
     print(f"adapter A is {median} from {chosen.name}; summary in {out}")
     return out
+
+
+def checkpoint_folder(run: Path, version: str) -> tuple[dict, Path]:
+    """The saved checkpoint of a version such as A-s2028-e1, with its metrics entry."""
+    epoch = int(version.rsplit("-e", 1)[1])
+    checkpoints = loads((run / "metrics.json").read_text())["checkpoints"]
+    checkpoint = next(c for c in checkpoints if c["epoch"] == epoch)
+    return checkpoint, run / checkpoint["folder"]
+
+
+def write_selection(run: Path, version: str, summary: Path) -> Path:
+    """Record adapter A for 2.7 and 2.8; its Hub copy is kept if the adapter is the same."""
+    checkpoint, folder = checkpoint_folder(run, version)
+    lock = loads(SELECTION.read_text())
+    adapter = sha256((folder / "adapter_model.safetensors").read_bytes())
+    old = (
+        json.loads(ADAPTER_SELECTION.read_text()) if ADAPTER_SELECTION.exists() else {}
+    )
+    selection = {
+        "task": "2.6",
+        "adapter": "A",
+        "run": run.name,
+        "version": version,
+        "seed": load_config(run / "config.toml").seed,
+        "epoch": checkpoint["epoch"],
+        "step": checkpoint["step"],
+        "checkpoint": checkpoint["folder"],
+        "adapter_sha256": adapter,
+        "config_file": str(CONFIG),
+        "config_sha256": sha256(CONFIG.read_bytes()),
+        "prompt_file": lock["prompt_file"],
+        "prompt_sha256": lock["prompt_sha256"],
+        "cases_sha256": lock["cases_sha256"],
+        "summary": str(summary),
+        "hub": old.get("hub") if old.get("adapter_sha256") == adapter else None,
+    }
+    ADAPTER_SELECTION.write_text(json.dumps(selection, indent=2) + "\n")
+    return ADAPTER_SELECTION
+
+
+def hub_token() -> str | None:
+    """HF_TOKEN from the environment, else from the local .env file, which Git ignores."""
+    if os.environ.get("HF_TOKEN"):
+        return os.environ["HF_TOKEN"]
+    env = Path(".env")
+    lines = env.read_text().splitlines() if env.exists() else []
+    keys = (line.split("=", 1) for line in lines if line.startswith("HF_TOKEN="))
+    return next((value.strip() for _, value in keys), None)
+
+
+def push(summary_file: Path, repo: str) -> dict:
+    """Upload the selected checkpoints, the summary and the card, then record the revision."""
+    from huggingface_hub import CommitOperationAdd, HfApi
+
+    summary = loads(summary_file.read_text())
+    selection = json.loads(ADAPTER_SELECTION.read_text())
+    if summary["adapter_a"]["version"] != selection["version"]:
+        raise ValueError(
+            f"{summary_file} and {ADAPTER_SELECTION} name different adapters"
+        )
+    ops = [
+        CommitOperationAdd("README.md", str(CARD)),
+        CommitOperationAdd("summary.json", str(summary_file)),
+    ]
+    for seed in summary["seeds"]:
+        _, folder = checkpoint_folder(
+            summary_file.parent / seed["run"], seed["version"]
+        )
+        for name in ("adapter_config.json", "adapter_model.safetensors"):
+            target = f"{seed['version'].removeprefix('A-')}/{name}"
+            ops.append(CommitOperationAdd(target, str(folder / name)))
+    api = HfApi(token=hub_token())
+    api.create_repo(repo, private=True, exist_ok=True)
+    commit = api.create_commit(
+        repo, ops, commit_message="Adapter A, three seeds (task 2.6)"
+    )
+    hub = {
+        "repo": repo,
+        "revision": commit.oid,
+        "folder": selection["version"].removeprefix("A-"),
+    }
+    files = api.model_info(repo, revision=commit.oid, files_metadata=True).siblings
+    remote = {f.rfilename: f.lfs.sha256 for f in files if f.lfs}
+    if (
+        remote.get(f"{hub['folder']}/adapter_model.safetensors")
+        != selection["adapter_sha256"]
+    ):
+        raise ValueError("the Hub copy of adapter A has a different hash")
+    selection["hub"] = hub
+    ADAPTER_SELECTION.write_text(json.dumps(selection, indent=2) + "\n")
+    print(f"pushed {repo}@{commit.oid}")
+    return hub
 
 
 def plot_losses(runs: list[Path], out: Path) -> Path:
@@ -479,6 +651,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="the baseline is a re-run of 2.5b: same prompt, cases and measures",
     )
+    upload = commands.add_parser("push")
+    upload.add_argument("summary", type=Path)
+    upload.add_argument("--repo", required=True)
     curves = commands.add_parser("curves")
     curves.add_argument("runs", type=Path, nargs="+")
     curves.add_argument(
@@ -491,6 +666,8 @@ def main(argv: list[str] | None = None) -> int:
         train(args.seed)
     elif args.command == "validate":
         validate(args.run)
+    elif args.command == "push":
+        push(args.summary, args.repo)
     elif args.command == "curves":
         print(plot_losses(args.runs, args.out))
     else:

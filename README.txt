@@ -235,12 +235,19 @@ docs/diagrams/adapter-a-losses.png with the same three run folders:
     .venv/bin/python -m scripts.train_adapter curves runs/2026-10-19_2-6-adapter-a-s2026 runs/2026-10-19_2-6-adapter-a-s2027 runs/2026-10-19_2-6-adapter-a-s2028
     .venv/bin/python -m pytest -q tests/test_training_rows.py tests/test_adapter_summary.py
 
-The three selected checkpoints are in ING3NLPProject/boxbox-adapter-a, a
-private repo of the team organisation on Hugging Face, with adapter A in the
-folder s2028-e1. The revision and the download code are in docs/adapter-a.md.
+summarize writes a new dated summary and configs/adapter-a-selection.json,
+which records adapter A. push uploads the three selected checkpoints, the
+summary and docs/adapter-a-card.md to the private repo of the team
+organisation, then records the revision in that file:
+
+    .venv/bin/python -m scripts.train_adapter push runs/2026-10-20_2-6-adapter-a-summary.json --repo ING3NLPProject/boxbox-adapter-a
+
+Tasks 2.7 and 2.8 load adapter A with selected_adapter() from boxbox.model. It
+uses the local run folder or the recorded Hub revision, and refuses an adapter
+whose hash differs.
 
 Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
 0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.
 A still makes a call on 19 of the 20 targets with a missing field, which B
-targets. See docs/adapter-a.md for the settings, the checkpoint table, the
+targets, and 4 or 5 answers per seed stop at the 64-token limit. See docs/adapter-a.md for the settings, the checkpoint table, the
 seed intervals, the reload check and the incidents.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import replace
 from decimal import Decimal
@@ -11,11 +12,17 @@ import pytest
 
 from boxbox.config import load_config
 from boxbox.evaluation._io import dumps, loads
-from boxbox.model import ConversationEngineError, load_conversation_engine
+from boxbox.model import (
+    ConversationEngineError,
+    load_conversation_engine,
+    selected_adapter,
+)
 from boxbox.training.lora import _checkpoints
 from scripts.train_adapter import (
     SELECTION,
+    baseline_source,
     check_rebuilt_baseline,
+    median_version,
     planned_updates,
     seed_interval,
 )
@@ -69,16 +76,20 @@ def _rebuilt_run(
     selection = loads(SELECTION.read_text())
     chosen = selection["selected_candidate"]
     (folder / "selected").mkdir(parents=True)
+    record = {"version_id": chosen, "cases_sha256": selection["cases_sha256"]}
+    records = [record] * selection["baseline_output_count"]
+    ledger = "".join(dumps(r) + "\n" for r in records).encode()
+    (folder / "outputs.jsonl").write_bytes(ledger)
     lock = {
         "selected_candidate": chosen,
         "prompt_sha256": prompt_sha256 or selection["prompt_sha256"],
         "cases_sha256": selection["cases_sha256"],
+        "outputs_sha256": hashlib.sha256(ledger).hexdigest(),
     }
     (folder / "selected" / "inference-lock.json").write_text(dumps(lock))
     exact = measures or selection["selection"]["exact_values"][chosen]
     (folder / "selection.json").write_text(dumps({"exact_values": {chosen: exact}}))
-    record = {"version_id": chosen, "cases_sha256": selection["cases_sha256"]}
-    return [record] * selection["baseline_output_count"]
+    return records
 
 
 def test_a_rebuilt_baseline_needs_the_2_5b_prompt_cases_and_measures(tmp_path) -> None:
@@ -86,6 +97,9 @@ def test_a_rebuilt_baseline_needs_the_2_5b_prompt_cases_and_measures(tmp_path) -
     check_rebuilt_baseline(records, tmp_path / "same")
     with pytest.raises(ValueError, match="answers"):
         check_rebuilt_baseline(records[1:], tmp_path / "same")
+    edited = [{**records[0], "raw_response": "CALL: BOX"}] + records[1:]
+    with pytest.raises(ValueError, match="ledger"):
+        check_rebuilt_baseline(edited, tmp_path / "same")
     records = _rebuilt_run(tmp_path / "prompt", prompt_sha256="0" * 64)
     with pytest.raises(ValueError, match="selected prompt"):
         check_rebuilt_baseline(records, tmp_path / "prompt")
@@ -93,3 +107,69 @@ def test_a_rebuilt_baseline_needs_the_2_5b_prompt_cases_and_measures(tmp_path) -
     records = _rebuilt_run(tmp_path / "measures", measures=other)
     with pytest.raises(ValueError, match="measures"):
         check_rebuilt_baseline(records, tmp_path / "measures")
+
+
+def test_a_baseline_that_is_not_the_2_5b_file_needs_rebuilt(tmp_path) -> None:
+    (tmp_path / "selected").mkdir()
+    other = tmp_path / "selected" / "baseline-outputs.jsonl"
+    other.write_text(dumps({"version_id": "p01-policy-first", "run_id": "x"}) + "\n")
+    with pytest.raises(ValueError, match="--rebuilt"):
+        baseline_source(other, rebuilt=False)
+
+
+def _summary(numerators: tuple[int, ...]) -> dict:
+    """Six selection metrics over 40 cases, in the 2.3a priority order."""
+    names = [
+        "overall/strict_format_rate",
+        "overall/unjustified_decision_rate",
+        "overall/excessive_refusal_rate",
+        "overall/macro_label_agreement",
+        "overall/macro_family_agreement",
+        "overall/call_agreement",
+    ]
+    metrics = {
+        name: {
+            "status": "defined",
+            "numerator": n,
+            "denominator": 40,
+            "exact": {"numerator": n, "denominator": 40},
+        }
+        for name, n in zip(names, numerators)
+    }
+    return {"metrics": metrics}
+
+
+def test_the_median_seed_is_the_middle_of_the_2_3a_order() -> None:
+    seeds = [
+        {"version": "A-s2026-e3", "summary": _summary((40, 21, 0, 32, 32, 31))},
+        {"version": "A-s2027-e3", "summary": _summary((40, 24, 0, 31, 31, 30))},
+        {"version": "A-s2028-e1", "summary": _summary((40, 23, 1, 28, 30, 28))},
+    ]
+    ranking, median = median_version(seeds)
+    assert ranking["ranked_candidate_ids"] == ["A-s2026-e3", "A-s2028-e1", "A-s2027-e3"]
+    assert median == "A-s2028-e1"
+
+
+def test_the_selected_adapter_is_refused_when_its_hash_differs(tmp_path) -> None:
+    folder = tmp_path / "runs" / "run" / "trainer" / "checkpoint-120"
+    folder.mkdir(parents=True)
+    (folder / "adapter_model.safetensors").write_bytes(b"weights")
+    config = Path("configs/adapter-a.toml")
+    selection = {
+        "run": "run",
+        "checkpoint": "trainer/checkpoint-120",
+        "seed": 2028,
+        "config_file": str(config),
+        "config_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
+        "adapter_sha256": hashlib.sha256(b"weights").hexdigest(),
+        "hub": None,
+    }
+    file = tmp_path / "selection.json"
+    file.write_text(dumps(selection))
+    found, path = selected_adapter(file, tmp_path / "runs")
+    assert (found.seed, found.adapter, path) == (2028, "A", folder)
+    (folder / "adapter_model.safetensors").write_bytes(b"other weights")
+    with pytest.raises(ValueError, match="not the selected one"):
+        selected_adapter(file, tmp_path / "runs")
+    with pytest.raises(FileNotFoundError, match="no Hub copy"):
+        selected_adapter(file, tmp_path / "elsewhere")
