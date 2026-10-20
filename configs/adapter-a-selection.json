@@ -14,5 +14,9 @@
   "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
   "cases_sha256": "ba30d2a6832bea4749c017671c7536dd94b51ff63e7d33c6445972a8316e1a9c",
   "summary": "runs/2026-10-20_2-6-adapter-a-summary.json",
-  "hub": null
+  "hub": {
+    "repo": "ING3NLPProject/boxbox-adapter-a",
+    "revision": "ece13db9ea1770a338156250501bc7a17d327235",
+    "folder": "s2028-e1"
+  }
 }

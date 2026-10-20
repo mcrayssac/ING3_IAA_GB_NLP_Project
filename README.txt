@@ -244,7 +244,8 @@ organisation, then records the revision in that file:
 
 Tasks 2.7 and 2.8 load adapter A with selected_adapter() from boxbox.model. It
 uses the local run folder or the recorded Hub revision, and refuses an adapter
-whose hash differs.
+whose hash differs. The Hub download needs a member's token in HF_TOKEN or
+hf auth login.
 
 Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
 0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.

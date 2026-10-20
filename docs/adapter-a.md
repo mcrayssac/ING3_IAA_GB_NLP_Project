@@ -172,7 +172,7 @@ engine = load_conversation_engine(config, instructions=instructions, adapter_dir
 
 The summary is in `runs/2026-10-20_2-6-adapter-a-summary.json`. Run folders and adapters stay out of Git.
 
-`push` uploads the three selected checkpoints, the summary and the model card `docs/adapter-a-card.md` to `ING3NLPProject/boxbox-adapter-a`, a private repo of the team organisation on Hugging Face. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. `push` checks that the Hub copy of adapter A has the recorded hash, then writes the repo and revision under `hub` in `configs/adapter-a-selection.json`. Members of the organisation can download the repo.
+`push` uploads the three selected checkpoints, the summary and the model card `docs/adapter-a-card.md` to `ING3NLPProject/boxbox-adapter-a`, a private repo of the team organisation on Hugging Face. Adapter A is the folder `s2028-e1`, and `s2026-e3` and `s2027-e3` are the other two seeds. `push` checks that the Hub copy of adapter A has the recorded hash, then writes the repo and revision under `hub` in `configs/adapter-a-selection.json`. Members of the organisation can download the repo, with their token in `HF_TOKEN` or after `hf auth login`. Without a token, the private repo looks missing.
 
 ## Reload check
 
