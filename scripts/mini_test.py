@@ -60,6 +60,20 @@ BASELINE = Path("configs/baseline-selection.json")
 ADAPTER_A = Path("configs/adapter-a-selection.json")
 CORPUS = Path("data/corpus")
 PROTOCOL = Path("docs/evaluation-protocol.md")
+FIXTURES = Path("reference/evaluation-fixtures.json")
+POLICY = Path("boxbox/rules/decision.py")
+SPLITS = Path("data/splits.json")
+# The files that define how the answers are scored: protocol section 1 asks to keep
+# exact copies with the run. Each is copied to sources/ and must stay unchanged.
+NORMATIVE = (
+    PROTOCOL,
+    FIXTURES,
+    Path("reference/fixtures.json"),
+    POLICY,
+    SPLITS,
+    CORPUS / "manifest.json",
+    CORPUS / f"{SPLIT}.jsonl",
+)
 MIN_TARGETS = 20  # roadmap 2.7: at least 20 unseen queries
 # export_review asks why B is missing from a baseline/A sheet; at the MVP it does not
 # exist yet. This records that reason; it is not the 3.2 decision to drop B.
@@ -89,6 +103,18 @@ def _checked(selection_file: Path) -> dict:
         if sha256(path.read_bytes()) != selection[f"{key}_sha256"]:
             raise ValueError(f"{path} changed since {selection_file} was recorded")
     return selection
+
+
+def resolve_adapter() -> tuple[Any, Path, str]:
+    """Config, folder and prompt of adapter A, as the model code selects it."""
+    from boxbox.model import selected_adapter
+
+    return selected_adapter()  # refuses weights other than the selected ones
+
+
+def _write_text(path: Path, text: str) -> None:
+    with path.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(text)
 
 
 def _masked(text: str) -> str:
@@ -228,6 +254,13 @@ def prepare(name: str, cards_dir: Path, runs_dir: Path) -> Path:
     validate_cases(cases, splits)
     counts = population(cases)
     separated = separation(cases, splits)
+    # PEFT reads lora_alpha and the target modules from adapter_config.json, so the
+    # configuration is sealed with the weights; `run` loads A with this exact copy.
+    _, adapter_dir, _ = resolve_adapter()
+    adapter_config = (adapter_dir / "adapter_config.json").read_bytes()
+    card_files = [cards_dir / f"{race}.jsonl" for race in splits["splits"][SPLIT]]
+    if (cards_dir / "mini_test-manifest.json").exists():
+        card_files.append(cards_dir / "mini_test-manifest.json")
 
     # No model is loaded here: the device and dtype of the answers are in runtime.json.
     run = start_run(
@@ -254,15 +287,29 @@ def prepare(name: str, cards_dir: Path, runs_dir: Path) -> Path:
             "prompt_sha256": selection["prompt_sha256"],
             "selected_in": selection["task"],
         }
+    (run / "versions/A/adapter_config.json").write_bytes(adapter_config)
     versions["A"].update(
         adapter_sha256=adapter["adapter_sha256"],
+        adapter_config_sha256=sha256(adapter_config),
+        adapter_source="local run folder"
+        if adapter_dir == Path("runs") / adapter["run"] / adapter["checkpoint"]
+        else "pinned Hub revision",
         checkpoint=f"{adapter['run']}/{adapter['checkpoint']}",
         hub=adapter.get("hub"),
         version_name=adapter["version"],
     )
+    normative = {}
+    for source, copy_name in [(p, p.as_posix()) for p in NORMATIVE] + [
+        (p, f"data/cards/{p.name}") for p in card_files
+    ]:
+        target = run / "sources" / copy_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        normative[copy_name] = sha256(target.read_bytes())
     sealed = {
-        str(p.relative_to(run)): sha256(p.read_bytes())
-        for p in sorted((run / "versions").rglob("*"))
+        str(p.relative_to(run)).replace("\\", "/"): sha256(p.read_bytes())
+        for folder in ("versions", "sources")
+        for p in sorted((run / folder).rglob("*"))
         if p.is_file()
     }
     sealed |= {
@@ -281,9 +328,11 @@ def prepare(name: str, cards_dir: Path, runs_dir: Path) -> Path:
         "cases_sha256": cases_hash,
         "corpus_sha256": corpus_hash,
         "head_sha": git("rev-parse", "HEAD"),
-        "git_status": git("status", "--porcelain", "--untracked-files=no"),
+        "git_status": git("status", "--porcelain", "--untracked-files=all"),
         "source_sha256": source_sha256(),
         "sealed_files": sealed,
+        # exact copies in sources/; the repository files must also keep these hashes
+        "normative_files": {p.as_posix(): normative[p.as_posix()] for p in NORMATIVE},
         "history_mode": "fixed",
         "human_review": {
             "targets": "all 40 mini-test targets, both versions: 80 masked answers",
@@ -304,6 +353,31 @@ def prepare(name: str, cards_dir: Path, runs_dir: Path) -> Path:
         ],
     }
     write_json(run / "plan.json", plan)
+    manifest_path = run / "manifest.json"
+    manifest = loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["extra"] = {
+        "mini_test": {"plan_sha256": sha256((run / "plan.json").read_bytes())},
+        "evaluation": {  # protocol section 1
+            "protocol_id": PROTOCOL_ID,
+            "protocol_version": PROTOCOL_VERSION,
+            "protocol_sha256": normative[PROTOCOL.as_posix()],
+            "fixtures_sha256": normative[FIXTURES.as_posix()],
+            "policy_git_commit": plan["head_sha"] or None,
+            "policy_source_sha256": normative[POLICY.as_posix()],
+            "cases_sha256": cases_hash,
+            "input_ledger_sha256": sealed["inputs.jsonl"],
+            "data_manifest_sha256": normative[(CORPUS / "manifest.json").as_posix()],
+            "split_manifest_sha256": normative[SPLITS.as_posix()],
+            # every target is rated, so there is no sampling manifest (plan.human_review)
+            "sampling_manifest_sha256": None,
+            "history_mode": "fixed",
+            "retained_versions": list(VERSIONS),
+            "protocol_status": "proposed",
+            "acceptance_record": None,
+            "git_dirty": bool(plan["git_status"]),
+        },
+    }
+    _write_text(manifest_path, dumps(manifest) + "\n")
     return run
 
 
@@ -313,6 +387,18 @@ def verify_plan(run: Path) -> tuple[dict, list[dict], dict]:
     plan = loads((run / "plan.json").read_text())
     if plan["task"] != "2.7" or plan["split"] != SPLIT:
         raise ValueError("not a 2.7 mini-test run")
+    manifest = loads((run / "manifest.json").read_text(encoding="utf-8"))
+    extra = manifest.get("extra", {})
+    if "evaluation" not in extra or "normative_files" not in plan:
+        raise ValueError("prepared without the evaluation record; prepare a new run")
+    if sha256((run / "plan.json").read_bytes()) != extra["mini_test"]["plan_sha256"]:
+        raise ValueError("plan.json changed since preparation")
+    for relative, expected in plan["normative_files"].items():
+        if (
+            not Path(relative).exists()
+            or sha256(Path(relative).read_bytes()) != expected
+        ):
+            raise ValueError(f"{relative} changed since preparation; prepare a new run")
     for relative, expected in plan["sealed_files"].items():
         if sha256((run / relative).read_bytes()) != expected:
             raise ValueError(f"sealed artifact changed: {relative}")
@@ -372,19 +458,28 @@ def _settings(engine) -> str:
     return dumps(settings)
 
 
+def check_adapter(plan: dict, adapter_dir: Path) -> None:
+    """Refuse A's folder unless its weights and PEFT configuration are the sealed ones."""
+    sealed = plan["versions"]["A"]
+    for name, key in (
+        ("adapter_model.safetensors", "adapter_sha256"),
+        ("adapter_config.json", "adapter_config_sha256"),
+    ):
+        if sha256((Path(adapter_dir) / name).read_bytes()) != sealed[key]:
+            raise ValueError(
+                f"{name} of adapter A differs from the one sealed in the plan"
+            )
+
+
 def load_engines(plan: dict, run: Path) -> dict:
     """The baseline engine, then A as the same base model with the selected adapter."""
-    from boxbox.model import load_conversation_engine, selected_adapter
+    from boxbox.model import load_conversation_engine
 
     baseline = load_config(run / "versions/baseline/config.toml")
     prompt = (run / "versions/baseline/prompt.txt").read_text(encoding="utf-8")
     engines = {"baseline": load_conversation_engine(baseline, instructions=prompt)}
-    config, adapter_dir, instructions = selected_adapter()  # refuses a changed adapter
-    if (
-        sha256((adapter_dir / "adapter_model.safetensors").read_bytes())
-        != plan["versions"]["A"]["adapter_sha256"]
-    ):
-        raise ValueError("the adapter differs from the one sealed in the plan")
+    config, adapter_dir, instructions = resolve_adapter()
+    check_adapter(plan, adapter_dir)
     if instructions != prompt:
         raise ValueError("A's prompt differs from the baseline's")
     return engines | {"A": (config, adapter_dir, instructions)}
@@ -398,7 +493,7 @@ def generate(run: Path) -> None:
     write_json(
         run / "attempt-start.json", {"started_utc": datetime.now(UTC).isoformat()}
     )
-    from peft import PeftModel
+    from peft import PeftConfig, PeftModel
 
     from boxbox.model import ConversationEngine
 
@@ -438,8 +533,13 @@ def generate(run: Path) -> None:
 
         answer_all(base, "baseline")
         config, adapter_dir, instructions = loaded["A"]
+        check_adapter(plan, adapter_dir)  # again, right before PEFT reads the folder
+        # PEFT gets the sealed configuration, not whatever the folder holds now
+        sealed_config = PeftConfig.from_pretrained(str(run / "versions/A"))
         model = (
-            PeftModel.from_pretrained(base.model, adapter_dir).to(base.device).eval()
+            PeftModel.from_pretrained(base.model, adapter_dir, config=sealed_config)
+            .to(base.device)
+            .eval()
         )
         adapted = ConversationEngine(
             model,
@@ -477,6 +577,7 @@ def generate(run: Path) -> None:
             "transformers": transformers.__version__,
             "model_revision": base.config.model_revision,
             "adapter_dir": str(adapter_dir),
+            "adapter_config_sha256": plan["versions"]["A"]["adapter_config_sha256"],
             "chat_template_sha256": sha256(
                 template if isinstance(template, str) else dumps(template)
             ),

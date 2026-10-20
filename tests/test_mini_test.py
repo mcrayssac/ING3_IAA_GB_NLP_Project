@@ -74,6 +74,30 @@ def _no_installed_versions(monkeypatch):
     monkeypatch.setattr(boxbox.runs, "environment", lambda: {"python": "test"})
 
 
+ADAPTER_CONFIG = b'{"lora_alpha": 32, "peft_type": "LORA", "r": 16}\n'
+
+
+@pytest.fixture(autouse=True)
+def adapter_folder(tmp_path, monkeypatch) -> Path:
+    """A stand-in folder for adapter A: its weights are not the real ones."""
+    folder = tmp_path / "adapter"
+    folder.mkdir()
+    (folder / "adapter_config.json").write_bytes(ADAPTER_CONFIG)
+    (folder / "adapter_model.safetensors").write_bytes(b"stand-in weights")
+    prompt = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
+    monkeypatch.setattr(runner, "resolve_adapter", lambda: (None, folder, prompt))
+    return folder
+
+
+def _accept_stand_in_weights(run: Path, folder: Path) -> dict:
+    """The plan as if the stand-in weights were the selected ones (tests only)."""
+    plan = loads((run / "plan.json").read_text())
+    plan["versions"]["A"]["adapter_sha256"] = sha256(
+        (folder / "adapter_model.safetensors").read_bytes()
+    )
+    return plan
+
+
 @pytest.fixture
 def cards(tmp_path) -> Path:
     return write_cards(tmp_path / "cards")
@@ -113,10 +137,47 @@ def test_prepare_seals_40_separated_targets_and_both_versions(cards, tmp_path):
         plan["versions"]["baseline"]["prompt_sha256"]
         == plan["versions"]["A"]["prompt_sha256"]
     )
+    assert plan["versions"]["A"]["adapter_config_sha256"] == sha256(ADAPTER_CONFIG)
+    assert (run / "versions/A/adapter_config.json").read_bytes() == ADAPTER_CONFIG
+    evaluation = loads((run / "manifest.json").read_text())["extra"]["evaluation"]
+    for key in ("protocol_sha256", "fixtures_sha256", "policy_source_sha256"):
+        assert len(evaluation[key]) == 64
+    assert evaluation["cases_sha256"] == plan["cases_sha256"]
+    assert evaluation["acceptance_record"] is None
+    for name, digest in plan["normative_files"].items():
+        assert sha256((run / "sources" / name).read_bytes()) == digest
+    assert "sources/data/cards/2025-18.jsonl" in plan["sealed_files"]
     runner.verify_plan(run)
     (run / "versions/A/prompt.txt").write_text("changed")
     with pytest.raises(ValueError, match="sealed artifact changed"):
         runner.verify_plan(run)
+
+
+def test_a_changed_protocol_after_preparation_is_refused(cards, tmp_path, monkeypatch):
+    protocol = tmp_path / "evaluation-protocol.md"
+    protocol.write_bytes(runner.PROTOCOL.read_bytes())
+    normative = tuple(protocol if p == runner.PROTOCOL else p for p in runner.NORMATIVE)
+    monkeypatch.setattr(runner, "PROTOCOL", protocol)
+    monkeypatch.setattr(runner, "NORMATIVE", normative)
+    run = runner.prepare("mini", cards, tmp_path / "runs")
+    runner.verify_plan(run)
+    protocol.write_text("a later rule", encoding="utf-8")
+    with pytest.raises(ValueError, match="changed since preparation"):
+        runner.verify_plan(run)
+
+
+def test_a_changed_peft_config_is_refused(cards, tmp_path, adapter_folder):
+    run = runner.prepare("mini", cards, tmp_path / "runs")
+    plan = _accept_stand_in_weights(run, adapter_folder)
+    runner.check_adapter(plan, adapter_folder)
+    config = adapter_folder / "adapter_config.json"
+    config.write_bytes(ADAPTER_CONFIG.replace(b"32", b"64"))  # lora_alpha 32 -> 64
+    with pytest.raises(ValueError, match="adapter_config.json of adapter A differs"):
+        runner.check_adapter(plan, adapter_folder)
+    config.write_bytes(ADAPTER_CONFIG)
+    (adapter_folder / "adapter_model.safetensors").write_bytes(b"other weights")
+    with pytest.raises(ValueError, match="adapter_model.safetensors of adapter A"):
+        runner.check_adapter(plan, adapter_folder)
 
 
 def test_prepare_refuses_a_changed_corpus(cards, tmp_path, monkeypatch):
@@ -141,8 +202,9 @@ class _Device:
         return "cpu"
 
 
-def _fake_stack(monkeypatch, *, a_prompt_differs=False):
+def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
     """Stand-ins for torch, transformers, peft and the conversation engine."""
+    loaded = {}
 
     class Engine:
         def __init__(self, model, tokenizer, config, instructions, device, dtype):
@@ -171,10 +233,18 @@ def _fake_stack(monkeypatch, *, a_prompt_differs=False):
     model.ConversationEngine = Engine
     model.ConversationEngineError = type("ConversationEngineError", (Exception,), {})
     peft = ModuleType("peft")
-    peft.PeftModel = SimpleNamespace(
-        from_pretrained=lambda base, folder: SimpleNamespace(
+
+    def from_pretrained(base, folder, config=None):
+        loaded.update(folder=folder, config=config)
+        return SimpleNamespace(
             to=lambda device: SimpleNamespace(eval=lambda: "adapted")
         )
+
+    peft.PeftModel = SimpleNamespace(from_pretrained=from_pretrained)
+    peft.PeftConfig = SimpleNamespace(
+        from_pretrained=lambda folder: (
+            Path(folder) / "adapter_config.json"
+        ).read_bytes()
     )
     torch = ModuleType("torch")
     torch.__version__ = "stand-in"
@@ -195,15 +265,24 @@ def _fake_stack(monkeypatch, *, a_prompt_differs=False):
         tokenizer = SimpleNamespace(chat_template="template")
         base = Engine("base", tokenizer, config, prompt, device, "float32")
         a_config = runner.load_config(run / "versions/A/config.toml")
-        return {"baseline": base, "A": (a_config, Path("adapter"), prompt)}
+        return {"baseline": base, "A": (a_config, adapter, prompt)}
 
     monkeypatch.setattr(runner, "load_engines", engines)
+    checked = []
+    monkeypatch.setattr(
+        runner, "check_adapter", lambda plan, folder: checked.append(folder)
+    )
+    return loaded, checked
 
 
-def test_run_score_and_sheet_on_stand_in_answers(cards, tmp_path, monkeypatch):
-    _fake_stack(monkeypatch)
+def test_run_score_and_sheet_on_stand_in_answers(
+    cards, tmp_path, monkeypatch, adapter_folder
+):
+    loaded, checked = _fake_stack(monkeypatch, adapter_folder)
     run = runner.prepare("mini", cards, tmp_path / "runs")
     runner.generate(run)
+    assert checked == [adapter_folder]  # checked right before PEFT reads the folder
+    assert loaded == {"folder": adapter_folder, "config": ADAPTER_CONFIG}
     outputs, _ = read_jsonl(run / "outputs.jsonl")
     assert len(outputs) == 80
     assert [o["version_id"] for o in outputs] == ["baseline"] * 40 + ["A"] * 40
@@ -250,17 +329,17 @@ def test_run_score_and_sheet_on_stand_in_answers(cards, tmp_path, monkeypatch):
 
 
 def test_run_stops_when_a_and_the_baseline_see_different_prompts(
-    cards, tmp_path, monkeypatch
+    cards, tmp_path, monkeypatch, adapter_folder
 ):
-    _fake_stack(monkeypatch, a_prompt_differs=True)
+    _fake_stack(monkeypatch, adapter_folder, a_prompt_differs=True)
     run = runner.prepare("mini", cards, tmp_path / "runs")
     with pytest.raises(ValueError, match="different prompts on 40"):
         runner.generate(run)
     assert len(read_jsonl(run / "outputs.jsonl")[0]) == 80  # raw answers kept
 
 
-def test_run_refuses_a_second_attempt(cards, tmp_path, monkeypatch):
-    _fake_stack(monkeypatch)
+def test_run_refuses_a_second_attempt(cards, tmp_path, monkeypatch, adapter_folder):
+    _fake_stack(monkeypatch, adapter_folder)
     run = runner.prepare("mini", cards, tmp_path / "runs")
     runner.generate(run)
     with pytest.raises(FileExistsError):
