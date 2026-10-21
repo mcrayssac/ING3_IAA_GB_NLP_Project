@@ -32,7 +32,7 @@ The research question is whether a small language model gives fewer unjustified 
 
 ## Current status
 
-**Snapshot: 21 October 2026, 18:00 - milestone 4 of 5 (evaluation).** The prototype, adapters A and B, the interim A/B analysis and the optional OpenJev study (tasks 1.1 to 3.4) are done. The freeze of the retained versions (baseline, A and B) is recorded and awaits a teammate's confirmation, and the final cases are in review. Final scoring, human review, the report, the video and the package come next. The recovery plan assumes 50–70 collective hours, including an 8-hour reserve, until 22 October at 23:59 Paris time; confirmed remaining capacity is recorded separately in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
+**Snapshot: 21 October 2026, 18:00 - milestone 4 of 5 (evaluation).** The prototype, adapters A and B, the interim A/B analysis, the optional OpenJev study and the freeze of the retained versions, baseline, A and B (tasks 1.1 to 3.5), are done. The final cases are in review. Final scoring, human review, the report, the video and the package come next. The recovery plan assumes 50–70 collective hours, including an 8-hour reserve, until 22 October at 23:59 Paris time; confirmed remaining capacity is recorded separately in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
 
 ## Project structure
 
@@ -77,7 +77,7 @@ Installation and run instructions are in `README.txt`, the run guide required by
 
 ## Roadmap
 
-![BoxBox recovery overview for 17–22 October 2026, with milestones 1 and 2 done, experiments in review and evaluation marked as the current stage at the 21 October snapshot](docs/diagrams/roadmap.png)
+![BoxBox recovery overview for 17–22 October 2026, with milestones 1 to 3 done and evaluation marked as the current stage at the 21 October snapshot](docs/diagrams/roadmap.png)
 
 This overview shows the five recovery milestones, with the red dot on evaluation at the 21 October snapshot. Colors identify phases; green means delivery, not completion. The dashed callout describes the research-scope fallback. Target the MVP on 19 October evening, freeze retained versions by 20 October at 18:00, and have the package ready on 22 October at 12:00 for submission by 23:59 Paris time. The detailed Gantt, dependencies, capacity assumptions and task links are in [docs/roadmap.md](docs/roadmap.md); [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers and reviews.
 
