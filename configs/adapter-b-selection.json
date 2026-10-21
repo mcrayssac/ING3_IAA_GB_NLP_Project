@@ -1,0 +1,18 @@
+{
+  "task": "3.2",
+  "adapter": "B",
+  "run": "2026-10-21_3-2-adapter-b-s2027",
+  "version": "B-s2027-e3",
+  "seed": 2027,
+  "epoch": 3,
+  "step": 360,
+  "checkpoint": "trainer/checkpoint-360",
+  "adapter_sha256": "70423a7d4aa76c69b9cdb9c05bdd89fe73929d6c5df320d9bc10551e5324508e",
+  "config_file": "configs/adapter-b.toml",
+  "config_sha256": "f9612a557e9a4fc7c1aa5136949519e24c957d55c69bc48e8eacd19ed30175e0",
+  "prompt_file": "configs/prompts/p01-policy-first.txt",
+  "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+  "cases_sha256": "ba30d2a6832bea4749c017671c7536dd94b51ff63e7d33c6445972a8316e1a9c",
+  "summary": "runs/2026-10-21_3-2-adapter-b-summary.json",
+  "hub": null
+}
