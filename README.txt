@@ -282,10 +282,15 @@ seed, and draw the loss curves:
     .venv/bin/python -m scripts.train_adapter curves runs/2026-10-20_3-2-adapter-b-s2026 runs/2026-10-21_3-2-adapter-b-s2027 runs/2026-10-21_3-2-adapter-b-s2028
 
 summarize writes configs/adapter-b-selection.json, which selected_adapter()
-reads like the file of A. Adapter B is seed 2027 at epoch 3. Against A with the
-same seed, unjustified decisions fall by 0.550 on average, CALL agreement rises
-by 0.070, and excessive refusals rise by 0.239, all on cards where an unknown
-field is not needed.
+reads like the file of A. The three selected checkpoints are in the private
+repo ING3NLPProject/boxbox-adapter-b, whose revision is in that file:
+
+    .venv/bin/python -m scripts.train_adapter push runs/2026-10-21_3-2-adapter-b-summary.json --repo ING3NLPProject/boxbox-adapter-b
+
+Adapter B is seed 2027 at epoch 3. Against A with the same seed, unjustified
+decisions fall by 0.550 on average, CALL agreement rises by 0.070, and
+excessive refusals rise by 0.239, all on cards where an unknown field is not
+needed.
 
 The mini-test of task 2.7 also runs with B as a third version, in one process
 with the baseline and A (docs/mini-test.md):

@@ -203,6 +203,13 @@ engine = load_conversation_engine(config, instructions=instructions, adapter_dir
 
 `selected_adapter` checks the hashes and returns the config with seed 2027 and the p01 prompt. The summary is in `runs/2026-10-21_3-2-adapter-b-summary.json`.
 
+`push` uploaded the three selected checkpoints, the summary and the model card `docs/adapter-b-card.md` to `ING3NLPProject/boxbox-adapter-b`, a private repo of the team organisation, at revision `ccb43411cd02b41c0ac50f481247fbd0d37a0e5c`:
+- adapter B is the folder `s2027-e3`, and `s2026-e2` and `s2028-e3` are the other two seeds
+- the three adapter files on the Hub have the same SHA-256 as the local ones
+- the revision is recorded in `configs/adapter-b-selection.json`
+
+Without the local run folder, `selected_adapter` downloads B from there. This needs a member's token in `HF_TOKEN` or `hf auth login`, and a download into an empty cache returned the recorded hash.
+
 ## Reload check
 
 Each of the nine checkpoints was reloaded in a new process:
@@ -220,4 +227,3 @@ Each of the nine checkpoints was reloaded in a new process:
 ## Not done yet
 
 - The human rating of the 120 mini-test answers.
-- The upload of the three selected checkpoints to `ING3NLPProject/boxbox-adapter-b`, with `push`, once the team agrees.
