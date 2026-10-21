@@ -17,7 +17,7 @@ and stop on any difference: the final cards are read only under the recorded fre
 - `manifest.json`: hashes of the freeze, splits, cards and every file, and the counts.
 
 If the 40 targets cannot be selected, nothing is written except the diagnostics in
-`data/final-sampling-failure.json`: the protocol forbids relaxing quotas or caps, so
+`data/final-sampling-failure-<time>.json`, one file per attempt: the protocol forbids relaxing quotas or caps, so
 the team decides what to do. No model is loaded and no answer is generated here.
 """
 
@@ -35,6 +35,7 @@ from zoneinfo import ZoneInfo
 
 from boxbox.config import load_config
 from boxbox.corpus import (
+    EVAL_CAP,
     EVAL_KINDS,
     TRACK_ITEMS,
     check_incomplete_whys,
@@ -54,10 +55,9 @@ from scripts import freeze
 
 SPLIT = "final"
 SEED = 2026  # the corpus seed of 2.2
-EVAL_CAP = 6  # as for validation and the mini-test: three capped pools of 2
 CARDS_DIR = Path("data/cards")
 OUT = Path("data/final")
-FAILURE = Path("data/final-sampling-failure.json")
+FAILURES = Path("data")  # data/final-sampling-failure-<time>.json, one per attempt
 PARIS = ZoneInfo("Europe/Paris")
 
 
@@ -171,9 +171,11 @@ def build(out: Path = OUT, cards_dir: Path = CARDS_DIR) -> Path:
             "rule": "protocol section 8: no quota redistribution, cap relaxation or "
             "replacement; the team decides before any generation",
         }
-        with FAILURE.open("x", encoding="utf-8", newline="\n") as stream:
+        stamp = datetime.now(PARIS).strftime("%Y%m%dT%H%M%S")
+        failure = FAILURES / f"final-sampling-failure-{stamp}.json"
+        with failure.open("x", encoding="utf-8", newline="\n") as stream:
             stream.write(dumps(report) + "\n")
-        raise
+        raise SamplingError({**error.diagnostics, "report": str(failure)}) from error
     out.mkdir(parents=True)
     items_hash = write_jsonl(out / "final.jsonl", items)
     cases_hash = write_jsonl(out / "cases.jsonl", cases)
@@ -196,6 +198,7 @@ def build(out: Path = OUT, cards_dir: Path = CARDS_DIR) -> Path:
             "check": "intact",
         },
         "git_commit": freeze.git("rev-parse", "HEAD"),
+        "git_dirty": bool(freeze.git("status", "--porcelain", "--untracked-files=no")),
         "seed": SEED,
         "splits_document_sha256": document["document_sha256"],
         "final_races": races,
@@ -237,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(manifest["coverage"], indent=2))
             print(json.dumps(manifest["review_targets"], indent=2))
     except SamplingError as error:
-        print(f"{error}; diagnostics in {FAILURE}", file=sys.stderr)
+        print(f"{error}; diagnostics in {error.diagnostics['report']}", file=sys.stderr)
         return 1
     except (ValueError, FileExistsError) as error:
         print(error, file=sys.stderr)

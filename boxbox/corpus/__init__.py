@@ -4,6 +4,7 @@ from .build import complete, path_of, remove_field
 from .load import load_corpus
 from .sets import (
     A_KINDS,
+    EVAL_CAP,
     EVAL_KINDS,
     INCOMPLETE_WHY,
     TRACK_ITEMS,
@@ -19,6 +20,7 @@ from .variants import B_SHARED, check_corpus_b, corpus_b, exposure, pairs
 __all__ = [
     "A_KINDS",
     "B_SHARED",
+    "EVAL_CAP",
     "EVAL_KINDS",
     "INCOMPLETE_WHY",
     "TRACK_ITEMS",

@@ -3,19 +3,15 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
+from test_corpus import records
 
 from boxbox.corpus import eval_set
 from boxbox.evaluation import SamplingError, adapt_split
 from boxbox.evaluation._io import dumps, read_jsonl
 from scripts import final_cases
-
-sys.path.insert(0, str(Path(__file__).parent))
-from test_corpus import records
-
 
 DRIVERS = [str(n) for n in range(1, 100) if n not in (16, 63)]  # 16, 63: the gaps
 
@@ -60,7 +56,7 @@ def cards(tmp_path) -> Path:
 
 @pytest.fixture
 def out(tmp_path, monkeypatch) -> Path:
-    monkeypatch.setattr(final_cases, "FAILURE", tmp_path / "failure.json")
+    monkeypatch.setattr(final_cases, "FAILURES", tmp_path)
     return tmp_path / "final"
 
 
@@ -110,11 +106,12 @@ def test_a_sampling_failure_writes_diagnostics_only(cards, out, monkeypatch) -> 
         raise SamplingError({"unfilled": ["follow_up round 0"]})
 
     monkeypatch.setattr(final_cases, "select_review_cases", fail)
-    with pytest.raises(SamplingError):
+    with pytest.raises(SamplingError) as raised:
         final_cases.build(out, cards)
     assert not out.exists()
-    report = json.loads(final_cases.FAILURE.read_text(encoding="utf-8"))
+    report = json.loads(Path(raised.value.diagnostics["report"]).read_text("utf-8"))
     assert report["diagnostics"] == {"unfilled": ["follow_up round 0"]}
+    assert report["coverage"]["targets"] == 200  # the evidence of the failed attempt
 
 
 def test_the_final_split_needs_the_explicit_opening(cards) -> None:
@@ -130,3 +127,30 @@ def test_the_final_split_needs_the_explicit_opening(cards) -> None:
     with pytest.raises(ValueError, match="adapted for"):
         adapt_split(items, source, document, "final")
     assert len(adapt_split(items, source, document, "final", final_open=True)) == 200
+
+
+def test_incomplete_whys_respect_the_race_driver_cap() -> None:
+    """Regression (#58 review): the whys come last and must fit what the cap leaves."""
+    import random
+    from collections import Counter
+
+    from boxbox.corpus import EVAL_CAP
+    from boxbox.corpus.build import complete
+    from boxbox.corpus.sets import _race_driver_of, _why_incomplete
+
+    usable = [r for r in records() if complete(r["card"])]
+    crowded = [
+        {**r, "card_id": f"2024-01-77-L{30 + i}"} for i, r in enumerate(usable[:12])
+    ]
+    others = [
+        {**r, "card_id": f"2024-02-{i:02d}-L30"} for i, r in enumerate(usable[12:20])
+    ]
+    taken = Counter({"2024-01-77": EVAL_CAP - 1})  # one card left for that car
+    whys = _why_incomplete(
+        crowded + others, set(), random.Random(0), 8, "blocking", taken
+    )
+    per_car = Counter(_race_driver_of(i) for i in whys)
+    assert len(whys) == 8 and per_car["2024-01-77"] <= 1
+    assert taken["2024-01-77"] <= EVAL_CAP
+    with pytest.raises(ValueError, match="under the cap"):
+        _why_incomplete(crowded, set(), random.Random(0), 8, "blocking", Counter(taken))

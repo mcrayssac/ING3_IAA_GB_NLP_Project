@@ -24,7 +24,7 @@ Both commands first run the freeze check of 3.5 and stop on any difference. They
 
 The 200 dialogues are twice the validation set: 60 complete calls, 40 blocking (20 real incomplete cards, 20 with a required field removed), 30 usable incomplete (15 real, 15 with an ignored field removed), 40 with a follow-up and 30 out of scope, 8 of them safety-car or VSC calls.
 
-Protocol section 8 fills 8 follow-up slots with history-sensitive targets: 2 on blocking cards, 2 on usable incomplete cards and 4 on complete cards. The 2.2 generator only asks follow-ups on complete cards, so the final set adds 16 of its 40 follow-ups as a "why?" on an incomplete card: 8 with a required field removed (the rule answers NO CALL) and 8 with an ignored field removed (the call stays). Both answers are the rule's answer on the changed card, as for every "why" follow-up. This was decided before building the final set, from the protocol only. Validation and the mini-test are unchanged: the addition is used for the final split only.
+Protocol section 8 fills 8 follow-up slots with history-sensitive targets: 2 on blocking cards, 2 on usable incomplete cards and 4 on complete cards. The 2.2 generator only asks follow-ups on complete cards, so the final set adds 16 of its 40 follow-ups as a "why?" on an incomplete card: 8 with a required field removed (the rule answers NO CALL) and 8 with an ignored field removed (the call stays). Both answers are the rule's answer on the changed card, as for every "why" follow-up. They are built last, and take a card only from a race and driver still under the cap of 6 cards. This was decided before building the final set, from the protocol only. Validation and the mini-test are unchanged: the addition is used for the final split only.
 
 ## Checks
 
@@ -37,6 +37,12 @@ Protocol section 8 fills 8 follow-up slots with history-sensitive targets: 2 on 
 - a card comes from a race of another split;
 - the cases fail the evaluator's validation.
 
-If the 40 targets cannot be selected, it writes the diagnostics to `data/final-sampling-failure.json` and stops. Section 8 forbids moving quotas, relaxing caps or replacing targets: the team decides, before any generation.
+If the 40 targets cannot be selected, it writes the diagnostics and coverage to `data/final-sampling-failure-<time>.json`, one file per attempt, and stops. Section 8 forbids moving quotas, relaxing caps or replacing targets: the team decides, before any generation.
 
 If the final races do not have enough cards for 200 dialogues, `build` stops with the number it found. A smaller set needs a recorded team decision, with at least 20 unseen queries and every category kept.
+
+## Limits
+
+- The questions use the held-out wordings of 2.2, which validation and the mini-test use too. The cards and races are new; the wordings are not new to prompt and checkpoint selection, which saw validation. Only wordings of corpus A are refused.
+- The dialogues' references are the rule's answers and the corpus templates, checked automatically as in 2.2. They are not read by hand before scoring.
+- The final races keep the data limits of 2.1: strict-cutoff availability of the gap behind, actual race distance and the slick-tyre proxy for a dry track.

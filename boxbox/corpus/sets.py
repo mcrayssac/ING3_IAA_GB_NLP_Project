@@ -59,6 +59,7 @@ TRACK_ITEMS = {"train": 15, "validation": 4, "mini_test": 2, "final": 8}
 # slots (2 blocking, 2 usable, 4 complete, all history-sensitive).
 INCOMPLETE_WHY = {"final": {"blocking": 8, "usable": 8}}
 PREFIXES = {"validation": "V", "mini_test": "M", "final": "F"}
+EVAL_CAP = 6  # cards per race and driver in an evaluation set: three capped pools of 2
 CALLS = {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
 
 
@@ -207,16 +208,24 @@ def eval_set(
     items += [call_item(r, "decidable", rng, "eval") for r in decided]
     if extra:
         used |= {r["card_id"] for r in decided}
+        taken = Counter(_race_driver_of(i) for i in items)  # what the cap still allows
         for state in ("blocking", "usable"):
-            whys = _why_incomplete(records, used, rng, extra[state], state)
+            whys = _why_incomplete(records, used, rng, extra[state], state, taken)
             used |= {item["card_id"] for item in whys}
             items += whys
     return _numbered(items, PREFIXES[split], split)
 
 
-def _why_incomplete(records, used, rng, count, state) -> list[dict[str, Any]]:
+def _race_driver_of(item: dict[str, Any]) -> str:
+    return item["card_id"].rsplit("-", 1)[0]
+
+
+def _why_incomplete(records, used, rng, count, state, taken) -> list[dict[str, Any]]:
     """A call then "why" on a complete card with one field removed: required ("blocking",
-    the rule gives NO CALL) or ignored on its path ("usable", the call stays)."""
+    the rule gives NO CALL) or ignored on its path ("usable", the call stays).
+
+    A race and driver gives a card only while it is under EVAL_CAP, counting the items
+    already in the set (`taken`, updated here), so the set passes `check_set`."""
     fields = REQUIRED if state == "blocking" else IRRELEVANT
     pool = [
         {**r, "path": path_of(r["card"])}
@@ -226,11 +235,20 @@ def _why_incomplete(records, used, rng, count, state) -> list[dict[str, Any]]:
         and path_of(r["card"]) in fields
     ]
     rng.shuffle(pool)
-    if len(pool) < count:
-        raise ValueError(f"only {len(pool)} cards for {count} {state} why follow-ups")
+    chosen = []
+    for record in pool:
+        if len(chosen) == count:
+            break
+        if taken[_race_driver_of(record)] < EVAL_CAP:
+            taken[_race_driver_of(record)] += 1
+            chosen.append(record)
+    if len(chosen) < count:
+        raise ValueError(
+            f"only {len(chosen)} cards under the cap for {count} {state} why follow-ups"
+        )
     return [
         why_item(r, fields[r["path"]][i % len(fields[r["path"]])], rng, "eval")
-        for i, r in enumerate(pool[:count])
+        for i, r in enumerate(chosen)
     ]
 
 
