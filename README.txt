@@ -260,3 +260,46 @@ Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
 A still makes a call on 19 of the 20 targets with a missing field, which B
 targets, and 4 or 5 answers per seed stop at the 64-token limit. See docs/adapter-a.md for the settings, the checkpoint table, the
 seed intervals, the reload check and the incidents.
+
+12. Adapter B (task 3.2)
+------------------------
+
+Adapter B is trained like adapter A, with the same settings and seeds, on
+corpus B: 60 of A's 400 items are replaced by cards where a required field is
+unknown and the answer is NO CALL. configs/adapter-b.toml differs from
+configs/adapter-a.toml only by adapter = "B" and abstention_share = 0.15.
+Check time and memory, then train and validate the three seeds in one command:
+
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.train_adapter smoke --adapter B
+    HF_HUB_OFFLINE=1 caffeinate -i -s .venv/bin/python -m scripts.train_adapter seeds --adapter B
+
+seeds trains each seed, then validates it in a new process, and goes on to
+the next seed if one fails. Logs go to runs/3-2-logs/. The three seeds take
+about 4 hours on an Apple M3 Max. Then summarise B, compare it with A seed by
+seed, and draw the loss curves:
+
+    .venv/bin/python -m scripts.train_adapter summarize runs/2026-10-20_3-2-adapter-b-s2026 runs/2026-10-21_3-2-adapter-b-s2027 runs/2026-10-21_3-2-adapter-b-s2028 --against-a runs/2026-10-20_2-6-adapter-a-summary.json
+    .venv/bin/python -m scripts.train_adapter curves runs/2026-10-20_3-2-adapter-b-s2026 runs/2026-10-21_3-2-adapter-b-s2027 runs/2026-10-21_3-2-adapter-b-s2028
+
+summarize writes configs/adapter-b-selection.json, which selected_adapter()
+reads like the file of A. The three selected checkpoints are in the private
+repo ING3NLPProject/boxbox-adapter-b, whose revision is in that file:
+
+    .venv/bin/python -m scripts.train_adapter push runs/2026-10-21_3-2-adapter-b-summary.json --repo ING3NLPProject/boxbox-adapter-b
+
+Adapter B is seed 2027 at epoch 3. Against A with the same seed, unjustified
+decisions fall by 0.550 on average, CALL agreement rises by 0.070, and
+excessive refusals rise by 0.239, all on cards where an unknown field is not
+needed.
+
+The mini-test of task 2.7 also runs with B as a third version, in one process
+with the baseline and A (docs/mini-test.md):
+
+    .venv/bin/python -m scripts.mini_test prepare --name 3-2-mini-test-r2 --with-b
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.mini_test run --run-dir runs/2026-10-21_3-2-mini-test-r2
+    .venv/bin/python -m scripts.mini_test score --run-dir runs/2026-10-21_3-2-mini-test-r2
+
+On the 40 mini-test targets, B makes 1 unjustified decision on 16 against 9
+for A, and refuses 6 of 24 decidable targets against 1 for A. See
+docs/adapter-b.md for the tables, the comparison at equal updates, the
+mini-test and the reading of these results.

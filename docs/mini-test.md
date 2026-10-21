@@ -20,6 +20,13 @@ python -m scripts.mini_test rated --run-dir runs/<date>_2-7-mini-test --sheet FI
 - `score` pairs the 80 answers, computes the automatic measures of the protocol and the race bootstrap of A minus baseline, and writes `paired.csv` and the masked rating sheet `review/review.csv`.
 - `rated` checks a filled sheet against the raw answers and the case applicability, then adds the five-axis human means. Each reading is kept in a new `human-NN/` folder.
 
+With adapter B (task 3.2), `prepare --with-b` adds B as a third version:
+- B goes through the same checks as A, against `configs/adapter-b-selection.json`, and its PEFT configuration is sealed the same way.
+- `run` answers with B after A, on the same base model and in the same process.
+- `score` pairs 120 answers. `bootstrap.json` keeps A minus baseline, as in 2.7, and `bootstrap-B.json` holds B minus A and B minus baseline. The masked sheet has 120 rows, and `rated` writes the same two files for the human scores.
+
+Without the flag, the run is the 2.7 one, with the same files. The B results are in `docs/adapter-b.md`.
+
 Without a local GPU, the notebook [`scripts/mini_test_colab.ipynb`](../scripts/mini_test_colab.ipynb) runs the same commands on a Colab L4 GPU. It reads `HF_TOKEN` and `GH_TOKEN` from Colab secrets, and removes Colab's preinstalled `torchvision` and `torchao`, which do not match the pinned `torch` and `peft`. Machine, dtype and library versions go to `runtime.json`; answers can differ in text from one machine to another, so both versions always run in the same session.
 
 ## What is compared

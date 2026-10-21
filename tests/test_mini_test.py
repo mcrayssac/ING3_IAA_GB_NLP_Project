@@ -1,4 +1,5 @@
-"""Mini-test runner (2.7) on the real mini-test corpus, with stand-in cards and engines.
+"""Mini-test runner (2.7, and 3.2 with B) on the real mini-test corpus, with stand-in
+cards and engines.
 
 No model weights are loaded. Source cards are rebuilt from the corpus items themselves:
 the real ones come from `scripts.rebuild_data cards`, which needs OpenF1.
@@ -85,7 +86,9 @@ def adapter_folder(tmp_path, monkeypatch) -> Path:
     (folder / "adapter_config.json").write_bytes(ADAPTER_CONFIG)
     (folder / "adapter_model.safetensors").write_bytes(b"stand-in weights")
     prompt = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
-    monkeypatch.setattr(runner, "resolve_adapter", lambda: (None, folder, prompt))
+    monkeypatch.setattr(
+        runner, "resolve_adapter", lambda letter="A": (None, folder, prompt)
+    )
     return folder
 
 
@@ -202,7 +205,7 @@ class _Device:
         return "cpu"
 
 
-def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
+def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False, b_adapter=None):
     """Stand-ins for torch, transformers, peft and the conversation engine."""
     loaded = {}
 
@@ -218,14 +221,14 @@ def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
             return {"ready": True, "candidates": {}}
 
         def respond_with_trace(self, card, history, message, **kw):
-            adapted = self.model == "adapted"
-            raw = (
-                "CALL: BOX\nWHY: Box now."
-                if not adapted
-                else "CALL: NO CALL\nWHY: Unknown."
-            )
+            version = getattr(self.model, "active", "baseline")
+            raw = {
+                "baseline": "CALL: BOX\nWHY: Box now.",
+                "A": "CALL: NO CALL\nWHY: Unknown.",
+                "B": "CALL: STAY OUT\nWHY: Stay out.",
+            }[version]
             prompt = sha256(dumps([card, history, message]))
-            if adapted and a_prompt_differs:
+            if version != "baseline" and a_prompt_differs:
                 prompt = sha256(prompt)
             return raw, {"prompt_token_ids_sha256": prompt, "possibly_truncated": False}
 
@@ -234,11 +237,29 @@ def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
     model.ConversationEngineError = type("ConversationEngineError", (Exception,), {})
     peft = ModuleType("peft")
 
+    class Adapted:
+        """The base model with adapters on top; the active one answers."""
+
+        active = "A"
+
+        def to(self, device):
+            return self
+
+        def eval(self):
+            return self
+
+        def add_adapter(self, name, config):
+            loaded[f"{name}_config"] = config
+
+        def load_adapter(self, folder, adapter_name):
+            loaded[f"{adapter_name}_folder"] = folder
+
+        def set_adapter(self, name):
+            self.active = name
+
     def from_pretrained(base, folder, config=None):
         loaded.update(folder=folder, config=config)
-        return SimpleNamespace(
-            to=lambda device: SimpleNamespace(eval=lambda: "adapted")
-        )
+        return Adapted()
 
     peft.PeftModel = SimpleNamespace(from_pretrained=from_pretrained)
     peft.PeftConfig = SimpleNamespace(
@@ -264,15 +285,38 @@ def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
         device = _Device()
         tokenizer = SimpleNamespace(chat_template="template")
         base = Engine("base", tokenizer, config, prompt, device, "float32")
-        a_config = runner.load_config(run / "versions/A/config.toml")
-        return {"baseline": base, "A": (a_config, adapter, prompt)}
+        return {"baseline": base} | {
+            letter: (
+                runner.load_config(run / f"versions/{letter}/config.toml"),
+                b_adapter if letter == "B" and b_adapter else adapter,
+                prompt,
+            )
+            for letter in plan["version_ids"][1:]
+        }
 
     monkeypatch.setattr(runner, "load_engines", engines)
     checked = []
     monkeypatch.setattr(
-        runner, "check_adapter", lambda plan, folder: checked.append(folder)
+        runner,
+        "check_adapter",
+        lambda plan, folder, letter="A": checked.append((letter, folder)),
     )
     return loaded, checked
+
+
+def _filled(rows: list[dict], path: Path) -> Path:
+    """The review sheet with every applicable axis rated 1, as a completed reading."""
+    for row in rows:
+        row.update(rating_status="completed", rater_id="Matthieu Brault")
+        row["rated_at"] = "2026-10-20T15:00:00+02:00"
+        for axis in ("correctness", "role_format", "history", "scope", "factuality"):
+            if row[axis] != "N/A":
+                row[axis], row[axis + "_reason"] = "1", "stand-in score for the test"
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
 
 
 def test_run_score_and_sheet_on_stand_in_answers(
@@ -281,7 +325,7 @@ def test_run_score_and_sheet_on_stand_in_answers(
     loaded, checked = _fake_stack(monkeypatch, adapter_folder)
     run = runner.prepare("mini", cards, tmp_path / "runs")
     runner.generate(run)
-    assert checked == [adapter_folder]  # checked right before PEFT reads the folder
+    assert checked == [("A", adapter_folder)]  # checked right before PEFT reads it
     assert loaded == {"folder": adapter_folder, "config": ADAPTER_CONFIG}
     outputs, _ = read_jsonl(run / "outputs.jsonl")
     assert len(outputs) == 80
@@ -293,6 +337,10 @@ def test_run_score_and_sheet_on_stand_in_answers(
     assert head["call_agreement"]["baseline"] == 12 / 40  # BOX on every target
     assert head["call_agreement"]["A"] == 16 / 40  # NO CALL on every target
     assert result["metrics"]["generation_errors"] == 0
+    bootstrap = loads((run / "bootstrap.json").read_text())  # the 2.7 single contrast
+    assert bootstrap["contrast_role"] == "principal_mini_test_exploratory"
+    assert "B_minus_A" not in result["headline"]["call_agreement"]
+    assert not (run / "bootstrap-B.json").exists()
     with (run / "review/review.csv").open(encoding="utf-8") as stream:
         rows = list(csv.DictReader(stream))
     assert len(rows) == 80 and {r["version_code"] for r in rows} == {"V01", "V02"}
@@ -304,20 +352,11 @@ def test_run_score_and_sheet_on_stand_in_answers(
     assert pending == {"folder": pending["folder"], "ratings": 80, "pending": 80}
     assert not (Path(pending["folder"]) / "bootstrap.json").exists()
 
-    for row in rows:
-        row.update(rating_status="completed", rater_id="Matthieu Brault")
-        row["rated_at"] = "2026-10-20T15:00:00+02:00"
-        for axis in ("correctness", "role_format", "history", "scope", "factuality"):
-            if row[axis] != "N/A":
-                row[axis], row[axis + "_reason"] = "1", "stand-in score for the test"
-    filled = tmp_path / "filled.csv"
-    with filled.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
+    filled = _filled(rows, tmp_path / "filled.csv")
     done = runner.rated(run, filled)
     assert done["pending"] == 0
     assert (Path(done["folder"]) / "bootstrap.json").exists()
+    assert not (Path(done["folder"]) / "bootstrap-B.json").exists()
 
     rows[0]["raw_response"] = "CALL: BOX\nWHY: edited."
     with filled.open("w", encoding="utf-8", newline="") as stream:
@@ -363,3 +402,75 @@ def test_cards_rebuilds_the_mini_test_races_only(tmp_path, monkeypatch):
     assert sorted(runner.rebuild_cards()) == splits["mini_test"]
     assert {split for _, split in built} == {"mini_test"}
     assert (tmp_path / "mini_test-manifest.json").exists()
+
+
+def test_prepare_with_b_seals_three_versions(cards, tmp_path):
+    run = runner.prepare("mini", cards, tmp_path / "runs", with_b=True)
+    plan = loads((run / "plan.json").read_text())
+    assert plan["task"] == "3.2" and plan["version_ids"] == ["baseline", "A", "B"]
+    assert plan["planned_responses"] == 120
+    assert plan["versions"]["B"]["adapter_sha256"].startswith("70423a7d4aa7")
+    assert plan["versions"]["B"]["config_file"] == "configs/adapter-b.toml"
+    assert {v["prompt_sha256"] for v in plan["versions"].values()} == {
+        plan["versions"]["baseline"]["prompt_sha256"]
+    }
+    assert (run / "versions/B/adapter_config.json").read_bytes() == ADAPTER_CONFIG
+    evaluation = loads((run / "manifest.json").read_text())["extra"]["evaluation"]
+    assert evaluation["retained_versions"] == ["baseline", "A", "B"]
+    runner.verify_plan(run)
+
+
+def test_with_b_refuses_a_b_selected_on_other_cases(cards, tmp_path, monkeypatch):
+    selection = loads(runner.ADAPTER_B.read_text())
+    selection["cases_sha256"] = "0" * 64
+    other = tmp_path / "adapter-b-selection.json"
+    other.write_text(dumps(selection))
+    monkeypatch.setitem(runner.SELECTIONS, "B", other)
+    with pytest.raises(ValueError, match="B was selected on other validation cases"):
+        runner.prepare("mini", cards, tmp_path / "runs", with_b=True)
+
+
+B_CONFIG = ADAPTER_CONFIG.replace(b'"r": 16', b'"r": 8')
+
+
+def test_run_and_score_with_b(cards, tmp_path, monkeypatch, adapter_folder):
+    b_folder = tmp_path / "adapter-b"
+    b_folder.mkdir()
+    (b_folder / "adapter_config.json").write_bytes(B_CONFIG)
+    (b_folder / "adapter_model.safetensors").write_bytes(b"stand-in B weights")
+    prompt = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
+    folders = {"A": adapter_folder, "B": b_folder}
+    monkeypatch.setattr(
+        runner, "resolve_adapter", lambda letter="A": (None, folders[letter], prompt)
+    )
+    loaded, checked = _fake_stack(monkeypatch, adapter_folder, b_adapter=b_folder)
+    run = runner.prepare("mini", cards, tmp_path / "runs", with_b=True)
+    assert (run / "versions/B/adapter_config.json").read_bytes() == B_CONFIG
+    runner.generate(run)
+    assert checked == [("A", adapter_folder), ("B", b_folder)]
+    # each adapter gets its own sealed configuration
+    assert (loaded["config"], loaded["B_config"]) == (ADAPTER_CONFIG, B_CONFIG)
+    assert loaded["B_folder"] == b_folder
+    outputs, _ = read_jsonl(run / "outputs.jsonl")
+    versions = ["baseline"] * 40 + ["A"] * 40 + ["B"] * 40
+    assert [o["version_id"] for o in outputs] == versions
+    assert loads((run / "runtime.json").read_text())["same_prompt_tokens_B"] == 40
+
+    result = runner.score(run)
+    head = result["headline"]["call_agreement"]
+    assert (head["A"], head["B"]) == (16 / 40, 12 / 40)  # NO CALL, then STAY OUT
+    assert head["B_minus_A"] == pytest.approx(-4 / 40)
+    bootstrap = loads((run / "bootstrap.json").read_text())  # same shape as 2.7
+    assert bootstrap["contrast_role"] == "principal_mini_test_exploratory"
+    with_b = loads((run / "bootstrap-B.json").read_text())
+    assert set(with_b) == {"B_minus_A", "B_minus_baseline"}
+    with (run / "review/review.csv").open(encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 120 and len({r["version_code"] for r in rows}) == 3
+
+    done = runner.rated(run, _filled(rows, tmp_path / "filled.csv"))
+    assert done == {"folder": done["folder"], "ratings": 120, "pending": 0}
+    human = Path(done["folder"])
+    assert "metrics" in loads((human / "bootstrap.json").read_text())
+    human_b = loads((human / "bootstrap-B.json").read_text())
+    assert set(human_b) == {"B_minus_A", "B_minus_baseline"}

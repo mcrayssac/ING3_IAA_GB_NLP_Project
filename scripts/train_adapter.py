@@ -1,12 +1,19 @@
-"""Train adapter A over several seeds, choose checkpoints on validation, summarise (task 2.6).
+"""Train adapter A (task 2.6) or B (task 3.2) over several seeds, choose checkpoints on
+validation, summarise.
 
 Usage, from the repository root:
-    python -m scripts.train_adapter smoke
-    python -m scripts.train_adapter train --seed 2026
+    python -m scripts.train_adapter smoke [--adapter B]
+    python -m scripts.train_adapter train [--adapter B] --seed 2026
+    python -m scripts.train_adapter seeds [--adapter B]
     python -m scripts.train_adapter validate runs/<date>_2-6-adapter-a-s2026
     python -m scripts.train_adapter summarize RUN_DIR [RUN_DIR ...] [--baseline OUTPUTS [--rebuilt]]
+        [--against-a SUMMARY_A]
     python -m scripts.train_adapter curves RUN_DIR [RUN_DIR ...] [--out PNG]
     python -m scripts.train_adapter push SUMMARY --repo ORG/NAME
+
+A and B share every setting except their corpus (configs/adapter-a.toml and
+configs/adapter-b.toml). The commands after train read the adapter from the run's own
+config.toml.
 
 Training and validation use the inference prompt chosen in task 2.5b
 (configs/baseline-selection.json), so the adapter learns from the exact tokens it sees
@@ -23,7 +30,7 @@ import os
 import statistics
 import time
 from dataclasses import replace
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -47,10 +54,26 @@ from boxbox.evaluation._io import (
 )
 from boxbox.runs import finish_run, start_run
 
-CONFIG = Path("configs/adapter-a.toml")
+ROOT = Path(__file__).resolve().parents[1]
 SELECTION = Path("configs/baseline-selection.json")
-ADAPTER_SELECTION = Path("configs/adapter-a-selection.json")
-CARD = Path("docs/adapter-a-card.md")
+# Per adapter: its task, its settings, its corpus, the file that records the selected
+# checkpoint for later tasks, and the Hub model card.
+ADAPTERS = {
+    "A": {
+        "task": "2.6",
+        "config": Path("configs/adapter-a.toml"),
+        "corpus": "A_train",
+        "selection": Path("configs/adapter-a-selection.json"),
+        "card": Path("docs/adapter-a-card.md"),
+    },
+    "B": {
+        "task": "3.2",
+        "config": Path("configs/adapter-b.toml"),
+        "corpus": "B_train",
+        "selection": Path("configs/adapter-b-selection.json"),
+        "card": Path("docs/adapter-b-card.md"),
+    },
+}
 SEEDS = (2026, 2027, 2028)
 METRICS = (
     "overall/strict_format_rate",
@@ -66,6 +89,21 @@ SMOKE_GENERATIONS = 3
 BUDGET_HOURS = 5.0  # above this for all seeds, the gate stops before training
 # Update-end reads miss the peak inside an update: the batch-4 run read 0.89 of the cap.
 MEMORY_SHARE = 0.85
+
+
+def task_slug(letter: str) -> str:
+    """The adapter's task as it appears in run names, such as 3-2."""
+    return ADAPTERS[letter]["task"].replace(".", "-")
+
+
+def run_name(letter: str, suffix: str) -> str:
+    """A run or summary name such as 3-2-adapter-b-s2026, from the adapter's task."""
+    return f"{task_slug(letter)}-adapter-{letter.lower()}-{suffix}"
+
+
+def seed_of(run: str) -> int:
+    """The seed in a run name such as 2026-10-19_2-6-adapter-a-s2028."""
+    return int(run.rsplit("-s", 1)[1])
 
 
 def selected_prompt() -> str:
@@ -121,12 +159,12 @@ def validation_cases(config) -> tuple[list[dict], dict]:
 
 
 def training_rows(engine, config) -> tuple[list[dict], list[dict]]:
-    """Corpus A rows for training and validation rows for the loss after each epoch."""
+    """The adapter's corpus rows for training, and validation rows for the epoch loss."""
     from boxbox.corpus import load_corpus
     from boxbox.training import build_rows
 
     limit = config.lora.max_length
-    train = build_rows(engine, load_corpus("A_train"), limit)
+    train = build_rows(engine, load_corpus(ADAPTERS[config.adapter]["corpus"]), limit)
     return train, build_rows(engine, load_corpus("validation"), limit)
 
 
@@ -186,22 +224,23 @@ def planned_updates(config, rows: int) -> int:
     )
 
 
-def train(seed: int) -> Path:
+def train(seed: int, letter: str = "A") -> Path:
     """Train one seed and keep a checkpoint per epoch with its validation loss."""
     from boxbox.training import train_lora
 
-    config = replace(load_config(CONFIG), seed=seed)
+    config = replace(load_config(ADAPTERS[letter]["config"]), seed=seed)
     engine, device = load_engine(config)
     rows, eval_rows = training_rows(engine, config)
     extra = {
-        "task": "2.6",
+        "task": ADAPTERS[letter]["task"],
         "prompt_sha256": loads(SELECTION.read_text())["prompt_sha256"],
         "train_rows": len(rows),
         "eval_rows": len(eval_rows),
         "planned_updates": planned_updates(config, len(rows)),
     }
-    name = f"2-6-adapter-a-s{seed}"
-    run = start_run(name, config, str(device), engine.dtype, extra=extra)
+    run = start_run(
+        run_name(letter, f"s{seed}"), config, str(device), engine.dtype, extra=extra
+    )
     loaded = (engine.model, engine.tokenizer)
     metrics = train_lora(config, rows, run, device, eval_rows, loaded=loaded)
     losses = metrics["train_losses"] + [e["eval_loss"] for e in metrics["eval_losses"]]
@@ -212,11 +251,45 @@ def train(seed: int) -> Path:
     return run
 
 
-def smoke() -> int:
+def all_seeds(letter: str = "A") -> dict[int, str]:
+    """Train then validate every seed, each step in a fresh process; status per seed.
+
+    A failed seed is logged and the next one still runs, so one stall does not cost
+    the others. Each seed's output goes to runs/<task>-logs/seed-<seed>.log.
+    """
+    import subprocess
+    import sys
+
+    logs = Path("runs") / f"{task_slug(letter)}-logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    command = [sys.executable, "-m", "scripts.train_adapter"]
+    statuses = {}
+    for seed in SEEDS:
+        with (logs / f"seed-{seed}.log").open("a", encoding="utf-8") as log:
+
+            def step(*args: str) -> bool:
+                done = subprocess.run(
+                    [*command, *args], check=False, stdout=log, stderr=log
+                )
+                return done.returncode == 0
+
+            status = "train failed"
+            if step("train", "--adapter", letter, "--seed", str(seed)):
+                folder = max(Path("runs").glob(f"*_{run_name(letter, f's{seed}')}"))
+                status = "ok" if step("validate", str(folder)) else "validate failed"
+        statuses[seed] = status
+        line = f"{datetime.now():%Y-%m-%d %H:%M} seed {seed}: {status}"
+        print(line, flush=True)
+        with (logs / "status.txt").open("a", encoding="utf-8") as file:
+            file.write(line + "\n")
+    return statuses
+
+
+def smoke(letter: str = "A") -> int:
     """Time a few generations and 10 updates, then project the 3-seed budget."""
     from boxbox.training import train_lora
 
-    config = load_config(CONFIG)
+    config = load_config(ADAPTERS[letter]["config"])
     engine, device = load_engine(config)
     cases, _ = validation_cases(config)
     started = time.perf_counter()
@@ -227,7 +300,7 @@ def smoke() -> int:
     short = replace(config, lora=replace(config.lora, max_steps=SMOKE_STEPS))
     needed = SMOKE_STEPS * config.lora.batch_size * config.lora.gradient_accumulation
     longest = sorted(rows, key=lambda row: len(row["input_ids"]), reverse=True)
-    run = start_run("2-6-smoke", short, str(device), engine.dtype)
+    run = start_run(f"{task_slug(letter)}-smoke", short, str(device), engine.dtype)
     metrics = train_lora(
         short, longest[:needed], run, device, loaded=(engine.model, engine.tokenizer)
     )
@@ -267,7 +340,7 @@ def validate(run: Path) -> Path:
     cases_hash = write_jsonl(run / "validation-cases.jsonl", cases)
     model, outputs, attempts, versions, reloads = None, [], [], [], {}
     for checkpoint in metrics["checkpoints"]:
-        version = f"A-s{config.seed}-e{checkpoint['epoch']}"
+        version = f"{config.adapter}-s{config.seed}-e{checkpoint['epoch']}"
         folder = run / checkpoint["folder"]
         if model is None:
             model = PeftModel.from_pretrained(
@@ -436,10 +509,10 @@ def baseline_source(baseline_file: Path, rebuilt: bool) -> tuple[list[dict], dic
     }
 
 
-def same_prompts(run: Path, version: str, baseline_file: Path, old: str) -> dict | None:
-    """How many validation prompts this checkpoint and the baseline saw token for token."""
-    theirs_file = baseline_file.parent.parent / "attempts.jsonl"
-    mine_file = run / "validation-attempts.jsonl"
+def same_prompts(
+    mine_file: Path, version: str, theirs_file: Path, old: str
+) -> dict | None:
+    """How many validation prompts two versions saw token for token, from their traces."""
     if not (theirs_file.exists() and mine_file.exists()):
         return None
     theirs, mine = prompt_hashes(theirs_file, old), prompt_hashes(mine_file, version)
@@ -454,11 +527,100 @@ def median_version(seeds: list[dict]) -> tuple[dict, str]:
     return ranking, ranking["ranked_candidate_ids"][len(seeds) // 2]
 
 
+def paired_differences(mine: list[dict], theirs: list[dict]) -> dict[str, dict]:
+    """Per metric, the seed-by-seed differences mine minus theirs and their t-interval."""
+    return {
+        m: seed_interval(
+            [
+                None if a[m] is None or b[m] is None else float(a[m]) - float(b[m])
+                for a, b in zip(mine, theirs)
+            ]
+        )
+        for m in METRICS
+    }
+
+
+def epoch_metrics(run: Path) -> dict[int, dict]:
+    """The principal metrics of every validated checkpoint of a run, by epoch."""
+    summaries = loads((run / "validation-summaries.json").read_text())
+    return {
+        int(version.rsplit("-e", 1)[1]): {
+            m: summary["metrics"][m]["value"] for m in METRICS
+        }
+        for version, summary in summaries.items()
+    }
+
+
+def equal_updates(runs: list[Path], a_runs: list[Path]) -> dict[str, dict]:
+    """B minus A at the same epoch, so at the same update count, seed by seed."""
+    mine = [epoch_metrics(run) for run in runs]
+    theirs = [epoch_metrics(run) for run in a_runs]
+    epochs = sorted(mine[0])
+    if any(sorted(e) != epochs for e in mine + theirs):
+        raise ValueError("A and B runs must have validated the same epochs")
+    return {
+        f"epoch {k}": paired_differences([m[k] for m in mine], [t[k] for t in theirs])
+        for k in epochs
+    }
+
+
+def against_a(runs: list[Path], seeds: list[dict], a_summary: Path) -> dict:
+    """B minus A for each seed on the same validation targets, then over the seeds."""
+    summary = loads(a_summary.read_text())
+    if "adapter_a" not in summary:
+        raise ValueError(f"{a_summary} is not a summary of adapter A")
+    a_seeds = {seed_of(s["run"]): s for s in summary["seeds"]}
+    b_seeds = [seed_of(r.name) for r in runs]
+    if len(set(b_seeds)) != len(b_seeds):
+        raise ValueError(f"one B run per seed is needed, got seeds {b_seeds}")
+    missing = [seed for seed in b_seeds if seed not in a_seeds]
+    if missing:
+        raise ValueError(f"{a_summary} has no A run for seeds {missing}")
+    per_seed, theirs = {}, []
+    for s, run in zip(seeds, runs):
+        a = a_seeds[seed_of(run.name)]
+        a_run = a_summary.parent / a["run"]
+        a_answers = [
+            r
+            for r in read_jsonl(a_run / "validation-outputs.jsonl")[0]
+            if r["version_id"] == a["version"]
+        ]
+        per_seed[s["version"]] = {
+            "against": a["version"],
+            "bootstrap": against_baseline(run, s["version"], a_answers),
+            "same_prompts": same_prompts(
+                run / "validation-attempts.jsonl",
+                s["version"],
+                a_run / "validation-attempts.jsonl",
+                a["version"],
+            ),
+        }
+        theirs.append(a["metrics"])
+    differences = paired_differences([s["metrics"] for s in seeds], theirs)
+    a_runs = [a_summary.parent / a_seeds[seed_of(r.name)]["run"] for r in runs]
+    return {
+        "summary_a": str(a_summary),
+        "per_seed": per_seed,
+        "over_seeds": differences,
+        "equal_updates": equal_updates(runs, a_runs),
+    }
+
+
 def summarise(
-    runs: list[Path], baseline_file: Path | None, rebuilt: bool = False
+    runs: list[Path],
+    baseline_file: Path | None,
+    rebuilt: bool = False,
+    a_summary: Path | None = None,
 ) -> Path:
-    """Seed means and intervals, A minus baseline per seed, and the median seed as A."""
-    out = runs[0].parent / f"{date.today().isoformat()}_2-6-adapter-a-summary.json"
+    """Seed means and intervals, comparisons per seed, and the median seed as the adapter."""
+    letters = {load_config(run / "config.toml").adapter for run in runs}
+    if len(letters) != 1:
+        raise ValueError(f"the runs mix adapters {sorted(letters)}")
+    letter = letters.pop()
+    if a_summary is not None and letter != "B":
+        raise ValueError(f"--against-a compares B runs with A, not {letter} runs")
+    name = run_name(letter, "summary")
+    out = runs[0].parent / f"{date.today().isoformat()}_{name}.json"
     if out.exists():
         raise FileExistsError(f"{out} exists; a summary is never overwritten")
     seeds = [_seed_result(run) for run in runs]
@@ -471,20 +633,27 @@ def summarise(
         old = baseline[0]["version_id"]
         for s, r in zip(seeds, runs):
             bootstraps[s["version"]] = against_baseline(r, s["version"], baseline)
-            prompts[s["version"]] = same_prompts(r, s["version"], baseline_file, old)
+            prompts[s["version"]] = same_prompts(
+                r / "validation-attempts.jsonl",
+                s["version"],
+                baseline_file.parent.parent / "attempts.jsonl",
+                old,
+            )
     result = {
         "seeds": [{k: v for k, v in s.items() if k != "summary"} for s in seeds],
         "seed_intervals": stats,
         "interval_note": "95% Student t over training seeds; wide with this few runs",
         "ranking": ranking,
-        "adapter_a": {"run": chosen.name, "version": median},
+        f"adapter_{letter.lower()}": {"run": chosen.name, "version": median},
         "baseline": source,
         "same_prompts_as_baseline": prompts or None,
         "against_baseline": bootstraps or "pending: no baseline outputs given",
     }
+    if a_summary is not None:
+        result["against_a"] = against_a(runs, seeds, a_summary)
     out.write_text(dumps(result) + "\n")
-    write_selection(chosen, median, out)
-    print(f"adapter A is {median} from {chosen.name}; summary in {out}")
+    write_selection(chosen, median, out, letter)
+    print(f"adapter {letter} is {median} from {chosen.name}; summary in {out}")
     return out
 
 
@@ -496,17 +665,16 @@ def checkpoint_folder(run: Path, version: str) -> tuple[dict, Path]:
     return checkpoint, run / checkpoint["folder"]
 
 
-def write_selection(run: Path, version: str, summary: Path) -> Path:
-    """Record adapter A for 2.7 and 2.8; its Hub copy is kept if the adapter is the same."""
+def write_selection(run: Path, version: str, summary: Path, letter: str = "A") -> Path:
+    """Record the selected adapter for later tasks; its Hub copy is kept if unchanged."""
     checkpoint, folder = checkpoint_folder(run, version)
     lock = loads(SELECTION.read_text())
     adapter = sha256((folder / "adapter_model.safetensors").read_bytes())
-    old = (
-        json.loads(ADAPTER_SELECTION.read_text()) if ADAPTER_SELECTION.exists() else {}
-    )
+    config, file = ADAPTERS[letter]["config"], ADAPTERS[letter]["selection"]
+    old = json.loads(file.read_text()) if file.exists() else {}
     selection = {
-        "task": "2.6",
-        "adapter": "A",
+        "task": ADAPTERS[letter]["task"],
+        "adapter": letter,
         "run": run.name,
         "version": version,
         "seed": load_config(run / "config.toml").seed,
@@ -514,16 +682,16 @@ def write_selection(run: Path, version: str, summary: Path) -> Path:
         "step": checkpoint["step"],
         "checkpoint": checkpoint["folder"],
         "adapter_sha256": adapter,
-        "config_file": str(CONFIG),
-        "config_sha256": sha256(CONFIG.read_bytes()),
+        "config_file": str(config),
+        "config_sha256": sha256(config.read_bytes()),
         "prompt_file": lock["prompt_file"],
         "prompt_sha256": lock["prompt_sha256"],
         "cases_sha256": lock["cases_sha256"],
         "summary": str(summary),
         "hub": old.get("hub") if old.get("adapter_sha256") == adapter else None,
     }
-    ADAPTER_SELECTION.write_text(json.dumps(selection, indent=2) + "\n")
-    return ADAPTER_SELECTION
+    file.write_text(json.dumps(selection, indent=2) + "\n")
+    return file
 
 
 def hub_token() -> str | None:
@@ -541,13 +709,13 @@ def push(summary_file: Path, repo: str) -> dict:
     from huggingface_hub import CommitOperationAdd, HfApi
 
     summary = loads(summary_file.read_text())
-    selection = json.loads(ADAPTER_SELECTION.read_text())
-    if summary["adapter_a"]["version"] != selection["version"]:
-        raise ValueError(
-            f"{summary_file} and {ADAPTER_SELECTION} name different adapters"
-        )
+    letter = summary["seeds"][0]["version"].split("-")[0]
+    file = ADAPTERS[letter]["selection"]
+    selection = json.loads(file.read_text())
+    if summary[f"adapter_{letter.lower()}"]["version"] != selection["version"]:
+        raise ValueError(f"{summary_file} and {file} name different adapters")
     ops = [
-        CommitOperationAdd("README.md", str(CARD)),
+        CommitOperationAdd("README.md", str(ADAPTERS[letter]["card"])),
         CommitOperationAdd("summary.json", str(summary_file)),
     ]
     for seed in summary["seeds"]:
@@ -555,17 +723,17 @@ def push(summary_file: Path, repo: str) -> dict:
             summary_file.parent / seed["run"], seed["version"]
         )
         for name in ("adapter_config.json", "adapter_model.safetensors"):
-            target = f"{seed['version'].removeprefix('A-')}/{name}"
+            target = f"{seed['version'].removeprefix(f'{letter}-')}/{name}"
             ops.append(CommitOperationAdd(target, str(folder / name)))
     api = HfApi(token=hub_token())
     api.create_repo(repo, private=True, exist_ok=True)
-    commit = api.create_commit(
-        repo, ops, commit_message="Adapter A, three seeds (task 2.6)"
-    )
+    task = ADAPTERS[letter]["task"]
+    message = f"Adapter {letter}, three seeds (task {task})"
+    commit = api.create_commit(repo, ops, commit_message=message)
     hub = {
         "repo": repo,
         "revision": commit.oid,
-        "folder": selection["version"].removeprefix("A-"),
+        "folder": selection["version"].removeprefix(f"{letter}-"),
     }
     files = api.model_info(repo, revision=commit.oid, files_metadata=True).siblings
     remote = {f.rfilename: f.lfs.sha256 for f in files if f.lfs}
@@ -573,16 +741,19 @@ def push(summary_file: Path, repo: str) -> dict:
         remote.get(f"{hub['folder']}/adapter_model.safetensors")
         != selection["adapter_sha256"]
     ):
-        raise ValueError("the Hub copy of adapter A has a different hash")
+        raise ValueError(f"the Hub copy of adapter {letter} has a different hash")
     selection["hub"] = hub
-    ADAPTER_SELECTION.write_text(json.dumps(selection, indent=2) + "\n")
+    file.write_text(json.dumps(selection, indent=2) + "\n")
     print(f"pushed {repo}@{commit.oid}")
     return hub
 
 
-def plot_losses(runs: list[Path], out: Path) -> Path:
+def plot_losses(runs: list[Path], out: Path | None = None) -> Path:
     """Training loss per update and validation loss per epoch, one colour per seed."""
     import matplotlib
+
+    letter = load_config(runs[0] / "config.toml").adapter.lower()
+    out = out or Path(f"docs/diagrams/adapter-{letter}-losses.png")
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -638,10 +809,13 @@ def main(argv: list[str] | None = None) -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("smoke")
-    commands.add_parser("train").add_argument(
-        "--seed", type=int, required=True, choices=SEEDS
-    )
+    smoke_args = commands.add_parser("smoke")
+    smoke_args.add_argument("--adapter", choices=sorted(ADAPTERS), default="A")
+    train_args = commands.add_parser("train")
+    train_args.add_argument("--adapter", choices=sorted(ADAPTERS), default="A")
+    train_args.add_argument("--seed", type=int, required=True, choices=SEEDS)
+    seeds_args = commands.add_parser("seeds")
+    seeds_args.add_argument("--adapter", choices=sorted(ADAPTERS), default="A")
     commands.add_parser("validate").add_argument("run", type=Path)
     summary = commands.add_parser("summarize")
     summary.add_argument("runs", type=Path, nargs="+")
@@ -651,19 +825,28 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="the baseline is a re-run of 2.5b: same prompt, cases and measures",
     )
+    summary.add_argument(
+        "--against-a", type=Path, help="summary of adapter A: B minus A for each seed"
+    )
     upload = commands.add_parser("push")
     upload.add_argument("summary", type=Path)
     upload.add_argument("--repo", required=True)
     curves = commands.add_parser("curves")
     curves.add_argument("runs", type=Path, nargs="+")
     curves.add_argument(
-        "--out", type=Path, default=Path("docs/diagrams/adapter-a-losses.png")
+        "--out", type=Path, help="default: docs/diagrams/adapter-<x>-losses.png"
     )
     args = parser.parse_args(argv)
+    # configs/, runs/ and the seed processes are relative to the repository root
+    if Path.cwd().resolve() != ROOT:
+        parser.error("run from the repository root")
     if args.command == "smoke":
-        return smoke()
+        return smoke(args.adapter)
+    if args.command == "seeds":
+        statuses = all_seeds(args.adapter)
+        return 0 if all(status == "ok" for status in statuses.values()) else 1
     if args.command == "train":
-        train(args.seed)
+        train(args.seed, args.adapter)
     elif args.command == "validate":
         validate(args.run)
     elif args.command == "push":
@@ -671,7 +854,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "curves":
         print(plot_losses(args.runs, args.out))
     else:
-        summarise(args.runs, args.baseline, args.rebuilt)
+        summarise(args.runs, args.baseline, args.rebuilt, args.against_a)
     return 0
 
 
