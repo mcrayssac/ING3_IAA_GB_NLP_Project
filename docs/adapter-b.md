@@ -141,8 +141,8 @@ The effect is the same at every epoch. It comes from the corpus, not from the ch
 
 ### The run
 
-Run `2026-10-21_3-2-mini-test` answered the 40 mini-test targets with the baseline, A and B:
-- one process on the M3 Max (MPS, bf16), from commit `0ff21c3` with a clean tree
+Run `2026-10-21_3-2-mini-test-r2` answered the 40 mini-test targets with the baseline, A and B:
+- one process on the M3 Max (MPS, bf16), from commit `934c414` with a clean tree
 - A is `A-s2028-e1` and B is `B-s2027-e3`, both checked against their recorded hashes
 - 120 answers, no generation error, and nothing retried
 - A and B saw the same prompt tokens as the baseline on all 40 targets
@@ -161,7 +161,9 @@ No checkpoint was trained or chosen on these targets. They come from 5 races tha
 | Macro-family agreement | 0.233 | 0.753 | 0.767 | +0.013 (-0.167 to +0.117) |
 | Answers cut at 64 tokens | 10 | 2 | 2 | |
 
-The interval is the race bootstrap over the 5 races, with 10,000 draws. For unjustified decisions only 2 to 4 races contribute, so that interval is rough. This run's `bootstrap.json` also gives A minus baseline and B minus baseline. It was scored at `0ff21c3`, before the B contrasts moved to a file of their own, `bootstrap-B.json`, so that `bootstrap.json` keeps the 2.7 form.
+The interval is the race bootstrap over the 5 races, with 10,000 draws. For unjustified decisions only 2 to 4 races contribute, so that interval is rough. `bootstrap.json` gives A minus baseline, as in 2.7, and `bootstrap-B.json` gives B minus A and B minus baseline.
+
+A first run, `2026-10-21_3-2-mini-test` from `0ff21c3`, gave the same answers, summaries and rating sheet byte for byte. It is kept as a trace. Its `bootstrap.json` still holds all three contrasts, as the code wrote them before the B contrasts moved to `bootstrap-B.json`.
 
 CALL agreement by family:
 
@@ -226,7 +228,7 @@ Each of the nine checkpoints was reloaded in a new process:
 
 ## Run files
 
-The run folders stay out of Git, so the team gets them as `3-2-runs.zip`, shared with the review of #17. It holds the three B runs, the summary, the logs, the two smoke runs and the mini-test run, without the weights, which are on the Hub. With it, a teammate can check the selection, the reload results and every answer.
+The run folders stay out of Git, so the team gets them as `3-2-runs.zip`, shared with the review of #17. It holds the three B runs, the summary, the logs, the two smoke runs and both mini-test runs, without the weights, which are on the Hub. With it, a teammate can check the selection, the reload results and every answer.
 
 The zip also holds the mini-test's version key and the unmasked `paired.csv`, so raters must not open it. They get only the masked sheet, `3-2-mini-test-review.csv`.
 

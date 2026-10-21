@@ -295,9 +295,9 @@ needed.
 The mini-test of task 2.7 also runs with B as a third version, in one process
 with the baseline and A (docs/mini-test.md):
 
-    .venv/bin/python -m scripts.mini_test prepare --name 3-2-mini-test --with-b
-    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.mini_test run --run-dir runs/2026-10-21_3-2-mini-test
-    .venv/bin/python -m scripts.mini_test score --run-dir runs/2026-10-21_3-2-mini-test
+    .venv/bin/python -m scripts.mini_test prepare --name 3-2-mini-test-r2 --with-b
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.mini_test run --run-dir runs/2026-10-21_3-2-mini-test-r2
+    .venv/bin/python -m scripts.mini_test score --run-dir runs/2026-10-21_3-2-mini-test-r2
 
 On the 40 mini-test targets, B makes 1 unjustified decision on 16 against 9
 for A, and refuses 6 of 24 decidable targets against 1 for A. See
