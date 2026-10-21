@@ -1,7 +1,33 @@
 # OpenJev zero-shot baseline (task 3.4). Read by the OpenJev runner only, kept outside RunConfig
 # so that no rendered run config or its hash changes. See docs/openjev.md.
 
-endpoint = "http://127.0.0.1:3000/v1/systemone"
+# The server runs from its own environment, bound to loopback.
+[server]
+python = "~/openjev/mlx/bin/python"
+host = "127.0.0.1"
+port = 3000
+start_timeout_seconds = 300
+request_timeout_seconds = 300
+
+# One request per target. The CALL question makes the call; the three diagnostic questions
+# are scored apart. Options are sent without descriptions, in this order.
+[questions.call]
+type = "choice"
+instructions = "Which call does the policy give in reply to the latest user message?"
+options = ["BOX", "STAY OUT", "NO CALL"]
+
+[questions.in_scope]
+type = "noul"
+instructions = "Does the latest user message ask for this car's call, its reason or a card field, within the tool's scope?"
+
+[questions.required_known]
+type = "noul"
+instructions = "Is every card field that the policy's ordered branch needs for this car known and usable?"
+
+[questions.missing_field]
+type = "choice"
+instructions = "Which card field, if any, stops the policy from deciding BOX or STAY OUT for this car?"
+options = ["gap_ahead", "gap_behind", "tyre_age_laps", "pit_loss_seconds", "track_status", "none"]
 
 [model]
 repo = "openjev/OpenJev-Flash-9B-MLX-4bit"
