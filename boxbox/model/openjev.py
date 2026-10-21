@@ -85,7 +85,11 @@ def build_request(
     call_order: list[str] | None = None,
     diagnostics: bool = True,
 ) -> dict[str, Any]:
-    """One request for one target; `call_order` reorders the CALL options."""
+    """One request for one target; `call_order` reorders the CALL options.
+
+    A choice question with `orders = n` is also asked in the n - 1 other cyclic orders,
+    as `<name>_1` and so on, so that each option sits at each letter once.
+    """
     questions = {}
     for name, question in settings["questions"].items():
         if name != "call" and not diagnostics:
@@ -97,8 +101,13 @@ def build_request(
             )
             if sorted(options) != sorted(question["options"]):
                 raise ValueError(f"{name} options must be a reordering of the config's")
-            asked["criteria"] = {option: None for option in options}
+            described = question.get("descriptions", {})
+            asked["criteria"] = {option: described.get(option) for option in options}
         questions[name] = asked
+        for i in range(1, question.get("orders", 1)):
+            turned = options[i:] + options[:i]
+            criteria = {option: asked["criteria"][option] for option in turned}
+            questions[f"{name}_{i}"] = asked | {"criteria": criteria}
     return {
         "model": "openjev-flash-9b",
         "state": state_text(policy, inputs),

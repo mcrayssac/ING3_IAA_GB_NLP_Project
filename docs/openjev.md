@@ -286,6 +286,25 @@ Zero-shot OpenJev is clearly better than the untuned baseline on validation and 
 
 For the final comparison, these results support keeping A and B as the compared systems. The decision is the team's, on #35 (task 3.4.8). If OpenJev is kept, its configuration is frozen first: revisions, file hashes, readout values, questions and τ = 0.59.
 
+## Upgrade round U1 (post hoc)
+
+This round tests whether prompt and readout changes alone can close part of the gap to the adapters, with no training and no examples. It was declared on 21 October, in the commit that adds `configs/openjev-upgrade.toml` and before any U1 run.
+
+U1 targets two weaknesses seen in the runs above:
+- OpenJev picks the right direction, BOX against STAY OUT, on only 41 of the 60 decidable validation targets.
+- 16 of 100 calls change with the option order.
+
+The declaration:
+- **Variant:** the three CALL options carry descriptions made of p01 clauses and their direct consequences, in `configs/openjev-upgrade.toml`. One clause, that a known car behind too close to cover the pit loss plus 2.0 seconds means STAY OUT, follows from p01's "BOX only when" and is not stated in p01. The CALL question is asked in one request in the three cyclic orders of p01's order: (BOX, STAY OUT, NO CALL), (STAY OUT, NO CALL, BOX) and (NO CALL, BOX, STAY OUT). Each option sits at each letter once.
+- **Readout:** the probabilities are averaged per label over the three orders, and the call is the most probable label of that mean. A tie between labels gives NO CALL. There is no diagnostic question. Model, helper, readout values, state and question wording are unchanged.
+- **Rules:** argmax, and the τ rule of #35 unchanged.
+- **Validation judgement:** argmax, and τ chosen leave one race out. For each of the 7 races, τ is chosen by the #35 rule on the other 6 and applied to it, then the 100 targets are scored once.
+  - The original run gets the same computation: 60/100, with τ 0.55 for two races and 0.59 for the five others. That is against 64/100 when τ is chosen in-sample.
+  - The in-sample τ is reported but never used to judge.
+- **Mini-test:** U1 runs once on the 40 targets, whatever validation shows, with τ chosen on all 7 validation races. It is post hoc, because the original mini-test results were read before U1 was designed.
+- **Decomposition:** the first order alone (descriptions, no averaging) is reported beside the mean, as a description only. It is never a mini-test candidate.
+- **Known selection:** the descriptions and the averaging were chosen after reading the original validation results, including an offline two-order average. Leaving one race out protects τ only, so U1's validation numbers are optimistic.
+
 ## Licence and attribution
 
 The OpenJev Flash 9B weights are under CC BY-NC 4.0, which allows non-commercial use with attribution. This course project is non-commercial, and the repository does not redistribute the weights. The helper and serving files are under Apache 2.0, as is the base model Qwen3.5-9B. The report credits the model as: OpenJev Flash 9B, MLX 4-bit (`openjev/OpenJev-Flash-9B-MLX-4bit`, revision `33cbf372`), CC BY-NC 4.0, based on Qwen/Qwen3.5-9B (Apache 2.0).

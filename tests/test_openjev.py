@@ -6,6 +6,7 @@ import io
 import json
 import urllib.error
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -18,11 +19,14 @@ from boxbox.model.openjev import (
     policy_instructions,
     references,
 )
+from scripts import openjev_baseline
 from scripts.openjev_baseline import (
+    averaged,
     calibration,
     check_version,
     choose_tau,
     decided,
+    loro,
     outputs_at,
     peak_memory,
     shuffled_order,
@@ -266,3 +270,78 @@ def test_server_checks_read_the_version_and_the_time_report():
     )
     assert peak_memory(report) == {"peak_memory_gb": 10.78, "max_resident_gb": 6.91}
     assert peak_memory("") == {"peak_memory_gb": None, "max_resident_gb": None}
+
+
+def test_the_upgrade_request_asks_the_call_in_three_described_orders():
+    settings = load_settings(Path("configs/openjev-upgrade.toml"))
+    request = build_request(settings, "Policy.", json.loads(case()["input_json"]))
+    questions = request["questions"]
+    assert list(questions) == ["call", "call_1", "call_2"]
+    orders = [list(q["criteria"]) for q in questions.values()]
+    assert orders == [CALLS, CALLS[1:] + CALLS[:1], CALLS[2:] + CALLS[:2]]
+    described = questions["call"]["criteria"]
+    assert all(isinstance(text, str) and text for text in described.values())
+    assert all(q["criteria"] == described for q in questions.values())  # same pairs
+
+
+def test_the_averaged_call_is_the_argmax_of_the_mean():
+    def call(box, stay, none):
+        p = {"BOX": box, "STAY OUT": stay, "NO CALL": none}
+        return {"choice": max(p, key=p.get), "probabilities": p}
+
+    answers = {
+        "call": call(0.5, 0.4, 0.1),
+        "call_1": call(0.2, 0.7, 0.1),
+        "call_2": call(0.5, 0.2, 0.3),
+    }
+    result = averaged(answers)
+    assert result["call"]["choice"] == "STAY OUT"  # two of the three orders pick BOX
+    assert result["call"]["probabilities"]["STAY OUT"] == pytest.approx(1.3 / 3)
+    assert result["call_0"] == answers["call"]
+    single = {"call": call(0.5, 0.4, 0.1)}
+    assert averaged(single) is single
+    tie = {"call": call(0.45, 0.1, 0.45), "call_1": call(0.45, 0.1, 0.45)}
+    assert averaged(tie)["call"]["choice"] == "NO CALL"  # a tie abstains
+    # 0.4332, 0.4048 and 0.812 average to 0.55 exactly, which reaches tau 0.55
+    edge = {"call": call(0.4332, 0.5, 0.0668), "call_1": call(0.4048, 0.5, 0.0952)}
+    edge["call_2"] = call(0.812, 0.1, 0.088)
+    assert decided(averaged(edge)["call"], 0.55) == "BOX"
+
+
+def test_loro_chooses_each_tau_without_its_own_race(monkeypatch):
+    seen = []
+
+    def fake_measures(cases, rows, cases_hash, splits):
+        seen.append({c["race_id"] for c in cases})
+        expected = {c["case_id"]: c["reference"]["expected_call"] for c in cases}
+        said = {r["case_id"]: r["raw_response"].removeprefix("CALL: ") for r in rows}
+        z = [cid for cid, call in expected.items() if call == "NO CALL"]
+        values = {
+            "call_agreement": sum(said[c] == e for c, e in expected.items())
+            / len(cases),
+            "unjustified_decision_rate": sum(said[c] != "NO CALL" for c in z) / len(z)
+            if z
+            else 0.0,
+            "excessive_refusal_rate": 0.0,
+            "decision_coverage": 0.0,
+        }
+        return {"metrics": {f"overall/{k}": {"value": v} for k, v in values.items()}}
+
+    monkeypatch.setattr(openjev_baseline, "measures", fake_measures)
+    cases = [
+        case(expected="BOX") | {"case_id": "c1", "race_id": "r1"},
+        case(expected="NO CALL") | {"case_id": "c2", "race_id": "r2"},
+    ]
+    probabilities = {"BOX": 0.7, "STAY OUT": 0.2, "NO CALL": 0.1}
+    answers = [
+        answered("BOX", probabilities, "c1"),
+        answered("BOX", {"BOX": 0.5, "STAY OUT": 0.3, "NO CALL": 0.2}, "c2"),
+    ]
+    result = loro(answers, cases, "run", "a" * 64, "b" * 64, None)
+    # r1 held out: tau from r2 alone, where only tau above 0.5 refuses c2
+    # r2 held out: tau from r1 alone, where every tau up to 0.7 is right
+    assert result["taus"] == {"r1": 0.51, "r2": 0.0}
+    assert result["call_agreement"] == 0.5
+    assert all(races == {"r2"} for races in seen[:101])
+    assert all(races == {"r1"} for races in seen[101:202])
+    assert seen[202] == {"r1", "r2"}

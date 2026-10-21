@@ -6,6 +6,8 @@ Usage, from the repository root:
     python -m scripts.openjev_baseline threshold RUN
     python -m scripts.openjev_baseline score RUN [--tau-from VALIDATION_RUN]
     python -m scripts.openjev_baseline compare RUN [--shuffled SHUFFLED_RUN]
+    python -m scripts.openjev_baseline run --split validation --config configs/openjev-upgrade.toml
+    python -m scripts.openjev_baseline upgrade U1_VALIDATION_RUN --against ORIGINAL_RUN
 
 `run` hashes every pinned file again, starts the server from its own environment, answers
 each target once, then stops the server and reads its peak memory. Nothing is retried,
@@ -18,6 +20,11 @@ argmax and thresholded calls with the shared evaluator, and adds the calibration
 CALL probabilities and the diagnostic questions. `compare` gives OpenJev minus baseline,
 A and B over the race bootstrap and, with `--shuffled`, the calls that change with the
 option order. The final split is never read.
+
+`--config` runs another config, here the upgrade round U1 (configs/openjev-upgrade.toml):
+the CALL question only, with described options, in 3 cyclic orders averaged per label.
+`upgrade` sets U1 against the original validation run, at argmax, at the in-sample tau
+and at tau chosen leave-one-race-out.
 """
 
 from __future__ import annotations
@@ -243,6 +250,30 @@ def shuffled_order(options: list[str], case_id: str, seed: int) -> list[str]:
     return random.Random(f"{seed}:{case_id}").choice(orders)
 
 
+def averaged(answers: dict) -> dict:
+    """The CALL probabilities averaged over every order it was asked in (`call_1`...).
+
+    The first order's own answer is kept as `call_0`; one order passes unchanged. The
+    mean is rounded so that a value on a tau of the grid does not fall just below it,
+    and a tie abstains.
+    """
+    names = ["call", *sorted(n for n in answers if n.startswith("call_"))]
+    if len(names) == 1:
+        return answers
+    labels = list(answers["call"]["probabilities"])
+    mean = {
+        label: round(
+            statistics.fmean(float(answers[n]["probabilities"][label]) for n in names),
+            10,
+        )
+        for label in labels
+    }
+    tied = [label for label in labels if mean[label] == max(mean.values())]
+    choice = "NO CALL" if "NO CALL" in tied else tied[0]
+    call = {"choice": choice, "probabilities": mean}
+    return answers | {"call_0": answers["call"], "call": call}
+
+
 def answer(base: str, case: dict, request: dict, timeout: float) -> dict:
     """One timed request; a failure is kept with its reason and never retried."""
     row = {
@@ -255,7 +286,8 @@ def answer(base: str, case: dict, request: dict, timeout: float) -> dict:
     try:
         reply = ask(base, request, timeout)
         tokens = (reply.get("usage") or {}).get("input_tokens")
-        row |= {"status": "ok", "answers": reply["answers"], "input_tokens": tokens}
+        answers = averaged(reply["answers"])
+        row |= {"status": "ok", "answers": answers, "input_tokens": tokens}
         row["error"] = None
     except OpenJevError as error:
         row |= {"status": "request_error", "answers": None, "input_tokens": None}
@@ -283,30 +315,31 @@ def run_metrics(rows: list[dict], server: dict) -> dict:
     }
 
 
-def run(split: str, shuffle: int | None = None) -> Path:
+def run(split: str, shuffle: int | None = None, config: Path = CONFIG) -> Path:
     """Answer every target once, with the server started and stopped around the run."""
-    settings = load_settings()
+    settings = load_settings(config)
     policy = policy_instructions(selected_prompt())
     cases, cases_hash, origin = targets(split)
     for case in cases:
         references(case)  # an unmapped NO CALL reason stops here, before the server
     pins = verify_pins(settings)
-    name = f"3-4-openjev-{split.replace('_', '-')}"
+    name = f"3-4-{config.stem}-{split.replace('_', '-')}"
     name += "" if shuffle is None else f"-shuffle-s{shuffle}"
     folder = RUNS / f"{date.today().isoformat()}_{name}"
     folder.mkdir(parents=True)  # an existing run is never overwritten
     if write_jsonl(folder / "cases.jsonl", cases) != cases_hash:
         raise ValueError("the written case ledger differs from its source")
-    (folder / "openjev.toml").write_bytes(CONFIG.read_bytes())
+    (folder / "openjev.toml").write_bytes(config.read_bytes())
     manifest = {
         "task": "3.4",
         "split": split,
         "shuffle_seed": shuffle,
+        "openjev_config": str(config),
         "git_commit": git("rev-parse", "HEAD") or None,
         "git_dirty": bool(git("status", "--porcelain")),
         "source_sha256": source_sha256(),
         "split_manifest_sha256": sha256(Path("data/splits.json").read_bytes()),
-        "openjev_config_sha256": sha256(CONFIG.read_bytes()),
+        "openjev_config_sha256": sha256(config.read_bytes()),
         "pins": pins,
         "prompt_sha256": loads(SELECTION.read_text())["prompt_sha256"],
         "cases_sha256": cases_hash,
@@ -406,19 +439,70 @@ def choose_tau(curve: list[dict]) -> dict:
     )
 
 
+def curve_of(
+    answers: list[dict],
+    cases: list[dict],
+    run_id: str,
+    cases_hash: str,
+    config: str,
+    splits,
+) -> list[dict]:
+    """The CALL measures of the declared rule at every tau of the grid."""
+    curve = []
+    for tau in GRID:
+        rows = outputs_at(answers, cases, tau, run_id, cases_hash, config)
+        metrics = measures(cases, rows, cases_hash, splits)["metrics"]
+        curve.append(
+            {"tau": tau} | {m: metrics[f"overall/{m}"]["value"] for m in CURVE}
+        )
+    return curve
+
+
+def loro(
+    answers: list[dict],
+    cases: list[dict],
+    run_id: str,
+    cases_hash: str,
+    config: str,
+    splits,
+) -> dict:
+    """Leave one race out: tau chosen on the other races, applied to it, then pooled."""
+    taus, pooled = {}, {}
+    for race in sorted({c["race_id"] for c in cases}):
+        rest = [i for i, c in enumerate(cases) if c["race_id"] != race]
+        held = [i for i, c in enumerate(cases) if c["race_id"] == race]
+        curve = curve_of(
+            [answers[i] for i in rest],
+            [cases[i] for i in rest],
+            run_id,
+            cases_hash,
+            config,
+            splits,
+        )
+        taus[race] = choose_tau(curve)["tau"]
+        rows = outputs_at(
+            [answers[i] for i in held],
+            [cases[i] for i in held],
+            taus[race],
+            run_id,
+            cases_hash,
+            config,
+        )
+        pooled |= {row["case_id"]: row for row in rows}
+    # the evaluator wants one config per version, so the pooled rows share one hash
+    shared = sha256(dumps({"openjev_config": config, "loro_taus": taus}))
+    rows = [pooled[c["case_id"]] | {"config_sha256": shared} for c in cases]
+    metrics = measures(cases, rows, cases_hash, splits)["metrics"]
+    return {"taus": taus} | {m: metrics[f"overall/{m}"]["value"] for m in CURVE}
+
+
 def threshold(run: Path) -> Path:
     """The declared rule on every tau of the grid, and the chosen tau."""
     manifest, cases, cases_hash, answers = load_run(run)
     if manifest["split"] != "validation" or manifest["shuffle_seed"] is not None:
         raise ValueError("tau is chosen on the unshuffled validation run only")
     splits, config = load_splits(), sha256((run / "openjev.toml").read_bytes())
-    curve = []
-    for tau in GRID:
-        rows = outputs_at(answers, cases, tau, run.name, cases_hash, config)
-        metrics = measures(cases, rows, cases_hash, splits)["metrics"]
-        curve.append(
-            {"tau": tau} | {m: metrics[f"overall/{m}"]["value"] for m in CURVE}
-        )
+    curve = curve_of(answers, cases, run.name, cases_hash, config, splits)
     chosen = choose_tau(curve)
     out = run / "threshold.json"
     write_json(
@@ -541,6 +625,11 @@ def score(run: Path, tau_from: Path | None = None) -> Path:
         raise ValueError("a shuffled run is only read by compare --shuffled")
     tau = tau_of(tau_from or run)
     config = sha256((run / "openjev.toml").read_bytes())
+    if (
+        tau_from is not None
+        and sha256((tau_from / "openjev.toml").read_bytes()) != config
+    ):
+        raise ValueError(f"{tau_from} was run with another OpenJev config")
     tau_rows = outputs_at(answers, cases, tau, run.name, cases_hash, config)
     write_jsonl(run / "outputs-tau.jsonl", tau_rows)
     splits = load_splits()
@@ -553,7 +642,8 @@ def score(run: Path, tau_from: Path | None = None) -> Path:
     write_json(run / "summaries.json", summaries)
     write_json(run / "tau.json", {"tau": tau, "from_run": (tau_from or run).name})
     write_json(run / "calibration.json", calibration(answers, cases))
-    write_json(run / "diagnostics.json", diagnostics(answers, cases))
+    if any(a["status"] == "ok" and "in_scope" in a["answers"] for a in answers):
+        write_json(run / "diagnostics.json", diagnostics(answers, cases))
     table = {
         v: {m: s["metrics"][f"overall/{m}"]["value"] for m in CURVE}
         for v, s in summaries.items()
@@ -656,6 +746,60 @@ def compare(run: Path, shuffled: Path | None = None) -> Path:
     return run / "compare.json"
 
 
+def rules_of(
+    answers: list[dict],
+    cases: list[dict],
+    run_id: str,
+    cases_hash: str,
+    config: str,
+    splits,
+) -> dict:
+    """Argmax (tau 0), the in-sample tau and the leave-one-race-out tau of one view."""
+    curve = curve_of(answers, cases, run_id, cases_hash, config, splits)
+    return {
+        "argmax": curve[0],
+        "in_sample_tau": choose_tau(curve),
+        "loro_tau": loro(answers, cases, run_id, cases_hash, config, splits),
+    }
+
+
+def upgrade(run: Path, against: Path) -> Path:
+    """U1 against the original validation run: its first order alone, and the mean."""
+    manifest, cases, cases_hash, answers = load_run(run)
+    original, _, original_hash, original_answers = load_run(against)
+    for m in (manifest, original):
+        if m["split"] != "validation" or m["shuffle_seed"] is not None:
+            raise ValueError("upgrade compares unshuffled validation runs")
+    if original_hash != cases_hash:
+        raise ValueError("the two runs answered different targets")
+    first = [
+        a | {"answers": a["answers"] | {"call": a["answers"]["call_0"]}}
+        if a["status"] == "ok"
+        else a
+        for a in answers
+    ]
+    views = {
+        "original": (against, original_answers),
+        "U1 first order only": (run, first),
+        "U1 mean of 3 orders": (run, answers),
+    }
+    splits, result = load_splits(), {}
+    for name, (folder, rows) in views.items():
+        config = sha256((folder / "openjev.toml").read_bytes())
+        result[name] = rules_of(rows, cases, folder.name, cases_hash, config, splits)
+    ok = [a["answers"] for a in answers if a["status"] == "ok"]
+    orders = sorted(n for n in ok[0] if n.startswith("call_"))
+    result["orders_disagree"] = {
+        "targets": len(ok),
+        "differ": sum(len({o[n]["choice"] for n in orders}) > 1 for o in ok),
+        "note": "targets whose argmax differs between the orders of one request; "
+        "not the same measure as the calls changed between two runs",
+    }
+    write_json(run / "upgrade.json", result)
+    print(json.dumps(result, indent=2))
+    return run / "upgrade.json"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -664,7 +808,11 @@ def main(argv: list[str] | None = None) -> int:
     run_args = commands.add_parser("run")
     run_args.add_argument("--split", choices=("validation", "mini_test"), required=True)
     run_args.add_argument("--shuffle", type=int, help="seed of the CALL option orders")
+    run_args.add_argument("--config", type=Path, default=CONFIG)
     commands.add_parser("threshold").add_argument("run", type=Path)
+    upgrade_args = commands.add_parser("upgrade")
+    upgrade_args.add_argument("run", type=Path)
+    upgrade_args.add_argument("--against", type=Path, required=True)
     score_args = commands.add_parser("score")
     score_args.add_argument("run", type=Path)
     score_args.add_argument(
@@ -682,9 +830,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run":
         if args.shuffle is not None and args.split != "validation":
             parser.error("--shuffle is for the validation run")
-        run(args.split, args.shuffle)
+        run(args.split, args.shuffle, args.config)
     elif args.command == "threshold":
         threshold(args.run)
+    elif args.command == "upgrade":
+        upgrade(args.run, args.against)
     elif args.command == "score":
         score(args.run, args.tau_from)
     else:
