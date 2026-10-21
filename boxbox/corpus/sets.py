@@ -24,6 +24,7 @@ from .build import (
     scope_item,
     select_cards,
     track_item,
+    why_item,
 )
 from .templates import stated_answer
 
@@ -44,8 +45,20 @@ EVAL_KINDS = {
         "multi": 8,
         "out_of_scope": 6,
     },
+    "final": {  # task 4.1: about 200 targets, twice validation
+        "complete": 60,
+        "missing": 40,
+        "decidable": 30,
+        "multi": 40,
+        "out_of_scope": 30,
+    },
 }
-TRACK_ITEMS = {"train": 15, "validation": 4, "mini_test": 2}  # inside out_of_scope
+TRACK_ITEMS = {"train": 15, "validation": 4, "mini_test": 2, "final": 8}
+# Inside "multi" of the final set: a "why" follow-up on a blocking card, then on a usable
+# incomplete card, so the 40-target review of protocol section 8 can fill its follow-up
+# slots (2 blocking, 2 usable, 4 complete, all history-sensitive).
+INCOMPLETE_WHY = {"final": {"blocking": 8, "usable": 8}}
+PREFIXES = {"validation": "V", "mini_test": "M", "final": "F"}
 CALLS = {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
 
 
@@ -160,11 +173,13 @@ def eval_set(
     kinds, rng = EVAL_KINDS[split], random.Random(f"{seed}-{split}")
     syn_missing, syn_decidable = kinds["missing"] // 2, kinds["decidable"] // 2
     asked = kinds["out_of_scope"] - TRACK_ITEMS[split]
-    n = kinds["complete"] + kinds["multi"] + asked + syn_missing
+    extra = INCOMPLETE_WHY.get(split, {})
+    multis = kinds["multi"] - sum(extra.values())
+    n = kinds["complete"] + multis + asked + syn_missing
     capped = Counter()
     cards = select_cards(records, n, rng, capped)
     rng.shuffle(cards)
-    a, b, c = kinds["complete"], kinds["complete"] + kinds["multi"], n - syn_missing
+    a, b, c = kinds["complete"], kinds["complete"] + multis, n - syn_missing
     items = [call_item(r, "complete", rng, "eval") for r in cards[:a]]
     items += [multi_item(r, i, rng, "eval") for i, r in enumerate(cards[a:b])]
     items += [scope_item(r, i, rng, "eval") for i, r in enumerate(cards[b:c])]
@@ -190,7 +205,33 @@ def eval_set(
         kinds["decidable"] - syn_decidable,
     )
     items += [call_item(r, "decidable", rng, "eval") for r in decided]
-    return _numbered(items, {"validation": "V", "mini_test": "M"}[split], split)
+    if extra:
+        used |= {r["card_id"] for r in decided}
+        for state in ("blocking", "usable"):
+            whys = _why_incomplete(records, used, rng, extra[state], state)
+            used |= {item["card_id"] for item in whys}
+            items += whys
+    return _numbered(items, PREFIXES[split], split)
+
+
+def _why_incomplete(records, used, rng, count, state) -> list[dict[str, Any]]:
+    """A call then "why" on a complete card with one field removed: required ("blocking",
+    the rule gives NO CALL) or ignored on its path ("usable", the call stays)."""
+    fields = REQUIRED if state == "blocking" else IRRELEVANT
+    pool = [
+        {**r, "path": path_of(r["card"])}
+        for r in sorted(records, key=lambda r: r["card_id"])
+        if r["card_id"] not in used
+        and complete(r["card"])
+        and path_of(r["card"]) in fields
+    ]
+    rng.shuffle(pool)
+    if len(pool) < count:
+        raise ValueError(f"only {len(pool)} cards for {count} {state} why follow-ups")
+    return [
+        why_item(r, fields[r["path"]][i % len(fields[r["path"]])], rng, "eval")
+        for i, r in enumerate(pool[:count])
+    ]
 
 
 def _answer_errors(item: dict[str, Any]) -> list[str]:
@@ -250,6 +291,22 @@ def check_set(
             errors.append(f"{item['id']}: missing item still gets {call}")
         if item["kind"] == "decidable" and call == "NO CALL":
             errors.append(f"{item['id']}: decidable item gets NO CALL")
+    return errors
+
+
+def check_incomplete_whys(items: list[dict[str, Any]], split: str) -> list[str]:
+    """The final set's "why" follow-ups on incomplete cards, by state and rule answer."""
+    wanted = INCOMPLETE_WHY.get(split, {})
+    whys = [i for i in items if i["kind"] == "multi" and i.get("removed_field")]
+    blocking = [i for i in whys if decide(i["card"])[0] == "NO CALL"]
+    errors = [
+        f"{i['id']}: follow-up on an incomplete card is not a why"
+        for i in whys
+        if i["follow_up"] != "why"
+    ]
+    counts = {"blocking": len(blocking), "usable": len(whys) - len(blocking)}
+    if counts != {k: wanted.get(k, 0) for k in ("blocking", "usable")}:
+        errors.append(f"why follow-ups on incomplete cards {counts}, not {wanted}")
     return errors
 
 
