@@ -60,6 +60,10 @@ TRACK_ITEMS = {"train": 15, "validation": 4, "mini_test": 2, "final": 8}
 INCOMPLETE_WHY = {"final": {"blocking": 8, "usable": 8}}
 PREFIXES = {"validation": "V", "mini_test": "M", "final": "F"}
 EVAL_CAP = 6  # cards per race and driver in an evaluation set: three capped pools of 2
+# The final races have SC/VSC cards but none with every other decision field known
+# (team decision on #20): their track-status items take any SC/VSC card that the rule
+# stops on the track status, even with another field unknown.
+ANY_TRACK_CARD = {"final"}
 CALLS = {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
 
 
@@ -117,6 +121,18 @@ def _neutral(card: dict[str, Any]) -> bool:
         and card["tyre_age_laps"] is not None
     )
     return card["track_status"] != "GREEN" and known
+
+
+def track_card(card: dict[str, Any]) -> bool:
+    """An SC or VSC card that the rule answers NO CALL because of the track status."""
+    return card["track_status"] != "GREEN" and decide(card)[1].startswith(
+        "The card does not show green-flag running"
+    )
+
+
+def track_rule(split: str):
+    """The card test of a split's track-status items: neutral, or any SC/VSC card."""
+    return track_card if split in ANY_TRACK_CARD else _neutral
 
 
 def corpus_a(records: list[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
@@ -188,7 +204,9 @@ def eval_set(
         fields = REQUIRED[record["path"]]
         field = fields[i % len(fields)]
         items.append(removed_item(record, "missing", field, rng, "eval"))
-    neutral = _pick(_rest(records, cards), _neutral, TRACK_ITEMS[split], rng, capped)
+    neutral = _pick(
+        _rest(records, cards), track_rule(split), TRACK_ITEMS[split], rng, capped
+    )
     items += [track_item(r, rng, "eval") for r in neutral]
     used = {r["card_id"] for r in cards + neutral}
     items += _irrelevant(records, used, rng, syn_decidable)
@@ -280,16 +298,20 @@ def check_set(
     races: set[str],
     cap: int,
     track: int,
+    track_ok=_neutral,
 ) -> list[str]:
-    """Every problem found in one set; an empty list means it passes."""
+    """Every problem found in one set; an empty list means it passes.
+
+    `track_ok` tests the card of each track-status item (`track_rule(split)`).
+    """
     errors = [f"{i['id']}: {e}" for i in items for e in _answer_errors(i)]
     counts = Counter(item["kind"] for item in items)
     if dict(counts) != kinds:
         errors.append(f"kinds {dict(counts)} instead of {kinds}")
     tracks = [i for i in items if i["scope"] == "track_status"]
-    if len(tracks) != track or any(not _neutral(i["card"]) for i in tracks):
+    if len(tracks) != track or any(not track_ok(i["card"]) for i in tracks):
         errors.append(
-            f"{len(tracks)} track status items instead of {track} neutral ones"
+            f"{len(tracks)} track status items instead of {track} with valid cards"
         )
     if len({i["card_id"] for i in items}) != len(items):
         errors.append("a card is used twice")

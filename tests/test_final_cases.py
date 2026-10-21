@@ -154,3 +154,29 @@ def test_incomplete_whys_respect_the_race_driver_cap() -> None:
     assert taken["2024-01-77"] <= EVAL_CAP
     with pytest.raises(ValueError, match="under the cap"):
         _why_incomplete(crowded, set(), random.Random(0), 8, "blocking", Counter(taken))
+
+
+def test_final_track_items_accept_sc_cards_with_an_unknown_field() -> None:
+    """Team decision on #20: the final races have SC/VSC cards, none neutral."""
+    from boxbox.corpus import EVAL_CAP, EVAL_KINDS, TRACK_ITEMS, check_set, track_rule
+
+    cards = []
+    for record in records():
+        card = record["card"]
+        if card["track_status"] != "GREEN":  # no neutral card left, as in the final
+            card = {**card, "gap_behind": {"state": "UNKNOWN", "seconds": None}}
+        cards.append({**record, "card": card})
+    races = {f"2024-{n:02d}" for n in range(1, 21)}
+    items = eval_set(cards, "final", 2026)
+    tracks = [i for i in items if i["scope"] == "track_status"]
+    assert len(tracks) == 8
+    assert all(i["card"]["gap_behind"]["state"] == "UNKNOWN" for i in tracks)
+    assert (
+        check_set(items, EVAL_KINDS["final"], races, EVAL_CAP, 8, track_rule("final"))
+        == []
+    )
+    # validation keeps the neutral rule: the same cards cannot fill its track items
+    validation = eval_set(cards, "validation", 2026)
+    errors = check_set(validation, EVAL_KINDS["validation"], races, EVAL_CAP, 4)
+    assert any("track status items" in e for e in errors)
+    assert TRACK_ITEMS["validation"] == 4
