@@ -80,13 +80,17 @@ def adapt_split(
     split_document: dict,
     split: str,
     history_turns: int = 3,
+    *,
+    final_open: bool = False,
 ) -> list[dict]:
-    """`adapt_validation` for one evaluation split: validation or the mini-test (2.7).
+    """`adapt_validation` for one evaluation split: validation, the mini-test (2.7) or,
+    with `final_open`, the final test (4.1).
 
-    The final split is refused here; it has its own gate and task (4.1).
+    `final_open` is set only by the 4.1 builder, after it has checked the freeze.
     """
-    if split not in _EVALUATION_SPLITS:
-        raise ValueError(f"cases can be adapted for {sorted(_EVALUATION_SPLITS)} only")
+    allowed = _EVALUATION_SPLITS | ({"final"} if final_open else set())
+    if split not in allowed:
+        raise ValueError(f"cases can be adapted for {sorted(allowed)} only")
     if not isinstance(split_document.get("races"), dict) or not isinstance(
         split_document.get("splits", {}).get(split), list
     ):
@@ -129,9 +133,11 @@ def adapt_split(
         if kind not in _KINDS:
             raise ValueError(f"{identifier}: unsupported corpus kind")
         removed = item.get("removed_field")
-        if removed is not None and (
-            kind not in {"missing", "decidable"} or removed not in _REMOVABLE
-        ):
+        # a "why" follow-up on an incomplete card exists in the final set only (4.1)
+        removable = kind in {"missing", "decidable"} or (
+            kind == "multi" and follow == "why" and split == "final"
+        )
+        if removed is not None and (not removable or removed not in _REMOVABLE):
             raise ValueError(f"{identifier}: unsupported recorded card transformation")
         expected_card = remove_field(source_card, removed) if removed else source_card
         if dumps(card) != dumps(expected_card):

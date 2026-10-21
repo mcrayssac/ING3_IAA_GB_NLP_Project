@@ -253,3 +253,18 @@ def removed_item(
     item = call_item(changed, kind, rng, use)
     item["removed_field"] = field
     return item
+
+
+def why_item(
+    record: dict[str, Any], field: str, rng: random.Random, use: str
+) -> dict[str, Any]:
+    """A call then "why?" on the card with one field made unknown (final set, task 4.1).
+
+    Both answers are the rule's answer on the changed card, as for every "why" follow-up.
+    """
+    changed = remove_field(record["card"], field)
+    questions = T.QUESTIONS[use]
+    first = (_call_question(changed, rng, use), T.call_answer(changed))
+    second = (rng.choice(questions["why"]), T.call_answer(changed))
+    item = _item({**record, "card": changed}, "multi", _turns(first, second))
+    return {**item, "follow_up": "why", "removed_field": field}
