@@ -1,12 +1,12 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 21 October 2026, 18:00 - milestone 4 is in progress.** Tasks 1.1 to 3.4 are done. The 3.5 freeze is recorded and awaits a teammate's confirmation, and the final cases (4.1) are in review. Final scoring, human review, statistics and conclusions (4.2 to 4.5) and delivery tasks 5.2 to 5.6 have not started, and their planned windows on 21 October have passed. The report and video outline (5.1) is ready. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison.
+**Snapshot: 21 October 2026, 18:00 - milestone 4 is in progress.** Tasks 1.1 to 3.5 are done, including the freeze of the retained versions, and the final cases (4.1) are in review. Final scoring, human review, statistics and conclusions (4.2 to 4.5) and delivery tasks 5.2 to 5.6 have not started, and their planned windows on 21 October have passed. The report and video outline (5.1) is ready. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
 The product, interface, prompts, training examples, code, notebook explanations, run guide and project documentation use **English**. The report, video and other teacher-facing presentation documents use **French**. The executed notebook and `README.txt` remain English; the original [assignment PDF](../instructions/mini_projet_2_agent_conversationnel.pdf) remains French.
 
-![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; at the 21 October snapshot, tasks 1.1 to 3.4 are complete](diagrams/roadmap-gantt.png)
+![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; at the 21 October snapshot, tasks 1.1 to 3.5 are complete](diagrams/roadmap-gantt.png)
 
 [Full-size schedule](diagrams/roadmap-gantt.png) · [Editable Excalidraw source](diagrams/roadmap-gantt.excalidraw)
 
@@ -32,7 +32,7 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 |---|---|---|---|
 | 1. Framing and design | 17 Oct remaining day; three decisions completed 26 Sep | done | Accepted rules/card contract, five expected conversations, measured feasibility and shared pickup workflow |
 | 2. First prototype | 18–19 Oct | done | Complete seven-step MVP by 19 Oct evening; both mini-test 2.7 and real notebook demo 2.8 accepted |
-| 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | review: the 3.5 freeze is recorded and awaits confirmation | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
+| 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | done | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
 | 4. Evaluation | 20 Oct after freeze–21 Oct | in progress: 4.1 in review | Closed final test, human review, paired gains, uncertainty and conclusions |
 | 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | planned: 5.1 ready | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
 
@@ -84,7 +84,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 12 unfinished tasks: 3.5 and 4.1 are in review, 5.1 is ready, and 4.2 to 4.5 and 5.2 to 5.6 are planned. Tasks 1.1 to 3.4 are done.
+Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 11 unfinished tasks: 4.1 is in review, 5.1 is ready, and 4.2 to 4.5 and 5.2 to 5.6 are planned. Tasks 1.1 to 3.5 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -139,7 +139,7 @@ Windows include implementation, checks and hand-off review; they are not effort 
 | 3.2 | **Train controlled adapter B.** Train and reload B using the fixed A settings; retain losses and validation/mini-test outputs. | M | 20 Oct, morning–early afternoon | 3.1, 2.7, 2.8 | done (21 Oct) | [#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17) |
 | 3.3 | **Write the interim A/B analysis.** Compare A/B on validation and the exploratory mini-test, including unjustified answers and excessive refusals. | E | 20 Oct, afternoon | 3.2 | done (21 Oct) | [#18](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18) |
 | 3.4 | **Zero-shot OpenJev baseline (optional).** Score OpenJev Flash 9B (MLX 4-bit) zero-shot on the CALL line of the same validation and mini-test cards; freeze it with the retained versions or record the drop. It has no WHY sentence, so it stays out of 4.3 human review. Repeat runs and V2 stay deferred. | M | 20 Oct, morning–afternoon | 2.7, 2.8 | done (21 Oct) | [#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35) |
-| 3.5 | **Freeze retained versions.** Freeze retained models/adapters, prompts, corpora, decoding, configurations and evaluation protocol before opening the final test. | M | 20 Oct, by 18:00 | 3.3; **only if B is dropped:** 2.7 + 2.8 + recorded team decision | review | [#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19) |
+| 3.5 | **Freeze retained versions.** Freeze retained models/adapters, prompts, corpora, decoding, configurations and evaluation protocol before opening the final test. | M | 20 Oct, by 18:00 | 3.3; **only if B is dropped:** 2.7 + 2.8 + recorded team decision | done (21 Oct) | [#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19) |
 
 ### 4. Evaluation
 
