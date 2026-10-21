@@ -1,5 +1,9 @@
 # Adapter B (task 3.2)
 
+The [3.3 interim analysis](interim-ab-analysis.md) consolidates these results with
+the paired mini-test regressions, resource costs, uncertainty and explicit
+verification limits. Its recommendation is pending the team's 3.5 decision.
+
 Adapter B is the controlled variant of adapter A. It is trained exactly like A, on corpus B. That corpus replaces 60 of A's 400 items with cards where a field the rule needs is unknown, so the answer is NO CALL (task 3.1). Comparing B with A therefore measures the effect of those 60 examples. B was trained with the same three seeds as A, on the night of 20 to 21 October, and each B seed is compared with the A seed of the same number.
 
 ## Commands

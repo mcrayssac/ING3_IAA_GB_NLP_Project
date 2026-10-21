@@ -96,7 +96,7 @@ Measures:
 
 ## Setup
 
-- **Environment:** `~/openjev/mlx`, a Python 3.12.13 environment outside the repository, with the packages of the model card: mlx 0.32.2, mlx-lm 0.31.3, transformers 5.17.0, openai 3.16.2, httpx 0.28.1 and huggingface-hub 1.32.0. README section 13 has the commands.
+- **Environment:** `~/openjev/mlx`, a Python 3.12.13 environment outside the repository, with the packages of the model card: mlx 0.32.2, mlx-lm 0.31.3, transformers 5.17.0, openai 3.16.2, httpx 0.28.1 and huggingface-hub 1.32.0. README section 14 has the commands.
 - **Pinned files:** `configs/openjev.toml` records the model revision `33cbf372` and the helper revision `b77b0fff`, with the SHA-256 of 11 files. The two helper files match the repository's own `SHA256SUMS`, and the model file matches its LFS hash. Every run hashes the 11 files again before it starts the server.
 - **Code reading:** both helper files were read in full before the first run.
   - The server binds to 127.0.0.1, writes no file and sends no telemetry.

@@ -304,7 +304,32 @@ for A, and refuses 6 of 24 decidable targets against 1 for A. See
 docs/adapter-b.md for the tables, the comparison at equal updates, the
 mini-test and the reading of these results.
 
-13. OpenJev zero-shot baseline (task 3.4)
+13. Interim A/B analysis (task 3.3)
+----------------------------------
+
+docs/interim-ab-analysis.md compares the retained validation and exploratory
+mini-test evidence, including B's reduction in unjustified decisions and its
+increase in excessive refusals. docs/interim-ab-evidence.json holds exact counts,
+paired transitions, uncertainty support and source hashes. This is an interim
+analysis; B retention, protocol acceptance and the final freeze remain team
+decisions. Human scores are still pending.
+
+To check the retained evidence without loading a model, extract 3-2-runs.zip
+and 2-6-logs.zip into separate local folders. From the repository root:
+
+    .venv/bin/python -m scripts.interim_analysis --runs-root /path/to/extracted-3-2 --a-logs /path/to/extracted-2-6/2-6-logs --output /path/to/new-analysis.json
+    .venv/bin/python -m pytest -q tests/test_interim_analysis.py tests/test_evaluation.py tests/test_adapter_summary.py tests/test_mini_test.py tests/test_corpus_b.py
+
+The first directory contains the dated B runs and 3-2-logs as direct children.
+The output must be a new file. The script checks the complete mini-test and B
+validation ledgers against their retained scores. A's raw validation answers
+are absent from these archives: the A/B validation race intervals remain the
+retained 3.2 summary, with their arithmetic checked where possible. A's logs do
+not replace those answers. No training, inference, final-data access or rating
+is performed. Share masked rating sheets separately from the run archive,
+which contains version identities and the key.
+
+14. OpenJev zero-shot baseline (task 3.4)
 -----------------------------------------
 
 OpenJev Flash 9B, a decision model run without training, answers the CALL line
