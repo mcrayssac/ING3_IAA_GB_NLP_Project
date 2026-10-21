@@ -1,0 +1,132 @@
+{
+  "task": "3.5",
+  "frozen_at": "2026-10-21T14:49:59+02:00",
+  "git_commit": "b24364a255fc28589d03570c19d11a34909db30f",
+  "decision_record": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632",
+  "protocol_acceptance_record": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632",
+  "reviewer": "Paul",
+  "model": {
+    "id": "HuggingFaceTB/SmolLM3-3B",
+    "revision": "a07cc9a04f16550a088caea529712d1d335b0ac1"
+  },
+  "shared_inference": {
+    "prompt_variant": "p01-policy-first",
+    "history_turns": 3,
+    "history_mode": "fixed",
+    "decoding": {
+      "max_new_tokens": 64,
+      "do_sample": false,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "max_context_tokens": 8192,
+      "max_generation_seconds": 30.0
+    },
+    "chat_template_date": "2026-10-19"
+  },
+  "versions": {
+    "baseline": {
+      "selection_file": "configs/baseline-selection.json",
+      "selection_sha256": "c59ca7c0b9dbe18044d11d3bc9794f6f75f8c2187324f4e9faba94469b1d1b86",
+      "config_file": "configs/baseline-selected.toml",
+      "config_sha256": "3c409cef46c1daac6305aa4842f25212a23027e6f4fa74582425d80c75672585",
+      "prompt_file": "configs/prompts/p01-policy-first.txt",
+      "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+      "adapter": "none",
+      "abstention_share": 0.0,
+      "chat_template_sha256": "3e0e275a527f249670056e0078e474eadbdd007c134b4fdfae5a7b3089702814",
+      "template_options": {
+        "add_generation_prompt": true,
+        "enable_thinking": false,
+        "padding": false,
+        "truncation": false
+      }
+    },
+    "A": {
+      "selection_file": "configs/adapter-a-selection.json",
+      "selection_sha256": "3f67817e55fd0fdf55cbcb91dbfa639698f48eb7344bf5297d521bce7db1a861",
+      "config_file": "configs/adapter-a.toml",
+      "config_sha256": "d79849a404a69f29a099c201d4d1aa1851a56af3e9f4c96eb279ccfbc0e050dc",
+      "prompt_file": "configs/prompts/p01-policy-first.txt",
+      "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+      "adapter": "A",
+      "abstention_share": 0.0,
+      "version": "A-s2028-e1",
+      "seed": 2028,
+      "epoch": 1,
+      "step": 120,
+      "adapter_sha256": "3322b5b3158e2f68c047b6644dc9ea0b5dcaf7f4fd6501175246ef5c4873c07d",
+      "hub": {
+        "repo": "ING3NLPProject/boxbox-adapter-a",
+        "revision": "ece13db9ea1770a338156250501bc7a17d327235",
+        "folder": "s2028-e1"
+      },
+      "checkpoint": "2026-10-19_2-6-adapter-a-s2028/trainer/checkpoint-120",
+      "lora": {
+        "r": 16,
+        "alpha": 32,
+        "dropout": 0.0,
+        "target_modules": "all-linear",
+        "learning_rate": 0.0002,
+        "epochs": 3,
+        "batch_size": 2,
+        "gradient_accumulation": 2,
+        "max_length": 1024,
+        "max_steps": -1
+      }
+    },
+    "B": {
+      "selection_file": "configs/adapter-b-selection.json",
+      "selection_sha256": "7f59aeed0d91593a15046f355f0c340b6326b782be6cc24be43a5f85623031e1",
+      "config_file": "configs/adapter-b.toml",
+      "config_sha256": "f9612a557e9a4fc7c1aa5136949519e24c957d55c69bc48e8eacd19ed30175e0",
+      "prompt_file": "configs/prompts/p01-policy-first.txt",
+      "prompt_sha256": "00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e",
+      "adapter": "B",
+      "abstention_share": 0.15,
+      "version": "B-s2027-e3",
+      "seed": 2027,
+      "epoch": 3,
+      "step": 360,
+      "adapter_sha256": "70423a7d4aa76c69b9cdb9c05bdd89fe73929d6c5df320d9bc10551e5324508e",
+      "hub": {
+        "repo": "ING3NLPProject/boxbox-adapter-b",
+        "revision": "f182f8e9150fa518576eb99c0785bae5dd3ed5f8",
+        "folder": "s2027-e3"
+      },
+      "checkpoint": "2026-10-21_3-2-adapter-b-s2027/trainer/checkpoint-360",
+      "lora": {
+        "r": 16,
+        "alpha": 32,
+        "dropout": 0.0,
+        "target_modules": "all-linear",
+        "learning_rate": 0.0002,
+        "epochs": 3,
+        "batch_size": 2,
+        "gradient_accumulation": 2,
+        "max_length": 1024,
+        "max_steps": -1
+      }
+    }
+  },
+  "files": {
+    "docs/evaluation-protocol.md": "9be4649a6d4fa2c7e495b7e797023e32baf4a667de0174ded06f83692c5e5d58",
+    "reference/evaluation-fixtures.json": "0c12e1c1dba4310d4ce88bd82a677c4065404f178bc122e33ed8607f67c5085b",
+    "reference/fixtures.json": "d8af0b8146574aa44003a837da9eb5cc634d40b3c1f84477666277bc096f6cb5",
+    "boxbox/rules/decision.py": "7e94cbd62e20c0a5cf3a4681704f004772db76b840e89ec3be246503ff00b376",
+    "docs/race-card-contract.md": "8d706e0525fac4eafb244f4d1bf0fcf996ba389b051b75b2c8a3237216a866a2",
+    "data/splits.json": "e8fd8b47c495a53de0494e13e7c0c95f39909fa0ac23ef665de678b4c040a9a2",
+    "data/corpus/manifest.json": "dce51549032ad58fd5d76fe8035424c5ba403702f6eb6f3462e8770ebdbfeb0a",
+    "data/corpus/A_train.jsonl": "3d36da4e30f6a03a322c4027eb2d211baa0bf60969a804e1b526db23ba290fb5",
+    "data/corpus/B_train.jsonl": "94b61b2bde220026f43633e53ad4ee55c98b649a193150ba8e5ee5db15367331",
+    "data/corpus/B_pairs.json": "176b2281998ba8dc45e69dc6a1313155c0e55b4d33e28f8d2fb35e1e16739d80",
+    "data/corpus/validation.jsonl": "df99280ff7879f0548af7adfac80e918cb1b1a9b96a5a13c431950c2e1d63737",
+    "data/corpus/mini_test.jsonl": "b9ea28f755ea94776471157e2b662c4b816e93e4924dd694d0b59fa8f94519e7",
+    "data/corpus/exposure.json": "7692f4538a2f1893f43b781e5b281576340662df56735a2c1aa66e2a522b4f06"
+  },
+  "final_test_open": false,
+  "rules": [
+    "No new experiment after the freeze: no new corpus, prompt, checkpoint, decoding or protocol choice.",
+    "A correction that changes outputs needs an explicit team decision and a new freeze before any final evaluation.",
+    "The final test stays closed until 4.1 opens it under this freeze."
+  ]
+}
