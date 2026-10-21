@@ -4,6 +4,8 @@ This study asks whether a recent zero-shot decision model can make BoxBox's pit 
 
 It is an exploratory study, as decided on #35 on 21 October. It stays outside the 3.5 freeze. If the team later wants OpenJev in the final comparison, its configuration is frozen first, and that is recorded as an exception to the passed freeze before 4.2 scores its CALL line.
 
+The runs of 21 October answer the main question. On the 40 unseen mini-test targets, OpenJev agrees with the reference call on 18 targets with its most probable option, and on 23 with the threshold. The untuned baseline gets 10, A 28 and B 33. OpenJev also refuses some of the usable incomplete cards, it changes 16 of 100 validation calls when only the option order changes, and its probabilities are poorly calibrated on our cards. The results and their reading are in [Results](#results) and [Answers to the research questions](#answers-to-the-research-questions).
+
 ## What OpenJev is
 
 OpenJev describes itself as a decision model. A request names the options of each question. The model gives each option a letter, and the server reads the score of every letter at the first output position, so no text is generated. A fixed calibration then turns the scores into one probability per option. Questions can be a `choice` among options, a yes/no question (`noul`) or a `score` on ordered levels. One request can ask several named questions about the same `state`, through `POST /v1/systemone`.
@@ -91,6 +93,207 @@ Measures:
 - **Validation choices:** τ is chosen on validation, where A's and B's checkpoints and the p01 prompt were also chosen. The mini-test is the fair comparison, and with 40 targets from 5 races its intervals are wide.
 - **Diagnostic wording:** the diagnostic questions are our own wording, written once and not tuned.
 - **Hardware:** the results hold for this 4-bit build on this Mac. Its authors report small differences between builds.
+
+## Setup
+
+- **Environment:** `~/openjev/mlx`, a Python 3.12.13 environment outside the repository, with the packages of the model card: mlx 0.32.2, mlx-lm 0.31.3, transformers 5.17.0, openai 3.16.2, httpx 0.28.1 and huggingface-hub 1.32.0. README section 13 has the commands.
+- **Pinned files:** `configs/openjev.toml` records the model revision `33cbf372` and the helper revision `b77b0fff`, with the SHA-256 of 11 files. The two helper files match the repository's own `SHA256SUMS`, and the model file matches its LFS hash. Every run hashes the 11 files again before it starts the server.
+- **Code reading:** both helper files were read in full before the first run.
+  - The server binds to 127.0.0.1, writes no file and sends no telemetry.
+  - Its only outbound code is a chat passthrough, which cannot run on the MLX path and which we never call.
+  - The model folder holds no Python file, and its configuration names no custom code.
+  - Runs set `HF_HUB_OFFLINE=1`, so any Hub access fails instead of downloading.
+- **Server:** `scripts/openjev_baseline.py run` starts the server with the readout values of the model card. It checks `/v1/version` against the pinned helper hash and calibration, asks each target once and stops the server. A failed request stays an error and is never retried. There was none.
+- **Request:** the state is the engine's system text, so the p01 policy and the card JSON exactly as `_prompt` writes them, then the conversation as `User:` and `Assistant:` lines.
+  - p01's closing paragraph on the two-line answer format is left out, because the helper asks for one letter. The rest of p01 is unchanged.
+  - The four questions are in `configs/openjev.toml`. Options come without descriptions, in the order of p01's CALL line for the call question.
+  - For the first validation target, the runner's request is identical to the smoke request checked by hand.
+- **Diagnostic references:** `in_scope` is the opposite of the case's out-of-scope flag. `required_known` and `missing_field` come from the reason `decide()` gives for a NO CALL. On the 4 validation and 2 mini-test cards under a safety car or VSC, track status counts as the field that stops the rule. A yes/no answer counts as yes when its probability is at least 0.5.
+
+## Runs
+
+All three runs come from commit `07850a9` with a clean tree. Every target got an answer, with no request error.
+
+| Run | Targets | Questions per target | Seconds per target | Duration |
+|---|---:|---|---:|---:|
+| `2026-10-21_3-4-openjev-validation` | 100 | 4 | 7.3 | 12.3 min |
+| `2026-10-21_3-4-openjev-validation-shuffle-s2026` | 100 | CALL only, options reordered | 1.7 | 2.9 min |
+| `2026-10-21_3-4-openjev-mini-test` | 40 | 4 | 7.6 | 5.2 min |
+
+The duration includes loading the model. With four questions, a target sends about 3,240 prompt tokens, one forward pass per question.
+
+## Threshold
+
+The rule of #35 gives τ = 0.59 on validation. CALL agreement reaches its maximum, 0.64, at τ 0.55, 0.58 and 0.59. The tie goes to fewer unjustified decisions: 2 of 40 at 0.59, against 4 at 0.58 and 6 at 0.55.
+
+| τ | CALL agreement | Unjustified decisions | Excessive refusals | Decision coverage |
+|---:|---:|---:|---:|---:|
+| 0 (argmax) | 0.56 | 0.550 | 0.083 | 0.77 |
+| 0.50 | 0.59 | 0.325 | 0.267 | 0.57 |
+| 0.55 | 0.64 | 0.150 | 0.317 | 0.47 |
+| 0.59 | 0.64 | 0.050 | 0.450 | 0.35 |
+| 0.62 | 0.62 | 0.050 | 0.533 | 0.30 |
+| 0.70 | 0.54 | 0.025 | 0.700 | 0.19 |
+| 0.80 | 0.51 | 0.000 | 0.817 | 0.11 |
+
+`threshold.json` in the validation run holds the 101 points. The peak is narrow. Above 0.59, unjustified decisions stay at 2 of 40 up to 0.62 while refusals keep rising.
+
+## Results
+
+### Validation
+
+A's and B's checkpoints, the p01 prompt and τ were all chosen on these 100 targets, so this table favours each of them.
+
+| Measure | Baseline | A | B | OpenJev argmax | OpenJev τ |
+|---|---:|---:|---:|---:|---:|
+| CALL agreement | 16/100 | 70/100 | 84/100 | 56/100 | 64/100 |
+| Unjustified decisions (Z) | 28/40 | 23/40 | 0/40 | 22/40 | 2/40 |
+| Excessive refusals (D) | 0/60 | 1/60 | 15/60 | 5/60 | 27/60 |
+| Macro-label agreement | 0.158 | 0.714 | 0.870 | 0.562 | 0.603 |
+| Macro-family agreement | 0.153 | 0.755 | 0.793 | 0.608 | 0.663 |
+| Decision coverage | 75/100 | 82/100 | 45/100 | 77/100 | 35/100 |
+
+CALL agreement by family:
+
+| Family | Baseline | A | B | OpenJev argmax | OpenJev τ |
+|---|---:|---:|---:|---:|---:|
+| Blocking incomplete | 0/24 | 1/24 | 24/24 | 4/24 | 22/24 |
+| Complete | 9/30 | 24/30 | 29/30 | 16/30 | 10/30 |
+| Follow-up | 2/15 | 14/15 | 15/15 | 13/15 | 11/15 |
+| Out of scope | 0/16 | 16/16 | 16/16 | 14/16 | 16/16 |
+| Usable incomplete | 5/15 | 15/15 | 0/15 | 9/15 | 5/15 |
+
+OpenJev minus the other versions, race bootstrap over the 7 validation races (10,000 draws, seed 2026):
+
+| Contrast | CALL agreement | Unjustified decisions | Excessive refusals |
+|---|---|---|---|
+| argmax − baseline | +0.400 (+0.310 to +0.533) | -0.150 (-0.283 to -0.042) | +0.083 (+0.021 to +0.127) |
+| argmax − A | -0.140 (-0.205 to -0.083) | -0.025 (-0.122 to +0.093) | +0.067 (+0.018 to +0.116) |
+| argmax − B | -0.280 (-0.467 to -0.076) | +0.550 (+0.333 to +0.708) | -0.167 (-0.356 to -0.036) |
+| τ − baseline | +0.480 (+0.343 to +0.644) | -0.650 (-0.771 to -0.481) | +0.450 (+0.306 to +0.585) |
+| τ − A | -0.060 (-0.237 to +0.103) | -0.525 (-0.705 to -0.320) | +0.433 (+0.304 to +0.567) |
+| τ − B | -0.200 (-0.290 to -0.102) | +0.050 (0.000 to +0.128) | +0.200 (+0.096 to +0.305) |
+
+For unjustified decisions and excessive refusals, a negative difference favours OpenJev.
+
+### Mini-test
+
+The mini-test is the fair comparison. OpenJev answered the 40 targets of run `2026-10-21_3-2-mini-test-r2`, with the same case and input hashes, and τ stayed at 0.59. The baseline, A and B columns are that run's answers.
+
+| Measure | Baseline | A | B | OpenJev argmax | OpenJev τ |
+|---|---:|---:|---:|---:|---:|
+| CALL agreement | 10/40 | 28/40 | 33/40 | 18/40 | 23/40 |
+| Unjustified decisions (Z) | 11/16 | 9/16 | 1/16 | 10/16 | 4/16 |
+| Excessive refusals (D) | 0/24 | 1/24 | 6/24 | 3/24 | 9/24 |
+| Macro-label agreement | 0.278 | 0.729 | 0.812 | 0.458 | 0.556 |
+| Macro-family agreement | 0.233 | 0.753 | 0.767 | 0.503 | 0.607 |
+| Decision coverage | 31/40 | 32/40 | 19/40 | 31/40 | 19/40 |
+
+CALL agreement by family:
+
+| Family | Baseline | A | B | OpenJev argmax | OpenJev τ |
+|---|---:|---:|---:|---:|---:|
+| Blocking incomplete | 0/10 | 1/10 | 10/10 | 1/10 | 7/10 |
+| Complete | 6/12 | 10/12 | 12/12 | 5/12 | 4/12 |
+| Follow-up | 2/6 | 6/6 | 6/6 | 5/6 | 5/6 |
+| Out of scope | 0/6 | 6/6 | 5/6 | 5/6 | 5/6 |
+| Usable incomplete | 2/6 | 5/6 | 0/6 | 2/6 | 2/6 |
+
+OpenJev minus the other versions, race bootstrap over the 5 mini-test races:
+
+| Contrast | CALL agreement | Unjustified decisions | Excessive refusals |
+|---|---|---|---|
+| argmax − baseline | +0.200 (0.000 to +0.314) | -0.062 (-0.188 to +0.222) | +0.125 (0.000 to +0.368) |
+| argmax − A | -0.250 (-0.348 to -0.159) | +0.062 (0.000 to +0.222) | +0.083 (0.000 to +0.211) |
+| argmax − B | -0.375 (-0.533 to -0.235) | +0.562 (+0.273 to +0.833) | -0.125 (-0.226 to 0.000) |
+| τ − baseline | +0.325 (0.000 to +0.568) | -0.438 (-0.632 to -0.143) | +0.375 (+0.118 to +0.560) |
+| τ − A | -0.125 (-0.375 to +0.114) | -0.312 (-0.500 to 0.000) | +0.333 (+0.077 to +0.486) |
+| τ − B | -0.250 (-0.467 to -0.053) | +0.188 (+0.059 to +0.444) | +0.125 (0.000 to +0.281) |
+
+The 16 targets whose answer is NO CALL come from fewer than 5 races, so the intervals on unjustified decisions are rough. The largest race holds 35% of the targets.
+
+### Calibration and diagnostics
+
+| Measure | Validation | Mini-test |
+|---|---:|---:|
+| Brier score of the CALL probabilities (0 best, 2 worst) | 0.520 | 0.607 |
+| Expected calibration error, 10 bins | 0.132 | 0.236 |
+| `in_scope` right | 98/100 | 39/40 |
+| `required_known` right | 62/100 | 24/40 |
+| `missing_field` right | 25/100 | 10/40 |
+| Blocking cards where OpenJev still decided | 20 | 9 |
+| of which `missing_field` named the right field | 19 | 7 |
+| of which `required_known` said a field is unknown | 16 | 7 |
+
+On validation, the targets with a top probability from 0.4 to 0.6 have a mean confidence of 0.46 to 0.56 and an accuracy of 0.36 to 0.39. The 22 targets at 0.8 or more are all right.
+
+## Answers to the research questions
+
+### 1. Accuracy without training
+
+The hypothesis holds. A and B keep a higher CALL agreement than OpenJev, and the gap is widest on complete cards.
+- On the mini-test, OpenJev gets 5 of 12 complete cards at argmax and 4 at τ, against 10 for A and 12 for B.
+- Overall, its argmax is 0.250 below A (-0.348 to -0.159) and 0.375 below B (-0.533 to -0.235). With τ, it stays 0.250 below B (-0.467 to -0.053). Against A the gap of 0.125 is not clear (-0.375 to +0.114).
+- It gains on the untuned baseline: +0.200 at argmax and +0.325 at τ, though both intervals start at 0.
+
+This matches the studies of Bucher and Martini (2024) and Gondara et al. (2025). The decision tuning of OpenJev does not make up for the missing fine-tuning on our rule. OpenJev handles the scope of a message well (`in_scope` 39 of 40) and the numeric branches of the rule poorly.
+
+### 2. Threshold abstention against B's learnt NO CALL
+
+The hypothesis does not hold, in either part.
+- **Where the threshold helps:** most of its gain is on blocking cards (1 to 7 of 10 on the mini-test, 4 to 22 of 24 on validation). OpenJev already answers most out-of-scope requests with NO CALL at argmax (5 of 6, 14 of 16). Its probabilities are low on the cards with a missing field, which is what the threshold uses.
+- **Usable incomplete cards:** OpenJev refuses some of them too. At argmax it answers NO CALL on 2 of 6 mini-test cards and 4 of 15 validation cards. With τ, that rises to 4 of 6 and 9 of 15. B refuses all of them. A refuses 1 of 6 on the mini-test and none on validation.
+- **Against B:** on the mini-test, τ leaves OpenJev with more unjustified decisions than B (+0.188, +0.059 to +0.444) and more refusals of decidable targets (+0.125, 0.000 to +0.281). B's learnt NO CALL does better on both sides of the trade-off.
+
+### 3. Calibration
+
+The probabilities are poorly calibrated on our cards, and worse on unseen targets with nothing refitted: ECE 0.132 on validation and 0.236 on the mini-test. On validation, OpenJev is overconfident in the middle of the range and underconfident at the top. Our Brier score, 0.520 on validation, cannot be set against the 0.19 of the model card, because the card does not define its Brier score.
+
+### 4. Option order
+
+The hypothesis does not hold. With the three options in another order, 16 of 100 validation calls change, against 2.3% on the model card. The changes come from every family: 5 complete, 4 blocking incomplete, 4 usable incomplete, 2 out of scope and 1 follow-up. The CALL prompt of the shuffled run differs only by the option order, so the order alone causes these changes. Zheng et al. (2024) describe this preference for some option letters or positions.
+
+### 5. Diagnostics
+
+The hypothesis holds in part. On the blocking cards where OpenJev still answered BOX or STAY OUT, `missing_field` named the right field 19 times of 20 on validation and 7 of 9 on the mini-test. `required_known` said a field was unknown 16 and 7 times. OpenJev sees the gap but does not draw the policy's conclusion from it.
+
+The diagnostics also show a bias. `missing_field` never answers "none": it gets 0 of 30 complete and 0 of 15 usable validation cards. `required_known` is wrong on all usable cards (0 of 15, 0 of 6). OpenJev treats every unknown field as needed, so part of its right answers on blocking cards comes from that bias, and it does not follow the rule's order of branches.
+
+### 6. Cost
+
+OpenJev needs no training run. A and B each took about four hours for their three seeds. It answers in 7.3 to 7.6 seconds per target with four questions, about 1.7 seconds for the call question alone. A answers in about 2 seconds on the same Mac: 300 validation answers in about 10 minutes (README section 11).
+
+Its memory is high. The peak memory footprint of the server was 29.6 GB on validation, 29.3 GB on the shuffled run and 29.4 GB on the mini-test, with 6.9 GB resident and no swap. After the single smoke request, it was 10.8 GB. The footprint grows over the requests, most likely through MLX's buffer cache, which these runs do not measure. It is above the 20 GB MPS cap set for the adapters (`mps_memory_cap_gb`).
+
+## Limits found in the runs
+
+- **Few races:** the mini-test has 5 races, and its NO CALL targets fewer than 5. Several intervals touch 0.
+- **Option order on validation only:** the shuffled run was not repeated on the mini-test.
+- **Our own references:** the diagnostic references are ours, including track status as the blocking field under a safety car or VSC.
+- **Prompt change:** OpenJev saw p01 without its answer-format paragraph, which baseline, A and B saw.
+- **Memory:** the cause of the 29 GB footprint is not established.
+
+## Conclusion
+
+Zero-shot OpenJev is clearly better than the untuned baseline on validation and ahead of it on the mini-test, but A and B stay ahead on the call. It does not solve the usable incomplete cards that motivated the study. A threshold on its probabilities trades unjustified decisions for refusals less well than B's learnt NO CALL, and 16 of 100 validation calls change with the option order.
+
+For the final comparison, these results support keeping A and B as the compared systems. The decision is the team's, on #35 (task 3.4.8). If OpenJev is kept, its configuration is frozen first: revisions, file hashes, readout values, questions and τ = 0.59.
+
+## Licence and attribution
+
+The OpenJev Flash 9B weights are under CC BY-NC 4.0, which allows non-commercial use with attribution. This course project is non-commercial, and the repository does not redistribute the weights. The helper and serving files are under Apache 2.0, as is the base model Qwen3.5-9B. The report credits the model as: OpenJev Flash 9B, MLX 4-bit (`openjev/OpenJev-Flash-9B-MLX-4bit`, revision `33cbf372`), CC BY-NC 4.0, based on Qwen/Qwen3.5-9B (Apache 2.0).
+
+## Run files
+
+Each run folder holds:
+- `cases.jsonl`, with the same hash as the baseline, A and B
+- `answers.jsonl`, every answer with its probabilities, diagnostics and latency
+- `outputs.jsonl` and `outputs-tau.jsonl`, the calls at argmax and at τ in the evaluator's format
+- `summaries.json`, `calibration.json`, `diagnostics.json`, `tau.json` and `compare.json`
+- `threshold.json`, in the validation run
+- `manifest.json`, `metrics.json`, `server.log` and a copy of `configs/openjev.toml`
+
+The run folders are not in Git.
 
 ## References
 

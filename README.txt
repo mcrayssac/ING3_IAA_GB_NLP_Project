@@ -303,3 +303,44 @@ On the 40 mini-test targets, B makes 1 unjustified decision on 16 against 9
 for A, and refuses 6 of 24 decidable targets against 1 for A. See
 docs/adapter-b.md for the tables, the comparison at equal updates, the
 mini-test and the reading of these results.
+
+13. OpenJev zero-shot baseline (task 3.4)
+-----------------------------------------
+
+OpenJev Flash 9B, a decision model run without training, answers the CALL line
+on the same validation and mini-test targets as the baseline, A and B. It is an
+exploratory study. The model runs from its own environment, outside the
+repository and outside the synced Documents folder:
+
+    uv venv ~/openjev/mlx --python 3.12
+    uv pip install --python ~/openjev/mlx/bin/python "mlx==0.32.2" "mlx-lm==0.31.3" "transformers==5.17.0" "openai==3.16.2" "httpx==0.28.1" "huggingface-hub==1.32.0"
+    ~/openjev/mlx/bin/hf download openjev/OpenJev-Flash-9B-MLX-4bit --revision 33cbf3727276b3fc99a08104c33b22bf1c5f05dd --local-dir ~/openjev/OpenJev-Flash-9B-MLX-4bit
+    ~/openjev/mlx/bin/hf download openjev/OpenJev-Flash-9B helper/shim.py helper/shim_mlx.py SHA256SUMS MANIFEST.json NOTICE LICENSE serve/SERVE.md README.md --revision b77b0fff67c77a76c16d4da50a66d2fdbc124fae --local-dir ~/openjev/openjev-flash-9b-api
+
+The model is 5.04 GB. configs/openjev.toml pins both revisions, the hashes of
+11 files, the readout values and the four questions. Each run hashes the files
+again, starts the server on 127.0.0.1:3000 with HF_HUB_OFFLINE=1, checks its
+version, answers every target once and stops it. Answer validation, the same
+targets with the CALL options reordered, choose the threshold, score and
+compare with the baseline, A and B:
+
+    caffeinate -i .venv/bin/python -m scripts.openjev_baseline run --split validation
+    caffeinate -i .venv/bin/python -m scripts.openjev_baseline run --split validation --shuffle 2026
+    .venv/bin/python -m scripts.openjev_baseline threshold runs/2026-10-21_3-4-openjev-validation
+    .venv/bin/python -m scripts.openjev_baseline score runs/2026-10-21_3-4-openjev-validation
+    .venv/bin/python -m scripts.openjev_baseline compare runs/2026-10-21_3-4-openjev-validation --shuffled runs/2026-10-21_3-4-openjev-validation-shuffle-s2026
+
+The validation run takes about 12 minutes on an Apple M3 Max, the reordered
+run about 3. Then the mini-test, on the 40 targets of run r2 and with the
+threshold of validation:
+
+    caffeinate -i .venv/bin/python -m scripts.openjev_baseline run --split mini_test
+    .venv/bin/python -m scripts.openjev_baseline score runs/2026-10-21_3-4-openjev-mini-test --tau-from runs/2026-10-21_3-4-openjev-validation
+    .venv/bin/python -m scripts.openjev_baseline compare runs/2026-10-21_3-4-openjev-mini-test
+    .venv/bin/python -m pytest -q tests/test_openjev.py
+
+On the mini-test, OpenJev agrees with the reference call on 18 of 40 targets
+with its most probable option and on 23 with the threshold of 0.59, against 10
+for the baseline, 28 for A and 33 for B. 16 of 100 validation calls change
+when only the option order changes. The weights are under CC BY-NC 4.0. See
+docs/openjev.md for the research questions, the tables and the limits.
