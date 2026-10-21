@@ -284,6 +284,8 @@ Its memory is high. The peak memory footprint of the server was 29.6 GB on valid
 
 Zero-shot OpenJev is clearly better than the untuned baseline on validation and ahead of it on the mini-test, but A and B stay ahead on the call. It does not solve the usable incomplete cards that motivated the study. A threshold on its probabilities trades unjustified decisions for refusals less well than B's learnt NO CALL, and 16 of 100 validation calls change with the option order.
 
+An upgrade round with described options and three averaged option orders (U1, below) does not change this.
+
 For the final comparison, these results support keeping A and B as the compared systems. The decision is the team's, on #35 (task 3.4.8). If OpenJev is kept, its configuration is frozen first: revisions, file hashes, readout values, questions and τ = 0.59.
 
 ## Upgrade round U1 (post hoc)
@@ -305,6 +307,73 @@ The declaration:
 - **Decomposition:** the first order alone (descriptions, no averaging) is reported beside the mean, as a description only. It is never a mini-test candidate.
 - **Known selection:** the descriptions and the averaging were chosen after reading the original validation results, including an offline two-order average. Leaving one race out protects τ only, so U1's validation numbers are optimistic.
 
+### U1 runs
+
+Both runs come from commit `f225ab0`, the declaring commit, with a clean tree. Every target got an answer, with no request error.
+
+| Run | Targets | Seconds per target | Duration |
+|---|---:|---:|---:|
+| `2026-10-21_3-4-openjev-upgrade-validation` | 100 | 5.7 | 9.6 min |
+| `2026-10-21_3-4-openjev-upgrade-mini-test` | 40 | 5.8 | 3.9 min |
+
+A target sends about 2,840 prompt tokens over its three questions. The peak memory footprint was 29.3 GB and 29.4 GB, as before.
+
+### U1 results on validation
+
+CALL agreement out of 100, with the τ chosen in brackets:
+
+| Rule | Original | U1, first order only | U1, mean of 3 orders |
+|---|---:|---:|---:|
+| Argmax | 56 | 55 | 58 |
+| τ chosen leaving one race out (the declared judgement) | 60 | 55 | 59 |
+| τ chosen on all 7 races (reported only) | 64 (0.59) | 63 (0.66) | 66 (0.46) |
+
+Leaving one race out, U1's mean chooses τ 0.46 for four races and 0.51, 0.54 and 0.61 for the others. At that τ, it makes unjustified decisions on 0.300 of the targets whose answer is NO CALL and refuses 0.317 of the decidable ones. The original makes 0.150 and 0.433.
+
+Other measures, original against U1's mean:
+
+| Measure | Original | U1, mean of 3 orders |
+|---|---:|---:|
+| Right direction (BOX against STAY OUT) on decidable targets | 41/60 | 44/60 |
+| Best a NO CALL rule could reach on these probabilities | 81/100 | 84/100 |
+| Expected calibration error / Brier score | 0.132 / 0.520 | 0.089 / 0.502 |
+| Argmax, complete cards | 16/30 | 21/30 |
+| Argmax, usable incomplete cards | 9/15 | 12/15 |
+| Argmax, follow-ups | 13/15 | 9/15 |
+| Argmax, out of scope | 14/16 | 12/16 |
+| Argmax, blocking incomplete cards | 4/24 | 4/24 |
+
+Within one U1 request, the three orders give different argmax calls on 38 of the 100 targets. This measure differs from the 16 of 100 calls that changed between the original and the shuffled run.
+
+### U1 results on the mini-test
+
+τ = 0.46, chosen on all 7 validation races. These numbers are post hoc.
+
+| Measure | Original | U1 | A | B |
+|---|---:|---:|---:|---:|
+| CALL agreement, argmax | 18/40 | 18/40 | 28/40 | 33/40 |
+| CALL agreement, τ rule | 23/40 | 21/40 | | |
+| Unjustified decisions at τ (Z) | 4/16 | 7/16 | 9/16 | 1/16 |
+| Excessive refusals at τ (D) | 9/24 | 4/24 | 1/24 | 6/24 |
+| Complete cards at τ | 4/12 | 6/12 | 10/12 | 12/12 |
+| Blocking incomplete cards at τ | 7/10 | 4/10 | 1/10 | 10/10 |
+| Usable incomplete cards at τ | 2/6 | 2/6 | 5/6 | 0/6 |
+| Expected calibration error | 0.236 | 0.176 | | |
+
+For A and B, the table gives their own answers, which have no τ.
+
+The race bootstrap puts U1 at τ 0.175 below A on CALL agreement (-0.289 to +0.037) and 0.300 below B (-0.357 to -0.194). It is 0.275 above the baseline (+0.040 to +0.488).
+
+### What U1 shows
+
+- **No gain under the declared judgement.** On validation, U1 reaches 59 against 60 when τ is chosen leaving one race out. On the mini-test, it gets the same 18 at argmax and 21 against 23 at τ. Its two gains on validation, 2 points at argmax and 2 with the in-sample τ, do not carry to the mini-test.
+- **The descriptions help where the rule is numeric, and cost elsewhere.** U1 is right on more complete and usable incomplete cards, and on 3 more decidable targets in direction. But it loses on follow-ups and out-of-scope requests. The first order alone does no better than the original.
+- **Averaging calibrates but flattens.** The calibration error falls on both splits (0.132 to 0.089, and 0.236 to 0.176). The mean probabilities are lower, so τ falls from 0.59 to 0.46 and U1 abstains less. It makes more unjustified decisions and fewer excessive refusals, and the two cancel out.
+- **The option order still matters.** The three orders of one request disagree on 38 of 100 validation targets. Averaging hides this in one number. It does not remove it.
+- **The ceiling barely moves.** The best a NO CALL rule could reach rises from 81 to 84 of 100 on validation, B's score, and stays at 31 of 40 on the mini-test, below B's 33.
+
+Prompt and readout changes alone, within this round, do not bring zero-shot OpenJev to the level of A or B. The conclusion above stands.
+
 ## Licence and attribution
 
 The OpenJev Flash 9B weights are under CC BY-NC 4.0, which allows non-commercial use with attribution. This course project is non-commercial, and the repository does not redistribute the weights. The helper and serving files are under Apache 2.0, as is the base model Qwen3.5-9B. The report credits the model as: OpenJev Flash 9B, MLX 4-bit (`openjev/OpenJev-Flash-9B-MLX-4bit`, revision `33cbf372`), CC BY-NC 4.0, based on Qwen/Qwen3.5-9B (Apache 2.0).
@@ -317,7 +386,8 @@ Each run folder holds:
 - `outputs.jsonl` and `outputs-tau.jsonl`, the calls at argmax and at τ in the evaluator's format
 - `summaries.json`, `calibration.json`, `diagnostics.json`, `tau.json` and `compare.json`
 - `threshold.json`, in the validation run
-- `manifest.json`, `metrics.json`, `server.log` and a copy of `configs/openjev.toml`
+- `upgrade.json`, in the U1 validation run
+- `manifest.json`, `metrics.json`, `server.log` and a copy of the config the run used
 
 The run folders are not in Git.
 

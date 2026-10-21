@@ -369,3 +369,20 @@ with its most probable option and on 23 with the threshold of 0.59, against 10
 for the baseline, 28 for A and 33 for B. 16 of 100 validation calls change
 when only the option order changes. The weights are under CC BY-NC 4.0. See
 docs/openjev.md for the research questions, the tables and the limits.
+
+The upgrade round U1 uses configs/openjev-upgrade.toml: the CALL options get
+descriptions from p01, and the question is asked in three option orders whose
+probabilities are averaged. Run both splits, then compare U1 with the original
+run, with τ chosen leaving one race out:
+
+    caffeinate -i .venv/bin/python -m scripts.openjev_baseline run --split validation --config configs/openjev-upgrade.toml
+    caffeinate -i .venv/bin/python -m scripts.openjev_baseline run --split mini_test --config configs/openjev-upgrade.toml
+    .venv/bin/python -m scripts.openjev_baseline threshold runs/2026-10-21_3-4-openjev-upgrade-validation
+    .venv/bin/python -m scripts.openjev_baseline score runs/2026-10-21_3-4-openjev-upgrade-validation
+    .venv/bin/python -m scripts.openjev_baseline upgrade runs/2026-10-21_3-4-openjev-upgrade-validation --against runs/2026-10-21_3-4-openjev-validation
+    .venv/bin/python -m scripts.openjev_baseline score runs/2026-10-21_3-4-openjev-upgrade-mini-test --tau-from runs/2026-10-21_3-4-openjev-upgrade-validation
+    .venv/bin/python -m scripts.openjev_baseline compare runs/2026-10-21_3-4-openjev-upgrade-mini-test
+
+U1 reaches 59 of 100 on validation with τ chosen leaving one race out, against
+60 for the original. On the mini-test it gets 18 of 40 at argmax, as before,
+and 21 with the threshold, against 23.
