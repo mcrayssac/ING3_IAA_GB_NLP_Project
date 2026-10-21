@@ -195,3 +195,41 @@ def test_final_usable_cards_include_box_calls() -> None:
         if i["kind"] == "decidable" and i.get("removed_field")
     )
     assert usable["BOX"] >= 8 and sum(usable.values()) == 15
+
+
+def test_track_items_take_sc_or_vsc_cards_only() -> None:
+    """Regression (#59 review): other non-green statuses are not track-status items."""
+    from boxbox.corpus.sets import track_card
+
+    sc = next(r["card"] for r in records() if r["card"]["track_status"] == "SC")
+    assert track_card(sc) and track_card({**sc, "track_status": "VSC"})
+    for status in ("UNKNOWN", "RED", None):
+        assert not track_card({**sc, "track_status": status})
+
+
+def test_box_preselection_respects_the_race_driver_cap() -> None:
+    """Regression (#59 review): BOX cards crowded on one car stay under the cap."""
+    import random
+    from collections import Counter
+
+    from boxbox.corpus import EVAL_CAP
+    from boxbox.corpus.build import path_of
+    from boxbox.corpus.sets import _irrelevant
+
+    boxes = [
+        r
+        for r in records()
+        if path_of(r["card"]) in ("box_old_tyres", "box_no_car_behind")
+    ]
+    crowded = [
+        {**r, "card_id": f"2024-01-77-L{30 + i}"} for i, r in enumerate(boxes[:12])
+    ]
+    spread = [
+        {**r, "card_id": f"2024-02-{i:02d}-L30"} for i, r in enumerate(boxes[12:20])
+    ]
+    taken = Counter({"2024-01-77": EVAL_CAP - 1})
+    items = _irrelevant(crowded + spread, set(), random.Random(0), 8, 8, taken)
+    per_car = Counter(i["card_id"].rsplit("-", 1)[0] for i in items)
+    assert len(items) == 8 and per_car["2024-01-77"] <= 1
+    with pytest.raises(ValueError, match="BOX cards"):
+        _irrelevant(crowded, set(), random.Random(0), 8, 8, taken)

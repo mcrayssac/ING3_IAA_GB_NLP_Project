@@ -130,7 +130,7 @@ def _neutral(card: dict[str, Any]) -> bool:
 
 def track_card(card: dict[str, Any]) -> bool:
     """An SC or VSC card that the rule answers NO CALL because of the track status."""
-    return card["track_status"] != "GREEN" and decide(card)[1].startswith(
+    return card["track_status"] in {"SC", "VSC"} and decide(card)[1].startswith(
         "The card does not show green-flag running"
     )
 
@@ -170,10 +170,12 @@ def _natural(records, used, wanted, rng, count) -> list[dict[str, Any]]:
     return _pick(rest, keep, count, rng, Counter())
 
 
-def _irrelevant(records, used, rng, count, box=0) -> list[dict[str, Any]]:
+def _irrelevant(records, used, rng, count, box=0, taken=None) -> list[dict[str, Any]]:
     """Complete cards on paths with a field the rule ignores, each with that field removed.
 
-    With `box`, that many of them come first from the BOX paths (final set only).
+    With `box`, that many of them come first from the BOX paths (final set only), each
+    from a race and driver still under EVAL_CAP, counting the items already in the set
+    (`taken`).
     """
     pool = [
         {**r, "path": path_of(r["card"])}
@@ -184,7 +186,16 @@ def _irrelevant(records, used, rng, count, box=0) -> list[dict[str, Any]]:
     ]
     rng.shuffle(pool)
     if box:
-        boxes = [r for r in pool if r["path"].startswith("box_")][:box]
+        boxes, taken = [], Counter(taken or {})
+        for record in pool:
+            key = record["card_id"].rsplit("-", 1)[0]
+            if (
+                len(boxes) < box
+                and record["path"].startswith("box_")
+                and taken[key] < EVAL_CAP
+            ):
+                taken[key] += 1
+                boxes.append(record)
         if len(boxes) < box:
             raise ValueError(f"only {len(boxes)} BOX cards for {box} usable BOX items")
         ids = {r["card_id"] for r in boxes}
@@ -223,7 +234,10 @@ def eval_set(
     )
     items += [track_item(r, rng, "eval") for r in neutral]
     used = {r["card_id"] for r in cards + neutral}
-    items += _irrelevant(records, used, rng, syn_decidable, USABLE_BOX.get(split, 0))
+    taken = Counter(_race_driver_of(i) for i in items)
+    items += _irrelevant(
+        records, used, rng, syn_decidable, USABLE_BOX.get(split, 0), taken
+    )
     used |= {item["card_id"] for item in items}
     missing = _natural(
         records, used, lambda d: "missing" in d[1], rng, kinds["missing"] - syn_missing
