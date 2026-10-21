@@ -23,7 +23,7 @@ python -m scripts.mini_test rated --run-dir runs/<date>_2-7-mini-test --sheet FI
 With adapter B (task 3.2), `prepare --with-b` adds B as a third version:
 - B goes through the same checks as A, against `configs/adapter-b-selection.json`, and its PEFT configuration is sealed the same way.
 - `run` answers with B after A, on the same base model and in the same process.
-- `score` pairs 120 answers. `bootstrap.json` then holds A minus baseline, B minus A and B minus baseline, and the masked sheet has 120 rows.
+- `score` pairs 120 answers. `bootstrap.json` keeps A minus baseline, as in 2.7, and `bootstrap-B.json` holds B minus A and B minus baseline. The masked sheet has 120 rows, and `rated` writes the same two files for the human scores.
 
 Without the flag, the run is the 2.7 one, with the same files. The B results are in `docs/adapter-b.md`.
 

@@ -161,7 +161,7 @@ No checkpoint was trained or chosen on these targets. They come from 5 races tha
 | Macro-family agreement | 0.233 | 0.753 | 0.767 | +0.013 (-0.167 to +0.117) |
 | Answers cut at 64 tokens | 10 | 2 | 2 | |
 
-The interval is the race bootstrap over the 5 races, with 10,000 draws. For unjustified decisions only 2 to 4 races contribute, so that interval is rough. `bootstrap.json` also gives A minus baseline and B minus baseline.
+The interval is the race bootstrap over the 5 races, with 10,000 draws. For unjustified decisions only 2 to 4 races contribute, so that interval is rough. This run's `bootstrap.json` also gives A minus baseline and B minus baseline. It was scored at `0ff21c3`, before the B contrasts moved to a file of their own, `bootstrap-B.json`, so that `bootstrap.json` keeps the 2.7 form.
 
 CALL agreement by family:
 

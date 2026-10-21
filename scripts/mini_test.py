@@ -17,7 +17,8 @@ every raw answer with its generation trace. Nothing is retried. `score` pairs th
 answers, computes the automatic measures with A minus baseline over a race bootstrap,
 and exports the masked rating sheet of all 80 answers. `rated` reads the filled sheet
 and adds the five-axis human means. With `--with-b`, B answers after A in the same
-process, `score` adds B minus A and B minus baseline, and the sheet holds 120 answers.
+process, `score` and `rated` add B minus A and B minus baseline in `bootstrap-B.json`,
+and the sheet holds 120 answers. `bootstrap.json` keeps A minus baseline in every run.
 The final split is never read.
 """
 
@@ -683,36 +684,35 @@ def cut_at_limit(run: Path, versions: list[str]) -> dict[str, int]:
     }
 
 
-def contrasts(rows: dict, versions: list[str], human: bool = False) -> dict:
-    """A minus baseline, and with B: B minus A (principal) and B minus baseline."""
-    pairs = {"A_minus_baseline": ("baseline", "A", "principal_mini_test_exploratory")}
-    if "B" in versions:
-        pairs |= {
-            "B_minus_A": ("A", "B", "principal_mini_test_exploratory"),
-            "B_minus_baseline": ("baseline", "B", "exploratory_mini_test"),
-        }
-    result = {}
-    for name, (old, new, role) in pairs.items():
-        result[name] = bootstrap_compare(rows, old, new, human=human)
-        result[name]["contrast_role"] = role
-    return result
+def b_contrasts(rows: dict, versions: list[str], human: bool = False) -> dict:
+    """With B: B minus A (principal once B is retained) and B minus baseline."""
+    if "B" not in versions:
+        return {}
+    pairs = {
+        "B_minus_A": ("A", "principal_mini_test_exploratory"),
+        "B_minus_baseline": ("baseline", "exploratory_mini_test"),
+    }
+    return {
+        name: bootstrap_compare(rows, old, "B", human=human) | {"contrast_role": role}
+        for name, (old, role) in pairs.items()
+    }
 
 
 def score(run: Path) -> dict:
-    """Automatic measures, A minus baseline over races, a paired table and the sheet."""
+    """Automatic measures, the contrasts over races, a paired table and the sheet."""
     plan, cases, splits = verify_plan(run)
     versions = plan["version_ids"]
     outputs = _outputs(run)
     paired = pair_outputs(cases, outputs, versions, plan["cases_sha256"], splits)
     rows = observations(cases, paired)
     summaries = {v: summarize(rows[v]) for v in versions}
-    compared = contrasts(rows, versions)
+    comparison = bootstrap_compare(rows, "baseline", "A")
+    comparison["contrast_role"] = "principal_mini_test_exploratory"
+    with_b = b_contrasts(rows, versions)
     write_json(run / "summaries.json", summaries)
-    # a baseline/A run keeps the single comparison file of 2.7
-    write_json(
-        run / "bootstrap.json",
-        compared if "B" in versions else compared["A_minus_baseline"],
-    )
+    write_json(run / "bootstrap.json", comparison)
+    if with_b:
+        write_json(run / "bootstrap-B.json", with_b)
     with (run / "paired.csv").open("x", newline="", encoding="utf-8") as stream:
         fields = ["case_id", "race_id", "primary_family", "expected_call", "message"]
         fields += [
@@ -756,10 +756,13 @@ def score(run: Path) -> dict:
         "human_ratings": "pending: fill review/review.csv, then run `rated`",
     }
     finish_run(run, metrics)
-    return {"metrics": metrics, "headline": headline(summaries, compared, versions)}
+    headline_table = headline(summaries, comparison, with_b, versions)
+    return {"metrics": metrics, "headline": headline_table}
 
 
-def headline(summaries: dict, compared: dict, versions: list[str]) -> dict:
+def headline(
+    summaries: dict, comparison: dict, with_b: dict, versions: list[str]
+) -> dict:
     """The six selection measures of each version, and each contrast over races."""
     names = (
         "strict_format_rate",
@@ -772,19 +775,18 @@ def headline(summaries: dict, compared: dict, versions: list[str]) -> dict:
     table = {}
     for name in names:
         key = f"overall/{name}"
-        contrast = compared["A_minus_baseline"]["metrics"][key]
+        contrast = comparison["metrics"][key]
         table[name] = {v: summaries[v]["metrics"][key]["value"] for v in versions} | {
             "A_minus_baseline": contrast["difference"],
             "interval_95": contrast["difference_interval"],
             "interval_status": contrast["interval_status"],
         }
-        for other in ("B_minus_A", "B_minus_baseline"):
-            if other in compared:
-                extra = compared[other]["metrics"][key]
-                table[name] |= {
-                    other: extra["difference"],
-                    f"{other}_interval_95": extra["difference_interval"],
-                }
+        for other, contrasted in with_b.items():
+            extra = contrasted["metrics"][key]
+            table[name] |= {
+                other: extra["difference"],
+                f"{other}_interval_95": extra["difference_interval"],
+            }
     return table
 
 
@@ -806,11 +808,13 @@ def rated(run: Path, sheet: Path) -> dict:
     summaries = {v: summarize(rows[v], human=True) for v in versions}
     write_json(folder / "summaries.json", summaries)
     if not pending:
-        compared = contrasts(rows, versions, human=True)
-        if "B" not in versions:  # a baseline/A run keeps the 2.7 file
-            compared = compared["A_minus_baseline"]
-            del compared["contrast_role"]
-        write_json(folder / "bootstrap.json", compared)
+        write_json(
+            folder / "bootstrap.json",
+            bootstrap_compare(rows, "baseline", "A", human=True),
+        )
+        with_b = b_contrasts(rows, versions, human=True)
+        if with_b:
+            write_json(folder / "bootstrap-B.json", with_b)
     return {"folder": str(folder), "ratings": len(ratings), "pending": pending}
 
 

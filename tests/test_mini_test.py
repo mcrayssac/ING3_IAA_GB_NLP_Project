@@ -205,7 +205,7 @@ class _Device:
         return "cpu"
 
 
-def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
+def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False, b_adapter=None):
     """Stand-ins for torch, transformers, peft and the conversation engine."""
     loaded = {}
 
@@ -288,7 +288,7 @@ def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
         return {"baseline": base} | {
             letter: (
                 runner.load_config(run / f"versions/{letter}/config.toml"),
-                adapter,
+                b_adapter if letter == "B" and b_adapter else adapter,
                 prompt,
             )
             for letter in plan["version_ids"][1:]
@@ -302,6 +302,21 @@ def _fake_stack(monkeypatch, adapter, *, a_prompt_differs=False):
         lambda plan, folder, letter="A": checked.append((letter, folder)),
     )
     return loaded, checked
+
+
+def _filled(rows: list[dict], path: Path) -> Path:
+    """The review sheet with every applicable axis rated 1, as a completed reading."""
+    for row in rows:
+        row.update(rating_status="completed", rater_id="Matthieu Brault")
+        row["rated_at"] = "2026-10-20T15:00:00+02:00"
+        for axis in ("correctness", "role_format", "history", "scope", "factuality"):
+            if row[axis] != "N/A":
+                row[axis], row[axis + "_reason"] = "1", "stand-in score for the test"
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
 
 
 def test_run_score_and_sheet_on_stand_in_answers(
@@ -325,6 +340,7 @@ def test_run_score_and_sheet_on_stand_in_answers(
     bootstrap = loads((run / "bootstrap.json").read_text())  # the 2.7 single contrast
     assert bootstrap["contrast_role"] == "principal_mini_test_exploratory"
     assert "B_minus_A" not in result["headline"]["call_agreement"]
+    assert not (run / "bootstrap-B.json").exists()
     with (run / "review/review.csv").open(encoding="utf-8") as stream:
         rows = list(csv.DictReader(stream))
     assert len(rows) == 80 and {r["version_code"] for r in rows} == {"V01", "V02"}
@@ -336,20 +352,11 @@ def test_run_score_and_sheet_on_stand_in_answers(
     assert pending == {"folder": pending["folder"], "ratings": 80, "pending": 80}
     assert not (Path(pending["folder"]) / "bootstrap.json").exists()
 
-    for row in rows:
-        row.update(rating_status="completed", rater_id="Matthieu Brault")
-        row["rated_at"] = "2026-10-20T15:00:00+02:00"
-        for axis in ("correctness", "role_format", "history", "scope", "factuality"):
-            if row[axis] != "N/A":
-                row[axis], row[axis + "_reason"] = "1", "stand-in score for the test"
-    filled = tmp_path / "filled.csv"
-    with filled.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
+    filled = _filled(rows, tmp_path / "filled.csv")
     done = runner.rated(run, filled)
     assert done["pending"] == 0
     assert (Path(done["folder"]) / "bootstrap.json").exists()
+    assert not (Path(done["folder"]) / "bootstrap-B.json").exists()
 
     rows[0]["raw_response"] = "CALL: BOX\nWHY: edited."
     with filled.open("w", encoding="utf-8", newline="") as stream:
@@ -423,12 +430,27 @@ def test_with_b_refuses_a_b_selected_on_other_cases(cards, tmp_path, monkeypatch
         runner.prepare("mini", cards, tmp_path / "runs", with_b=True)
 
 
+B_CONFIG = ADAPTER_CONFIG.replace(b'"r": 16', b'"r": 8')
+
+
 def test_run_and_score_with_b(cards, tmp_path, monkeypatch, adapter_folder):
-    loaded, checked = _fake_stack(monkeypatch, adapter_folder)
+    b_folder = tmp_path / "adapter-b"
+    b_folder.mkdir()
+    (b_folder / "adapter_config.json").write_bytes(B_CONFIG)
+    (b_folder / "adapter_model.safetensors").write_bytes(b"stand-in B weights")
+    prompt = Path("configs/prompts/p01-policy-first.txt").read_text(encoding="utf-8")
+    folders = {"A": adapter_folder, "B": b_folder}
+    monkeypatch.setattr(
+        runner, "resolve_adapter", lambda letter="A": (None, folders[letter], prompt)
+    )
+    loaded, checked = _fake_stack(monkeypatch, adapter_folder, b_adapter=b_folder)
     run = runner.prepare("mini", cards, tmp_path / "runs", with_b=True)
+    assert (run / "versions/B/adapter_config.json").read_bytes() == B_CONFIG
     runner.generate(run)
-    assert checked == [("A", adapter_folder), ("B", adapter_folder)]
-    assert loaded["B_config"] == ADAPTER_CONFIG  # the sealed configuration
+    assert checked == [("A", adapter_folder), ("B", b_folder)]
+    # each adapter gets its own sealed configuration
+    assert (loaded["config"], loaded["B_config"]) == (ADAPTER_CONFIG, B_CONFIG)
+    assert loaded["B_folder"] == b_folder
     outputs, _ = read_jsonl(run / "outputs.jsonl")
     versions = ["baseline"] * 40 + ["A"] * 40 + ["B"] * 40
     assert [o["version_id"] for o in outputs] == versions
@@ -438,8 +460,17 @@ def test_run_and_score_with_b(cards, tmp_path, monkeypatch, adapter_folder):
     head = result["headline"]["call_agreement"]
     assert (head["A"], head["B"]) == (16 / 40, 12 / 40)  # NO CALL, then STAY OUT
     assert head["B_minus_A"] == pytest.approx(-4 / 40)
-    bootstrap = loads((run / "bootstrap.json").read_text())
-    assert set(bootstrap) == {"A_minus_baseline", "B_minus_A", "B_minus_baseline"}
+    bootstrap = loads((run / "bootstrap.json").read_text())  # same shape as 2.7
+    assert bootstrap["contrast_role"] == "principal_mini_test_exploratory"
+    with_b = loads((run / "bootstrap-B.json").read_text())
+    assert set(with_b) == {"B_minus_A", "B_minus_baseline"}
     with (run / "review/review.csv").open(encoding="utf-8") as stream:
         rows = list(csv.DictReader(stream))
     assert len(rows) == 120 and len({r["version_code"] for r in rows}) == 3
+
+    done = runner.rated(run, _filled(rows, tmp_path / "filled.csv"))
+    assert done == {"folder": done["folder"], "ratings": 120, "pending": 0}
+    human = Path(done["folder"])
+    assert "metrics" in loads((human / "bootstrap.json").read_text())
+    human_b = loads((human / "bootstrap-B.json").read_text())
+    assert set(human_b) == {"B_minus_A", "B_minus_baseline"}

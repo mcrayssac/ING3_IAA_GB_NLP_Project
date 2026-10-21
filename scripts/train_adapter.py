@@ -54,6 +54,7 @@ from boxbox.evaluation._io import (
 )
 from boxbox.runs import finish_run, start_run
 
+ROOT = Path(__file__).resolve().parents[1]
 SELECTION = Path("configs/baseline-selection.json")
 # Per adapter: its task, its settings, its corpus, the file that records the selected
 # checkpoint for later tasks, and the Hub model card.
@@ -90,10 +91,14 @@ BUDGET_HOURS = 5.0  # above this for all seeds, the gate stops before training
 MEMORY_SHARE = 0.85
 
 
+def task_slug(letter: str) -> str:
+    """The adapter's task as it appears in run names, such as 3-2."""
+    return ADAPTERS[letter]["task"].replace(".", "-")
+
+
 def run_name(letter: str, suffix: str) -> str:
     """A run or summary name such as 3-2-adapter-b-s2026, from the adapter's task."""
-    task = ADAPTERS[letter]["task"].replace(".", "-")
-    return f"{task}-adapter-{letter.lower()}-{suffix}"
+    return f"{task_slug(letter)}-adapter-{letter.lower()}-{suffix}"
 
 
 def seed_of(run: str) -> int:
@@ -246,8 +251,8 @@ def train(seed: int, letter: str = "A") -> Path:
     return run
 
 
-def all_seeds(letter: str = "A") -> list[str]:
-    """Train then validate every seed, each step in a fresh process.
+def all_seeds(letter: str = "A") -> dict[int, str]:
+    """Train then validate every seed, each step in a fresh process; status per seed.
 
     A failed seed is logged and the next one still runs, so one stall does not cost
     the others. Each seed's output goes to runs/<task>-logs/seed-<seed>.log.
@@ -255,10 +260,10 @@ def all_seeds(letter: str = "A") -> list[str]:
     import subprocess
     import sys
 
-    logs = Path("runs") / f"{ADAPTERS[letter]['task'].replace('.', '-')}-logs"
+    logs = Path("runs") / f"{task_slug(letter)}-logs"
     logs.mkdir(parents=True, exist_ok=True)
     command = [sys.executable, "-m", "scripts.train_adapter"]
-    statuses = []
+    statuses = {}
     for seed in SEEDS:
         with (logs / f"seed-{seed}.log").open("a", encoding="utf-8") as log:
 
@@ -272,10 +277,11 @@ def all_seeds(letter: str = "A") -> list[str]:
             if step("train", "--adapter", letter, "--seed", str(seed)):
                 folder = max(Path("runs").glob(f"*_{run_name(letter, f's{seed}')}"))
                 status = "ok" if step("validate", str(folder)) else "validate failed"
-        statuses.append(f"{datetime.now():%Y-%m-%d %H:%M} seed {seed}: {status}")
-        print(statuses[-1], flush=True)
+        statuses[seed] = status
+        line = f"{datetime.now():%Y-%m-%d %H:%M} seed {seed}: {status}"
+        print(line, flush=True)
         with (logs / "status.txt").open("a", encoding="utf-8") as file:
-            file.write(statuses[-1] + "\n")
+            file.write(line + "\n")
     return statuses
 
 
@@ -294,8 +300,7 @@ def smoke(letter: str = "A") -> int:
     short = replace(config, lora=replace(config.lora, max_steps=SMOKE_STEPS))
     needed = SMOKE_STEPS * config.lora.batch_size * config.lora.gradient_accumulation
     longest = sorted(rows, key=lambda row: len(row["input_ids"]), reverse=True)
-    task = ADAPTERS[letter]["task"].replace(".", "-")
-    run = start_run(f"{task}-smoke", short, str(device), engine.dtype)
+    run = start_run(f"{task_slug(letter)}-smoke", short, str(device), engine.dtype)
     metrics = train_lora(
         short, longest[:needed], run, device, loaded=(engine.model, engine.tokenizer)
     )
@@ -565,7 +570,10 @@ def against_a(runs: list[Path], seeds: list[dict], a_summary: Path) -> dict:
     if "adapter_a" not in summary:
         raise ValueError(f"{a_summary} is not a summary of adapter A")
     a_seeds = {seed_of(s["run"]): s for s in summary["seeds"]}
-    missing = [seed_of(r.name) for r in runs if seed_of(r.name) not in a_seeds]
+    b_seeds = [seed_of(r.name) for r in runs]
+    if len(set(b_seeds)) != len(b_seeds):
+        raise ValueError(f"one B run per seed is needed, got seeds {b_seeds}")
+    missing = [seed for seed in b_seeds if seed not in a_seeds]
     if missing:
         raise ValueError(f"{a_summary} has no A run for seeds {missing}")
     per_seed, theirs = {}, []
@@ -609,6 +617,8 @@ def summarise(
     if len(letters) != 1:
         raise ValueError(f"the runs mix adapters {sorted(letters)}")
     letter = letters.pop()
+    if a_summary is not None and letter != "B":
+        raise ValueError(f"--against-a compares B runs with A, not {letter} runs")
     name = run_name(letter, "summary")
     out = runs[0].parent / f"{date.today().isoformat()}_{name}.json"
     if out.exists():
@@ -827,10 +837,15 @@ def main(argv: list[str] | None = None) -> int:
         "--out", type=Path, help="default: docs/diagrams/adapter-<x>-losses.png"
     )
     args = parser.parse_args(argv)
+    if (
+        Path.cwd().resolve() != ROOT
+    ):  # configs/, runs/ and the seed processes are relative
+        parser.error("run from the repository root")
     if args.command == "smoke":
         return smoke(args.adapter)
     if args.command == "seeds":
-        return 0 if all("ok" in s for s in all_seeds(args.adapter)) else 1
+        statuses = all_seeds(args.adapter)
+        return 0 if all(status == "ok" for status in statuses.values()) else 1
     if args.command == "train":
         train(args.seed, args.adapter)
     elif args.command == "validate":

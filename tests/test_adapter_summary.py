@@ -27,12 +27,14 @@ from scripts.train_adapter import (
     baseline_source,
     check_rebuilt_baseline,
     equal_updates,
+    main,
     median_version,
     paired_differences,
     planned_updates,
     run_name,
     seed_interval,
     seed_of,
+    summarise,
     training_rows,
 )
 
@@ -239,6 +241,26 @@ def test_b_against_a_needs_an_a_summary_with_the_same_seeds(tmp_path) -> None:
     summary.write_text(dumps({"adapter_b": {}, "seeds": seeds}))
     with pytest.raises(ValueError, match="not a summary of adapter A"):
         against_a(runs, [{}], summary)
+    summary.write_text(dumps({"adapter_a": {}, "seeds": seeds}))
+    twice = [tmp_path / "x_3-2-adapter-b-s2026", tmp_path / "y_3-2-adapter-b-s2026"]
+    with pytest.raises(ValueError, match="one B run per seed"):
+        against_a(twice, [{}, {}], summary)
+
+
+def test_against_a_is_refused_for_runs_of_a(tmp_path) -> None:
+    from boxbox.runs import config_toml
+
+    run = tmp_path / "2026-10-19_2-6-adapter-a-s2026"
+    run.mkdir()
+    (run / "config.toml").write_text(config_toml(CONFIG))
+    with pytest.raises(ValueError, match="compares B runs with A, not A runs"):
+        summarise([run], None, a_summary=tmp_path / "summary.json")
+
+
+def test_the_runner_refuses_another_working_directory(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit):
+        main(["seeds", "--adapter", "B"])
 
 
 def _validated(folder: Path, letter: str, values: dict[int, float]) -> Path:
@@ -282,7 +304,7 @@ def test_a_failed_seed_does_not_stop_the_next_ones(tmp_path, monkeypatch) -> Non
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(subprocess, "run", fake_run)
     statuses = all_seeds("B")
-    assert [s.split(": ")[1] for s in statuses] == ["train failed", "ok", "ok"]
+    assert statuses == {2026: "train failed", 2027: "ok", 2028: "ok"}
     assert calls == ["train", "train", "validate", "train", "validate"]
     status_file = tmp_path / "runs" / "3-2-logs" / "status.txt"
     assert status_file.read_text().count("seed") == 3
