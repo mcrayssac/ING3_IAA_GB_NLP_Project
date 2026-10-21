@@ -468,6 +468,35 @@ Additional limits that constrain every conclusion:
   contain no weight files. Reproducibility still needs accessible artifacts and
   a teammate check, not merely a recorded private revision.
 
+### Zero-shot OpenJev, an exploratory comparison (task 3.4)
+
+This subsection was added on 21 October from the 3.4 runs, which this analysis
+did not audit. Task 3.4 scored OpenJev Flash 9B, a zero-shot decision model, on
+the same validation and mini-test targets (`docs/openjev.md`,
+[#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35)).
+- **Agreement:** on the mini-test, OpenJev agrees with the reference call on
+  **18/40** at argmax and **23/40** with its NO CALL threshold. A gets **28/40**
+  and B **33/40**.
+- **Trade-off:** with the threshold, OpenJev makes **4/16** unjustified decisions
+  and **9/24** excessive refusals, against 1/16 and 6/24 for B.
+- **Upgrade round:** described options with three averaged option orders give
+  21/40 at the threshold, so they do not change this.
+
+It does not alter the recommendation above. Its limits:
+
+- **Complete systems.** OpenJev differs from baseline, A and B in four ways:
+  size (9B against 3B), base model (Qwen3.5-9B against SmolLM3-3B), readout
+  (scored options against a generated CALL line) and adaptation (zero-shot
+  against LoRA). A gap cannot be put down to any one of them. It compares two
+  complete systems on the CALL line.
+- **No WHY.** OpenJev writes no WHY sentence, so it has no strict-format score
+  and no human rating.
+- **Selection.** Its NO CALL threshold was chosen on validation. The mini-test
+  results were read before the upgrade round, so that round's mini-test numbers
+  are post hoc.
+- **Exploratory.** It is outside the 3.5 freeze. Whether it joins the final
+  comparison is the team's 3.4.8 decision on #35.
+
 ## Reproduce and review this analysis
 
 Use the pinned environment in `requirements.txt`, from the repository root.
