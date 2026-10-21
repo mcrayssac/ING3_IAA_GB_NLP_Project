@@ -1,0 +1,74 @@
+# OpenJev zero-shot baseline (task 3.4). Read by the OpenJev runner only, kept outside RunConfig
+# so that no rendered run config or its hash changes. See docs/openjev.md.
+
+# The server runs from its own environment, bound to loopback.
+[server]
+python = "~/openjev/mlx/bin/python"
+host = "127.0.0.1"
+port = 3000
+start_timeout_seconds = 300
+request_timeout_seconds = 300
+
+# One request per target. The CALL question makes the call; the three diagnostic questions
+# are scored apart. Options are sent without descriptions, in this order.
+[questions.call]
+type = "choice"
+instructions = "Which call does the policy give in reply to the latest user message?"
+options = ["BOX", "STAY OUT", "NO CALL"]
+
+[questions.in_scope]
+type = "noul"
+instructions = "Does the latest user message ask for this car's call, its reason or a card field, within the tool's scope?"
+
+[questions.required_known]
+type = "noul"
+instructions = "Is every card field that the policy's ordered branch needs for this car known and usable?"
+
+[questions.missing_field]
+type = "choice"
+instructions = "Which card field, if any, stops the policy from deciding BOX or STAY OUT for this car?"
+options = ["gap_ahead", "gap_behind", "tyre_age_laps", "pit_loss_seconds", "track_status", "none"]
+
+[model]
+repo = "openjev/OpenJev-Flash-9B-MLX-4bit"
+revision = "33cbf3727276b3fc99a08104c33b22bf1c5f05dd"
+local_dir = "~/openjev/OpenJev-Flash-9B-MLX-4bit"
+
+[model.sha256]
+"model.safetensors" = "4e2e27335fde8e522b6b1249c34d282662efc9dd6af3ff78a8ccdb2b066f58ab"
+"model.safetensors.index.json" = "215f9abadc1cea4d465b01c036dffcac5a84c2fb2386777863eff6928b91ed0b"
+"config.json" = "e1e543c58a167a2988cb0437b70244db969d30670c0b7c1759e1a39d02e5314d"
+"generation_config.json" = "62153eb6c69f2e1f426beaa8002b7186437e949c7588167085df14e10e9c0a73"
+"chat_template.jinja" = "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+"tokenizer.json" = "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523"
+"tokenizer_config.json" = "8f781f0d7369fb2532a77284368c2a5f9eccd6413a381dfa3795787e20ca4ca4"
+"README.md" = "957c97d1ffeef15d88b28a62b6cc88ef6d771976294953344920edd5f574f27f"
+
+[helper]
+repo = "openjev/OpenJev-Flash-9B"
+revision = "b77b0fff67c77a76c16d4da50a66d2fdbc124fae"
+local_dir = "~/openjev/openjev-flash-9b-api"
+
+[helper.sha256]
+"helper/shim.py" = "81a22f1b1b8912a465059207ef9f60b7c6c16b4de6372305d867efbe38a1987a"
+"helper/shim_mlx.py" = "7c12264a092dd92fd866022712dd58b387a579f91e84cecf0deedc9ca43c08f0"
+"serve/SERVE.md" = "c3edb1478d36113951dfe18375e3d2841d885128ec55be22f8b1e9cf05018fdf"
+
+[environment]
+python = "3.12.13"
+mlx = "0.32.2"
+mlx-lm = "0.31.3"
+transformers = "5.17.0"
+openai = "3.16.2"
+httpx = "0.28.1"
+huggingface-hub = "1.32.0"
+
+# Values from the 4-bit model card. The helper's built-in defaults belong to another model.
+[readout]
+READOUT_T = "1.07"
+READOUT_NOUL_T = "1.074766"
+READOUT_NOUL_BIAS = "0"
+READOUT_TARGETED = "1"
+READOUT_INSTR_STYLE = "pyrepr"
+READOUT_PERMS = "1"
+SHIM_STAGGER = "1"
