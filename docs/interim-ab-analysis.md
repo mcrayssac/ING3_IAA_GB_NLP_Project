@@ -3,7 +3,7 @@
 **Evidence snapshot: 21 October 2026.** This is the local analytical deliverable for
 [issue #18](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18), based on
 the integrated 3.2 results at `bbabb09df3f1bc7ad438a71b74b2941bbf2d45f7`.
-Independent teammate review, publication and the 3.5 decision remain pending.
+Independent teammate approval, integration and the 3.5 decision remain pending.
 This document neither freezes versions nor opens the final test.
 
 ## Finding and recommendation for 3.5
@@ -490,8 +490,20 @@ of overwriting them. The optional A log path adds the rounded loss/token check;
 it does not supply A's absent validation answers. There is no archive extraction,
 network, generation, training or final-data command in the audit.
 
+Following technical review, the audit now binds every trace's actual messages
+to its declared case: the system turn combines the independently pinned p01
+instructions with that card's canonical JSON, followed by the exact ledger
+history and current question. The mini-test's sealed prompts must also match
+the pin. Instruction and message hashes are checked against these expected
+inputs, rather than only against self-reported trace content. Regression tests
+reject coordinated card/question/history/prompt substitutions across all
+versions and internally consistent substitutions of the instructions.
+All 1,020 original traces pass this stricter check; raw responses, metrics and
+intervals are unchanged. The evidence JSON adds binding counts and the prompt
+source pins, and updates the audit-source hash without rewriting any run.
+
 Local verification for this delivery used Python 3.13.13, pytest 9.1.1 and Ruff
-0.17.1: **128 targeted tests passed in 45.81 seconds**, the real-evidence audit reproduced all
+0.17.1: **135 targeted tests passed in 41.22 seconds**, the real-evidence audit reproduced all
 mini-test bootstrap files and B scores/selections, and style/whitespace checks
 passed. Exact commands, durations and any intermediate check failures are in
 the local implementation report and review handoff. No broad model experiment,

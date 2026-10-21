@@ -57,39 +57,132 @@ def test_transitions_preserve_regressions_and_invalid_labels():
     assert any(r["old"] == "INVALID" for r in result["label_transitions"])
 
 
-def trace_matrix():
-    cases = [{"case_id": "1", "history": []}]
+def trace_matrix(versions=("A", "B"), case_count=1):
+    cases = [
+        {
+            "case_id": str(i),
+            "card": {"driver_number": str(i), "tyre_age_laps": 12 + i},
+            "history": [
+                {"role": "user", "content": f"Earlier question for car {i}"},
+                {"role": "assistant", "content": f"Earlier answer for car {i}"},
+            ],
+            "message": f"Should car {i} box?",
+        }
+        for i in range(1, case_count + 1)
+    ]
     paired, attempts = {}, []
-    for version in ("A", "B"):
-        row = {
-            "case_id": "1",
-            "version_id": version,
-            "response_id": version + "1",
-            "input_sha256": "input",
-            "raw_response": "answer",
-        }
-        paired[version] = {"1": row}
-        trace = {
-            "raw_response": "answer",
-            "prompt_token_ids_sha256": "tokens",
-            "instructions": "instructions",
-            "instructions_sha256": sha256("instructions"),
-            "messages": [],
-            "prompt_messages_sha256": sha256(dumps([])),
-            "generated_token_ids": [1],
-            "generated_tokens": 1,
-            "generation_settings": {
-                "max_new_tokens": 64,
-                "seed": 2026 if version == "A" else 2027,
-            },
-            "history": {"retained": [], "was_reduced": False},
-            "possibly_truncated": False,
-            "duration_seconds": 0.5,
-        }
-        attempts.append(
-            {k: v for k, v in row.items() if k != "raw_response"} | {"trace": trace}
-        )
+    for version in versions:
+        paired[version] = {}
+        for case in cases:
+            cid = case["case_id"]
+            row = {
+                "case_id": cid,
+                "version_id": version,
+                "response_id": version + cid,
+                "input_sha256": sha256(
+                    dumps({k: case[k] for k in ("card", "history", "message")})
+                ),
+                "raw_response": "answer",
+            }
+            paired[version][cid] = row
+            messages = [
+                {
+                    "role": "system",
+                    "content": "instructions\n\nCurrent race card (authoritative JSON):\n"
+                    + dumps(case["card"]),
+                },
+                *deepcopy(case["history"]),
+                {"role": "user", "content": case["message"]},
+            ]
+            trace = {
+                "raw_response": "answer",
+                "prompt_token_ids_sha256": f"tokens:{cid}",
+                "instructions": "instructions",
+                "instructions_sha256": sha256("instructions"),
+                "messages": messages,
+                "prompt_messages_sha256": sha256(dumps(messages)),
+                "generated_token_ids": [1],
+                "generated_tokens": 1,
+                "generation_settings": {
+                    "max_new_tokens": 64,
+                    "seed": 2026 if version == "A" else 2027,
+                },
+                "history": {
+                    "retained": deepcopy(case["history"]),
+                    "was_reduced": False,
+                },
+                "possibly_truncated": False,
+                "duration_seconds": 0.5,
+            }
+            attempts.append(
+                {k: v for k, v in row.items() if k != "raw_response"} | {"trace": trace}
+            )
     return cases, paired, attempts
+
+
+@pytest.mark.parametrize("change", ["card", "question", "history", "full_prompt"])
+def test_another_cases_messages_are_rejected_even_when_all_versions_agree(change):
+    cases, paired, attempts = trace_matrix(("baseline", "A", "B"), case_count=2)
+    for version in paired:
+        target = next(
+            a["trace"]
+            for a in attempts
+            if a["version_id"] == version and a["case_id"] == "1"
+        )
+        donor = next(
+            a["trace"]
+            for a in attempts
+            if a["version_id"] == version and a["case_id"] == "2"
+        )
+        if change == "card":
+            target["messages"][0] = deepcopy(donor["messages"][0])
+        elif change == "question":
+            target["messages"][-1] = deepcopy(donor["messages"][-1])
+        elif change == "history":
+            target["messages"][1:-1] = deepcopy(donor["messages"][1:-1])
+        else:
+            target["messages"] = deepcopy(donor["messages"])
+        target["prompt_messages_sha256"] = sha256(dumps(target["messages"]))
+        target["prompt_token_ids_sha256"] = donor["prompt_token_ids_sha256"]
+    with pytest.raises(ValueError, match="case messages"):
+        audit.trace_checks(cases, paired, attempts, instructions="instructions")
+
+
+@pytest.mark.parametrize("rewrite_system", [False, True])
+def test_self_consistent_unpinned_instructions_are_rejected(rewrite_system):
+    cases, paired, attempts = trace_matrix(("baseline", "A", "B"))
+    for attempt in attempts:
+        trace = attempt["trace"]
+        trace["instructions"] = "different instructions"
+        trace["instructions_sha256"] = sha256(trace["instructions"])
+        if rewrite_system:
+            trace["messages"][0]["content"] = trace["messages"][0]["content"].replace(
+                "instructions", "different instructions", 1
+            )
+            trace["prompt_messages_sha256"] = sha256(dumps(trace["messages"]))
+        trace["prompt_token_ids_sha256"] = "common altered prompt tokens"
+    with pytest.raises(ValueError, match="pinned instructions"):
+        audit.trace_checks(cases, paired, attempts, instructions="instructions")
+
+
+def test_changed_pinned_prompt_is_rejected(tmp_path, monkeypatch):
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    selection = tmp_path / "configs/baseline-selection.json"
+    selection.parent.mkdir()
+    selection.write_text(
+        dumps(
+            {
+                "prompt_file": "configs/prompt.txt",
+                "prompt_sha256": sha256("instructions"),
+            }
+        )
+    )
+    prompt = tmp_path / "configs/prompt.txt"
+    prompt.write_text("instructions")
+    assert audit.pinned_instructions(audit.Evidence()) == "instructions"
+    prompt.write_text("changed instructions")
+    with pytest.raises(ValueError, match="pinned prompt"):
+        audit.pinned_instructions(audit.Evidence())
 
 
 @pytest.mark.parametrize(
@@ -97,7 +190,9 @@ def trace_matrix():
 )
 def test_trace_drift_stops_the_audit(change):
     cases, paired, attempts = trace_matrix()
-    assert audit.trace_checks(cases, paired, attempts)["same_prompt_tokens"] == {
+    assert audit.trace_checks(cases, paired, attempts, instructions="instructions")[
+        "same_prompt_tokens"
+    ] == {
         "A": 1,
         "B": 1,
     }
@@ -115,7 +210,7 @@ def test_trace_drift_stops_the_audit(change):
         else:
             trace["history"]["retained"] = [{"role": "user", "content": "another card"}]
     with pytest.raises(ValueError):
-        audit.trace_checks(cases, paired, changed)
+        audit.trace_checks(cases, paired, changed, instructions="instructions")
 
 
 def test_a_plan_cannot_add_a_reserved_card_file(tmp_path, monkeypatch):

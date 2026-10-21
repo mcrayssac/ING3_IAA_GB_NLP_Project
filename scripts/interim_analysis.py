@@ -63,8 +63,22 @@ class Evidence:
         return loads(self.file(root, relative, namespace).read_text(encoding="utf-8"))
 
 
-def trace_checks(cases: list[dict], paired: dict, attempts: list[dict]) -> dict:
+def pinned_instructions(evidence: Evidence) -> str:
+    """Read the selected prompt independently of self-reported trace fields."""
+    selection = evidence.json(ROOT, "configs/baseline-selection.json", "repository")
+    prompt = evidence.file(ROOT, selection["prompt_file"], "repository").read_bytes()
+    same(sha256(prompt), selection["prompt_sha256"], "pinned prompt")
+    return prompt.decode("utf-8")
+
+
+def trace_checks(
+    cases: list[dict], paired: dict, attempts: list[dict], *, instructions: str
+) -> dict:
     """Check the complete trace matrix, raw answers and common prompts."""
+    require(
+        isinstance(instructions, str) and bool(instructions),
+        "empty pinned instructions",
+    )
     traces = {a["response_id"]: a for a in attempts}
     expected = {r["response_id"] for rows in paired.values() for r in rows.values()}
     require(len(traces) == len(attempts) and traces.keys() == expected, "trace matrix")
@@ -86,14 +100,31 @@ def trace_checks(cases: list[dict], paired: dict, attempts: list[dict]) -> dict:
             same(trace["raw_response"], row["raw_response"], "trace raw response")
             require(bool(trace["prompt_token_ids_sha256"]), "missing token hash")
             same(
-                sha256(trace["instructions"]),
-                trace["instructions_sha256"],
-                "instructions hash",
+                trace["instructions"],
+                instructions,
+                f"{row['response_id']}: pinned instructions",
             )
             same(
-                sha256(dumps(trace["messages"])),
+                trace["instructions_sha256"],
+                sha256(instructions),
+                "pinned instructions hash",
+            )
+            # Reconstruct the engine's documented input from the ledger, not the trace.
+            messages = [
+                {
+                    "role": "system",
+                    "content": instructions
+                    + "\n\nCurrent race card (authoritative JSON):\n"
+                    + dumps(case["card"]),
+                },
+                *case["history"],
+                {"role": "user", "content": case["message"]},
+            ]
+            same(trace["messages"], messages, f"{row['response_id']}: case messages")
+            same(
                 trace["prompt_messages_sha256"],
-                "messages hash",
+                sha256(dumps(messages)),
+                "case messages hash",
             )
             same(
                 len(trace["generated_token_ids"]),
@@ -121,6 +152,8 @@ def trace_checks(cases: list[dict], paired: dict, attempts: list[dict]) -> dict:
     require(all(n == len(cases) for n in same_prompt.values()), "prompt tokens differ")
     return {
         "traces": len(attempts),
+        "case_message_bindings_checked": len(attempts),
+        "pinned_instructions_sha256": sha256(instructions),
         "same_prompt_tokens": same_prompt,
         "possibly_truncated_case_ids": cuts,
         "reduced_history_case_ids": reduced,
@@ -208,6 +241,18 @@ def mini_test(evidence: Evidence, runs: Path) -> dict:
     for relative, digest in plan["normative_files"].items():
         path = evidence.file(ROOT, relative, "repository")
         same(sha256(path.read_bytes()), digest, f"normative {relative}")
+    instructions = pinned_instructions(evidence)
+    for version in plan["version_ids"]:
+        same(
+            plan["versions"][version]["prompt_sha256"],
+            sha256(instructions),
+            f"{version} pinned prompt",
+        )
+        same(
+            (run / "versions" / version / "prompt.txt").read_bytes().decode("utf-8"),
+            instructions,
+            f"{version} sealed prompt",
+        )
     manifest = evidence.json(runs, f"{MINI}/manifest.json")
     same(
         manifest["extra"]["mini_test"]["plan_sha256"],
@@ -257,7 +302,9 @@ def mini_test(evidence: Evidence, runs: Path) -> dict:
         contrasts[f"{new}_minus_{old}"] = compact_bootstrap(calculated) | {
             "transitions": transitions(rows, old, new)
         }
-    traces = trace_checks(cases, paired, read_jsonl(run / "attempts.jsonl")[0])
+    traces = trace_checks(
+        cases, paired, read_jsonl(run / "attempts.jsonl")[0], instructions=instructions
+    )
     with evidence.file(run, "review/review.csv", MINI).open(newline="") as stream:
         rating_status = Counter(r["rating_status"] for r in csv.DictReader(stream))
     original = runs / "2026-10-21_3-2-mini-test"
@@ -304,6 +351,7 @@ def mini_test(evidence: Evidence, runs: Path) -> dict:
 def validation(evidence: Evidence, runs: Path) -> dict:
     retained = evidence.json(runs, SUMMARY)
     same(len(retained["seeds"]), len(SEEDS), "three B seeds")
+    instructions = pinned_instructions(evidence)
     splits = loads((ROOT / "data/splits.json").read_text())
     results = []
     a_metrics, b_metrics = [], []
@@ -383,6 +431,7 @@ def validation(evidence: Evidence, runs: Path) -> dict:
                     read_jsonl(
                         evidence.file(run, "validation-attempts.jsonl", run.name)
                     )[0],
+                    instructions=instructions,
                 ),
                 "training_metrics": {
                     k: v
