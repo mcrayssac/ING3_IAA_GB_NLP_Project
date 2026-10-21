@@ -1,16 +1,16 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 17 October 2026 - milestone 1 is in progress.** Audience, scope and FastF1 selection (1.1–1.3), and the race-card contract and rules (1.4), are done. No model prototype, training run or result has been delivered. Other tasks are unstarted. Task 3.4 is now an optional zero-shot baseline with OpenJev Flash 9B; repeat runs and V2 stay deferred.
+**Snapshot: 21 October 2026, 18:00 - milestone 4 is in progress.** Tasks 1.1 to 3.4 are done. The 3.5 freeze is recorded and awaits a teammate's confirmation, and the final cases (4.1) are in review. Final scoring, human review, statistics and conclusions (4.2 to 4.5) and delivery tasks 5.2 to 5.6 have not started, and their planned windows on 21 October have passed. The report and video outline (5.1) is ready. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
 The product, interface, prompts, training examples, code, notebook explanations, run guide and project documentation use **English**. The report, video and other teacher-facing presentation documents use **French**. The executed notebook and `README.txt` remain English; the original [assignment PDF](../instructions/mini_projet_2_agent_conversationnel.pdf) remains French.
 
-![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; tasks 1.1–1.4 are complete](diagrams/roadmap-gantt.png)
+![BoxBox recovery Gantt for 17–22 October 2026: work categories, shared task windows and dependency hand-offs; at the 21 October snapshot, tasks 1.1 to 3.4 are complete](diagrams/roadmap-gantt.png)
 
 [Full-size schedule](diagrams/roadmap-gantt.png) · [Editable Excalidraw source](diagrams/roadmap-gantt.excalidraw)
 
-The README retains the separate business overview. The Gantt groups tasks by milestone; IDs match the tables. Bars are proposed work windows, not full-time allocations or measured runtimes. Only selected major hand-offs are drawn; all prerequisites are listed below. The red line dates this snapshot, checkmarks identify completed tasks, and diamonds identify deadlines. Dashed bars mark the B path, which remains conditional on the decision gates, and the optional 3.4; neither is abandoned. Colors identify work categories, not owners or progress.
+The README retains the separate business overview. The Gantt groups tasks by milestone; IDs match the tables. Bars are proposed work windows, not full-time allocations or measured runtimes. Only selected major hand-offs are drawn; all prerequisites are listed below. The red line dates this snapshot, checkmarks identify completed tasks, and diamonds identify deadlines. Dashed bars mark the B path and the optional 3.4, as they were planned on 17 October. Both ran: B is a retained version, and 3.4 closed as an exploratory study. Colors identify work categories, not owners or progress.
 
 ## Capacity and priorities
 
@@ -30,11 +30,11 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 
 | Milestone | Recovery window | Snapshot status | Completion target |
 |---|---|---|---|
-| 1. Framing and design | 17 Oct remaining day; three decisions completed 26 Sep | in progress | Accepted rules/card contract, five expected conversations, measured feasibility and shared pickup workflow |
-| 2. First prototype | 18–19 Oct | planned | Complete seven-step MVP by 19 Oct evening; both mini-test 2.7 and real notebook demo 2.8 accepted |
-| 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | planned | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
-| 4. Evaluation | 20 Oct after freeze–21 Oct | planned | Closed final test, human review, paired gains, uncertainty and conclusions |
-| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | planned | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
+| 1. Framing and design | 17 Oct remaining day; three decisions completed 26 Sep | done | Accepted rules/card contract, five expected conversations, measured feasibility and shared pickup workflow |
+| 2. First prototype | 18–19 Oct | done | Complete seven-step MVP by 19 Oct evening; both mini-test 2.7 and real notebook demo 2.8 accepted |
+| 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | review: the 3.5 freeze is recorded and awaits confirmation | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
+| 4. Evaluation | 20 Oct after freeze–21 Oct | in progress: 4.1 in review | Closed final test, human review, paired gains, uncertainty and conclusions |
+| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | planned: 5.1 ready | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
 
 | Window | Planned work | Target and hand-off |
 |---|---|---|
@@ -52,13 +52,24 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 
 ## Three decision gates
 
-| Gate | Evidence and required decision |
-|---|---|
-| After the first feasibility run (1.5) | Use measured runtime, memory, reload success and actual GPU access to confirm the schedule or record a workable fallback; check reconstruction runtime in 2.1 as well. |
-| 19 Oct evening (2.7 + 2.8) | If the complete MVP is missing, prioritise its blockers and explicitly reassess research scope. A shell or an unreviewed training run is not a complete MVP. |
-| 20 Oct noon (3.2) | Proceed with B only if training, review and interim analysis can finish before the 18:00 freeze. Otherwise record the decision to defer B/3.3 and freeze baseline/A after 2.7 and 2.8. Defer the optional 3.4 first if it competes with B or the freeze. |
+| Gate | Evidence and required decision | Outcome at the 21 October snapshot |
+|---|---|---|
+| After the first feasibility run (1.5) | Use measured runtime, memory, reload success and actual GPU access to confirm the schedule or record a workable fallback; check reconstruction runtime in 2.1 as well. | GO with SmolLM3-3B on 18 October ([#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4)). |
+| 19 Oct evening (2.7 + 2.8) | If the complete MVP is missing, prioritise its blockers and explicitly reassess research scope. A shell or an unreviewed training run is not a complete MVP. | Passed on 20 October evening, with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). |
+| 20 Oct noon (3.2) | Proceed with B only if training, review and interim analysis can finish before the 18:00 freeze. Otherwise record the decision to defer B/3.3 and freeze baseline/A after 2.7 and 2.8. Defer the optional 3.4 first if it competes with B or the freeze. | B started after the noon gate by team decision and trained overnight, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 on 21 October ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)). |
 
 Record a gate decision in its issue: evidence, available people/hardware, retained versions/counts, changed task states, impact on claims and team agreement. Do not reduce targets silently. Once frozen, no new experiment is scheduled. A correction affecting outputs requires a documented decision and a new freeze before final evaluation.
+
+## Changes since the 17 October plan
+
+These changes were recorded in the issues. The task tables below keep the planned definitions and windows.
+
+- **Data source:** OpenF1 replaced FastF1 in 2.1, because FastF1's source refused access ([#6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/6#issuecomment-6250760238)).
+- **Audience:** pit strategists and paddock team members replaced content creators and analysts, decided in 2.4. Row 1.1 keeps its original record ([#10](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/10#issuecomment-6262374993)).
+- **Seeds:** A and B were each trained with three seeds. This lifts the deferral of repeat runs for A and B only, and V2 stays deferred ([#13](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/13#issuecomment-6273659317)).
+- **MVP:** the gate passed with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). The 2.7 mini-test rated all 40 targets instead of an 8-per-family sample ([#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14#issuecomment-6289853131)). Task 2.8 left notebook steps 3 to 6 to the 5.x tasks ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15)).
+- **Schedule:** B trained overnight from 20 to 21 October, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 with baseline, A and B retained and boxbox-eval 1.1.0 accepted unchanged ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)).
+- **Optional 3.4:** OpenJev ran as an exploratory study outside the freeze and stays out of the final comparison ([#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35#issuecomment-6320237374)).
 
 ## Shared pickup and parallel work
 
@@ -73,7 +84,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-Ready and unassigned in this snapshot: **[1.5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) model feasibility and observations, [1.6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) agree task pickup and review, [5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable; these tasks have not started. The queue contains 28 unfinished tasks, including the optional [3.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35). The four completed tasks (1.1–1.4) do not need new issues.
+Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 12 unfinished tasks: 3.5 and 4.1 are in review, 5.1 is ready, and 4.2 to 4.5 and 5.2 to 5.6 are planned. Tasks 1.1 to 3.4 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -92,7 +103,7 @@ Technical independence does not create more people or GPU access. Overlapping ta
 
 ## Task definitions
 
-Windows include implementation, checks and hand-off review; they are not effort estimates. The exact hand-off occurs on acceptance, never just at a clock boundary. Detailed acceptance checklists and required evidence live in each linked issue. Every table status is the **17 October snapshot**.
+Windows include implementation, checks and hand-off review; they are not effort estimates. The exact hand-off occurs on acceptance, never just at a clock boundary. Detailed acceptance checklists and required evidence live in each linked issue. Every table status is the **21 October snapshot**, with the closing date of each done task.
 
 ### 1. Framing and design
 
@@ -100,41 +111,41 @@ Windows include implementation, checks and hand-off review; they are not effort 
 |---|---|---|---|---|---|---|
 | 1.1 | **Audience and need.** Define F1 content creators and analysts as the audience and historical pit-stop explanation as the need. | T | 26 Sep (completed) | - | done | - |
 | 1.2 | **Scope and research question.** Define the narrow historical scope and the A/B question on justified abstention. | T | 26 Sep (completed) | - | done | - |
-| 1.3 | **FastF1 selection.** Select FastF1; retain OpenF1 only as an optional cross-check. Access and reconstruction still need testing. | D | 26 Sep (completed) | - | done | - |
-| 1.4 | **Race-card contract and rules.** Fix card fields, units, thresholds and BOX/STAY OUT/NO CALL policy; provide a deterministic reference and five expected conversations. | D | 17 Oct, remaining day | 1.2, 1.3 | done | [#3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) |
-| 1.5 | **Model feasibility and observations.** Load a compact instruction model, document the required model observations and verify a short, reloadable adaptation on available hardware. | M | 17 Oct, remaining day | 1.2 | ready | [#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) |
-| 1.6 | **Agree task pickup and review.** Confirm daily availability, the shared claim/review workflow and the submission channel; assign no permanent task owners. | T | 17 Oct, remaining day | - | ready | [#5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) |
+| 1.3 | **FastF1 selection.** Select FastF1; retain OpenF1 only as an optional cross-check. Superseded on 18 October, when 2.1 moved to OpenF1. | D | 26 Sep (completed) | - | done | - |
+| 1.4 | **Race-card contract and rules.** Fix card fields, units, thresholds and BOX/STAY OUT/NO CALL policy; provide a deterministic reference and five expected conversations. | D | 17 Oct, remaining day | 1.2, 1.3 | done (18 Oct) | [#3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/3) |
+| 1.5 | **Model feasibility and observations.** Load a compact instruction model, document the required model observations and verify a short, reloadable adaptation on available hardware. | M | 17 Oct, remaining day | 1.2 | done (18 Oct) | [#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4) |
+| 1.6 | **Agree task pickup and review.** Confirm daily availability, the shared claim/review workflow and the submission channel; assign no permanent task owners. | T | 17 Oct, remaining day | - | done (18 Oct) | [#5](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5) |
 
 ### 2. First prototype
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 2.1 | **Reconstruction and race splits.** Test FastF1 access, reconstruct real cards and freeze train/validation/mini-test/final race lists before generating dialogues. | D | 18 Oct, morning | 1.4 | planned | [#6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/6) |
-| 2.2 | **Prepare and review examples.** Prepare and manually review the target 400 A training dialogues, validation examples and at least 20 distinct MVP mini-test queries. | D | 18 Oct, afternoon–evening | 2.1 | planned | [#7](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/7) |
-| 2.3a | **Define the evaluation rubric.** Define the 0–2 rubric, automatic measures and human-review protocol before seeing model results. | E | 18 Oct, early morning | 1.4 | planned | [#8](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/8) |
-| 2.3b | **Build scoring checks on fixtures.** Build a shared evaluator for paired outputs, category summaries, anonymized human review and uncertainty, using fixtures only. | E | 18 Oct, afternoon | 2.3a, 2.1 | planned | [#9](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/9) |
-| 2.4 | **Build the demo shell.** Build the English Gradio card/chat interface with sample cards and a stub matching the shared engine contract. | E | 18 Oct | 1.4 | planned | [#10](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/10) |
-| 2.5a | **Build the conversation engine.** Implement a reusable baseline engine with the model native chat template, bounded history and controlled generation. | M | 18 Oct | 1.4, 1.5 | planned | [#11](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/11) |
-| 2.5b | **Compare baseline prompts.** Compare at least two prompts on validation, choose by the declared criteria and retain the unadapted reference outputs. | M | 19 Oct, early morning | 2.5a, 2.2, 2.3b | planned | [#12](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/12) |
-| 2.6 | **Train and reload adapter A.** Train adapter A with the base frozen, retain losses/settings and reload the validation-selected checkpoint. | M | 19 Oct, late morning–afternoon | 2.5b | planned | [#13](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/13) |
-| 2.7 | **Run the MVP mini-test.** Compare baseline/A on at least 20 unseen mini-test queries, with the shared rubric and five discussed cases. | E | 19 Oct, evening | 2.3b, 2.6 | planned | [#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14) |
-| 2.8 | **Integrate A into the notebook demo.** Launch Gradio from the notebook using the real adapter A; combine this integration with 2.7 to close the seven-step MVP. | M | 19 Oct, evening | 2.4, 2.5a, 2.6 | planned | [#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15) |
+| 2.1 | **Reconstruction and race splits.** Test FastF1 access, reconstruct real cards and freeze train/validation/mini-test/final race lists before generating dialogues. | D | 18 Oct, morning | 1.4 | done (18 Oct) | [#6](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/6) |
+| 2.2 | **Prepare and review examples.** Prepare and manually review the target 400 A training dialogues, validation examples and at least 20 distinct MVP mini-test queries. | D | 18 Oct, afternoon–evening | 2.1 | done (18 Oct) | [#7](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/7) |
+| 2.3a | **Define the evaluation rubric.** Define the 0–2 rubric, automatic measures and human-review protocol before seeing model results. | E | 18 Oct, early morning | 1.4 | done (18 Oct) | [#8](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/8) |
+| 2.3b | **Build scoring checks on fixtures.** Build a shared evaluator for paired outputs, category summaries, anonymized human review and uncertainty, using fixtures only. | E | 18 Oct, afternoon | 2.3a, 2.1 | done (19 Oct) | [#9](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/9) |
+| 2.4 | **Build the demo shell.** Build the English Gradio card/chat interface with sample cards and a stub matching the shared engine contract. | E | 18 Oct | 1.4 | done (19 Oct) | [#10](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/10) |
+| 2.5a | **Build the conversation engine.** Implement a reusable baseline engine with the model native chat template, bounded history and controlled generation. | M | 18 Oct | 1.4, 1.5 | done (19 Oct) | [#11](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/11) |
+| 2.5b | **Compare baseline prompts.** Compare at least two prompts on validation, choose by the declared criteria and retain the unadapted reference outputs. | M | 19 Oct, early morning | 2.5a, 2.2, 2.3b | done (19 Oct) | [#12](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/12) |
+| 2.6 | **Train and reload adapter A.** Train adapter A with the base frozen, retain losses/settings and reload the validation-selected checkpoint. | M | 19 Oct, late morning–afternoon | 2.5b | done (20 Oct) | [#13](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/13) |
+| 2.7 | **Run the MVP mini-test.** Compare baseline/A on at least 20 unseen mini-test queries, with the shared rubric and five discussed cases. | E | 19 Oct, evening | 2.3b, 2.6 | done (20 Oct) | [#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14) |
+| 2.8 | **Integrate A into the notebook demo.** Launch Gradio from the notebook using the real adapter A; combine this integration with 2.7 to close the seven-step MVP. | M | 19 Oct, evening | 2.4, 2.5a, 2.6 | done (21 Oct) | [#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15) |
 
 ### 3. Experiments
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 3.1 | **Prepare matched B variants.** Freeze matched A/B corpora: target 400 each, 340 identical examples and 60 reviewed missing-required-field replacements in B. | D | 19 Oct | 2.2 | planned | [#16](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/16) |
-| 3.2 | **Train controlled adapter B.** Train and reload B using the fixed A settings; retain losses and validation/mini-test outputs. | M | 20 Oct, morning–early afternoon | 3.1, 2.7, 2.8 | planned | [#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17) |
-| 3.3 | **Write the interim A/B analysis.** Compare A/B on validation and the exploratory mini-test, including unjustified answers and excessive refusals. | E | 20 Oct, afternoon | 3.2 | planned | [#18](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18) |
-| 3.4 | **Zero-shot OpenJev baseline (optional).** Score OpenJev Flash 9B (MLX 4-bit) zero-shot on the CALL line of the same validation and mini-test cards; freeze it with the retained versions or record the drop. It has no WHY sentence, so it stays out of 4.3 human review. Repeat runs and V2 stay deferred. | M | 20 Oct, morning–afternoon | 2.7, 2.8 | planned | [#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35) |
-| 3.5 | **Freeze retained versions.** Freeze retained models/adapters, prompts, corpora, decoding, configurations and evaluation protocol before opening the final test. | M | 20 Oct, by 18:00 | 3.3; **only if B is dropped:** 2.7 + 2.8 + recorded team decision | planned | [#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19) |
+| 3.1 | **Prepare matched B variants.** Freeze matched A/B corpora: target 400 each, 340 identical examples and 60 reviewed missing-required-field replacements in B. | D | 19 Oct | 2.2 | done (20 Oct) | [#16](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/16) |
+| 3.2 | **Train controlled adapter B.** Train and reload B using the fixed A settings; retain losses and validation/mini-test outputs. | M | 20 Oct, morning–early afternoon | 3.1, 2.7, 2.8 | done (21 Oct) | [#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17) |
+| 3.3 | **Write the interim A/B analysis.** Compare A/B on validation and the exploratory mini-test, including unjustified answers and excessive refusals. | E | 20 Oct, afternoon | 3.2 | done (21 Oct) | [#18](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18) |
+| 3.4 | **Zero-shot OpenJev baseline (optional).** Score OpenJev Flash 9B (MLX 4-bit) zero-shot on the CALL line of the same validation and mini-test cards; freeze it with the retained versions or record the drop. It has no WHY sentence, so it stays out of 4.3 human review. Repeat runs and V2 stay deferred. | M | 20 Oct, morning–afternoon | 2.7, 2.8 | done (21 Oct) | [#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35) |
+| 3.5 | **Freeze retained versions.** Freeze retained models/adapters, prompts, corpora, decoding, configurations and evaluation protocol before opening the final test. | M | 20 Oct, by 18:00 | 3.3; **only if B is dropped:** 2.7 + 2.8 + recorded team decision | review | [#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19) |
 
 ### 4. Evaluation
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 4.1 | **Prepare reserved final cases.** Prepare approximately 200 final cases from the reserved races only after the documented freeze. | D | 20 Oct, after the 18:00 freeze | 3.5 | planned | [#20](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/20) |
+| 4.1 | **Prepare reserved final cases.** Prepare approximately 200 final cases from the reserved races only after the documented freeze. | D | 20 Oct, after the 18:00 freeze | 3.5 | review | [#20](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/20) |
 | 4.2 | **Score frozen versions once.** Run every retained frozen version on the same final cases once and retain all outputs. | M | 21 Oct, morning | 4.1, 2.3b | planned | [#21](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/21) |
 | 4.3 | **Human review of 40 cases per version.** Score the same 40 cases for each retained version with the 0–2 rubric: 120 responses for three versions or 80 for two. | E | 21 Oct, late morning–afternoon | 4.2 | planned | [#22](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/22) |
 | 4.4 | **Paired gains and uncertainty.** Calculate paired automatic gains and race-level uncertainty from the frozen outputs; human ratings are merged in 4.5. | D | 21 Oct, late morning–afternoon | 4.2 | planned | [#23](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/23) |
@@ -161,4 +172,4 @@ The README's [business overview source](diagrams/roadmap.excalidraw) and PNG are
 
 The `boxbox-gantt`, `boxbox-dependances` and `boxbox-systeme` Excalidraw/SVG files are retained as historical proposals. They are not active schedules or proof of implemented architecture. The former [target roadmap](roadmap-cible.md) redirects here.
 
-**Not yet measured:** model/GPU access, adaptation duration and real-card reconstruction runtime. The full A/B schedule remains conditional on those measurements and the team's daily availability.
+**Measured since 17 October:** model feasibility in 1.5, real-card reconstruction in 2.1, and adapter training in 2.6 and 3.2, about 72 minutes per seed. The remaining schedule still depends on the team's daily availability.

@@ -32,11 +32,11 @@ The research question is whether a small language model gives fewer unjustified 
 
 ## Current status
 
-**Snapshot: 17 October 2026 - planning only, milestone 1 of 5 (framing and design).** The audience, scope and FastF1 selection were settled on 26 September. The decision rules, race-card contract, measured model feasibility and shared task-pickup workflow come next. No prototype, training run or result has been delivered. The recovery plan assumes 50–70 collective hours, including an 8-hour reserve, until 22 October at 23:59 Paris time; confirmed remaining capacity is recorded separately in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
+**Snapshot: 21 October 2026, 18:00 - milestone 4 of 5 (evaluation).** The prototype, adapters A and B, the interim A/B analysis and the optional OpenJev study (tasks 1.1 to 3.4) are done. The freeze of the retained versions (baseline, A and B) is recorded and awaits a teammate's confirmation, and the final cases are in review. Final scoring, human review, the report, the video and the package come next. The recovery plan assumes 50–70 collective hours, including an 8-hour reserve, until 22 October at 23:59 Paris time; confirmed remaining capacity is recorded separately in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
 
 ## Project structure
 
-The repository holds planning documents for now:
+The repository holds the code, configs, tests and documentation:
 
 ```text
 docs/roadmap.md         active recovery schedule, task definitions and issue links
@@ -63,7 +63,7 @@ The product, interface, prompts, training examples, code, notebook explanations,
 
 ## Architecture
 
-The solution is being designed. Its architecture will be documented here with the first prototype, targeted for 19 October evening, subject to the feasibility and MVP gates. Milestones, task outputs and prerequisites are in [docs/roadmap.md](docs/roadmap.md).
+The code layout and its conventions are described in [docs/code-approach.md](docs/code-approach.md). Milestones, task outputs and prerequisites are in [docs/roadmap.md](docs/roadmap.md).
 
 ## Data sources
 
@@ -73,13 +73,13 @@ OpenF1's licence (CC BY-NC-SA 4.0) excludes commercial use, and its free access 
 
 ## Installation
 
-There is nothing to install yet. Installation and run instructions will come with the first prototype, in `README.txt`, the run guide required by the brief.
+Installation and run instructions are in `README.txt`, the run guide required by the brief.
 
 ## Roadmap
 
-![BoxBox recovery overview for 17–22 October 2026, with framing and design still marked as the current stage and three September decisions completed](docs/diagrams/roadmap.png)
+![BoxBox recovery overview for 17–22 October 2026, with milestones 1 and 2 done, experiments in review and evaluation marked as the current stage at the 21 October snapshot](docs/diagrams/roadmap.png)
 
-This overview shows the five recovery milestones, with the red dot still on framing and design at the 17 October snapshot. Colors identify phases; green means delivery, not completion. The dashed callout describes the research-scope fallback. Target the MVP on 19 October evening, freeze retained versions by 20 October at 18:00, and have the package ready on 22 October at 12:00 for submission by 23:59 Paris time. The detailed Gantt, dependencies, capacity assumptions and task links are in [docs/roadmap.md](docs/roadmap.md); [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers and reviews.
+This overview shows the five recovery milestones, with the red dot on evaluation at the 21 October snapshot. Colors identify phases; green means delivery, not completion. The dashed callout describes the research-scope fallback. Target the MVP on 19 October evening, freeze retained versions by 20 October at 18:00, and have the package ready on 22 October at 12:00 for submission by 23:59 Paris time. The detailed Gantt, dependencies, capacity assumptions and task links are in [docs/roadmap.md](docs/roadmap.md); [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers and reviews.
 
 ## Team
 
