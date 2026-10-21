@@ -837,9 +837,8 @@ def main(argv: list[str] | None = None) -> int:
         "--out", type=Path, help="default: docs/diagrams/adapter-<x>-losses.png"
     )
     args = parser.parse_args(argv)
-    if (
-        Path.cwd().resolve() != ROOT
-    ):  # configs/, runs/ and the seed processes are relative
+    # configs/, runs/ and the seed processes are relative to the repository root
+    if Path.cwd().resolve() != ROOT:
         parser.error("run from the repository root")
     if args.command == "smoke":
         return smoke(args.adapter)
