@@ -12,11 +12,15 @@ python -m scripts.train_adapter seeds --adapter B
 python -m scripts.train_adapter summarize RUN_DIR RUN_DIR RUN_DIR --against-a runs/2026-10-20_2-6-adapter-a-summary.json
 python -m scripts.train_adapter curves RUN_DIR RUN_DIR RUN_DIR
 python -m scripts.train_adapter push SUMMARY --repo ING3NLPProject/boxbox-adapter-b
+python -m scripts.mini_test prepare --name 3-2-mini-test --with-b
+python -m scripts.mini_test run --run-dir runs/<date>_3-2-mini-test
+python -m scripts.mini_test score --run-dir runs/<date>_3-2-mini-test
 ```
 
 - `seeds` trains each seed, then validates it in a new process, and goes on to the next seed if one fails. Logs go to `runs/3-2-logs/`.
 - `summarize --against-a` adds the comparison with A described below. It writes `configs/adapter-b-selection.json`.
 - The other commands are those of `docs/adapter-a.md`. They read the adapter from each run's `config.toml`.
+- `mini_test ... --with-b` runs the mini-test of 2.7 with the baseline, A and B, as described in `docs/mini-test.md`.
 
 ## What differs from A
 
@@ -133,6 +137,50 @@ The effect is the same at every epoch. It comes from the corpus, not from the ch
 - **The 2.3a order:** it puts unjustified decisions before excessive refusals, so it prefers this trade-off. That is a declared preference of the protocol, not a proof that B is better overall. The mini-test and the human ratings decide the comparison.
 - **Optimistic numbers:** checkpoints were chosen on these same targets, for A and for B, so these validation numbers favour both. B's NO CALL sentence is also word for word the reference sentence of the validation targets with a missing field. The mini-test is the fair comparison. So are the 10 validation targets whose field is missing in the real data rather than removed.
 
+## Mini-test
+
+### The run
+
+Run `2026-10-21_3-2-mini-test` answered the 40 mini-test targets with the baseline, A and B:
+- one process on the M3 Max (MPS, bf16), from commit `0ff21c3` with a clean tree
+- A is `A-s2028-e1` and B is `B-s2027-e3`, both checked against their recorded hashes
+- 120 answers, no generation error, and nothing retried
+- A and B saw the same prompt tokens as the baseline on all 40 targets
+
+No checkpoint was trained or chosen on these targets. They come from 5 races that share no race or card with training or validation. Their questions use the evaluation wording, and 15 of them match a validation question once numbers are masked.
+
+### Results
+
+| Measure | Baseline | A | B | B − A (95% interval) |
+|---|---:|---:|---:|---|
+| Strict format | 31/40 | 40/40 | 40/40 | 0 |
+| CALL agreement | 10/40 | 28/40 | 33/40 | +0.125 (-0.051 to +0.333) |
+| Unjustified decisions (Z) | 11/16 | 9/16 | 1/16 | -0.500 (-0.750 to -0.273) |
+| Excessive refusals (D) | 0/24 | 1/24 | 6/24 | +0.208 (+0.077 to +0.286) |
+| Macro-label agreement | 0.278 | 0.729 | 0.812 | +0.083 (-0.078 to +0.204) |
+| Macro-family agreement | 0.233 | 0.753 | 0.767 | +0.013 (-0.167 to +0.117) |
+| Answers cut at 64 tokens | 10 | 2 | 2 | |
+
+The interval is the race bootstrap over the 5 races, with 10,000 draws. For unjustified decisions only 2 to 4 races contribute, so that interval is rough. `bootstrap.json` also gives A minus baseline and B minus baseline.
+
+CALL agreement by family:
+
+| Family | Baseline | A | B |
+|---|---:|---:|---:|
+| Blocking incomplete (a required field unknown) | 0/10 | 1/10 | 10/10 |
+| Complete | 6/12 | 10/12 | 12/12 |
+| Follow-up | 2/6 | 6/6 | 6/6 |
+| Out of scope | 0/6 | 6/6 | 5/6 |
+| Usable incomplete (an unknown field the rule does not need) | 2/6 | 5/6 | 0/6 |
+
+### Reading
+
+- **The validation result holds on unseen targets.** B answers NO CALL on all 10 blocking cards, where A decided on 9 of them. It also gets every complete card right.
+- **The same over-refusal:** B refuses all 6 usable incomplete cards, where A was right on 5. Its only unjustified decision is a weather question ("Do we need intermediates soon?"), which it answers with BOX.
+- **The overall CALL gain** of B over A (+0.125) is not clear over 5 races. The changes in unjustified decisions and excessive refusals are.
+- **Compared with the 2.7 run on Colab:** this run gives the baseline the same counts (10/40 CALL agreement, 11/16 unjustified decisions). A gets 28/40 instead of 29/40, and the baseline cuts 10 answers instead of 9. Answers can differ a little between machines, which is why A and B are compared within this run.
+- **Human rating:** the masked sheet `review/review.csv` holds the 120 answers. It is not rated yet, so these are automatic measures only.
+
 ## Adapter B
 
 The 2.3a order ranks the three selected checkpoints:
@@ -171,6 +219,5 @@ Each of the nine checkpoints was reloaded in a new process:
 
 ## Not done yet
 
-- The mini-test answers of B, with the baseline and A in the same process, for 120 answers.
-- The human rating of those answers.
+- The human rating of the 120 mini-test answers.
 - The upload of the three selected checkpoints to `ING3NLPProject/boxbox-adapter-b`, with `push`, once the team agrees.

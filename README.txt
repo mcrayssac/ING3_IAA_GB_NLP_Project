@@ -285,5 +285,16 @@ summarize writes configs/adapter-b-selection.json, which selected_adapter()
 reads like the file of A. Adapter B is seed 2027 at epoch 3. Against A with the
 same seed, unjustified decisions fall by 0.550 on average, CALL agreement rises
 by 0.070, and excessive refusals rise by 0.239, all on cards where an unknown
-field is not needed. See docs/adapter-b.md for the tables, the comparison at
-equal updates and the reading of these results.
+field is not needed.
+
+The mini-test of task 2.7 also runs with B as a third version, in one process
+with the baseline and A (docs/mini-test.md):
+
+    .venv/bin/python -m scripts.mini_test prepare --name 3-2-mini-test --with-b
+    HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.mini_test run --run-dir runs/2026-10-21_3-2-mini-test
+    .venv/bin/python -m scripts.mini_test score --run-dir runs/2026-10-21_3-2-mini-test
+
+On the 40 mini-test targets, B makes 1 unjustified decision on 16 against 9
+for A, and refuses 6 of 24 decidable targets against 1 for A. See
+docs/adapter-b.md for the tables, the comparison at equal updates, the
+mini-test and the reading of these results.
