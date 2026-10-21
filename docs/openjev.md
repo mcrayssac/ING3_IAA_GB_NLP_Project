@@ -19,16 +19,20 @@ The build used here:
 | Setup | Python 3.12 with `mlx==0.32.2`, `mlx-lm==0.31.3` and `transformers==5.17.0`, helper `shim_mlx.py` with `shim.py`, local server on port 3000 |
 | Readout values for this build | `READOUT_T=1.07`, `READOUT_NOUL_T=1.074766`, `READOUT_NOUL_BIAS=0`, `READOUT_TARGETED=1`, `READOUT_INSTR_STYLE=pyrepr` |
 | Self-check | `--selfcheck` prints a helper hash starting `81a22f1b` |
-| Limits | up to 52 options per pass, prompts up to 16,384 tokens |
+| Limits | up to 52 options per pass, prompts up to 16,384 tokens in the documented vLLM setup |
 | Licence | weights under CC BY-NC 4.0 (non-commercial use with attribution), helper and serving files under Apache 2.0 |
 
-The model's authors report:
-- 186 of 231 public JevBench items (80.5%) for this build
-- on their 10,000 text decisions, 84.0% for OpenJev against 80.4% for the same base model before their tuning
-- a Brier score of 0.19 on their own evaluation
-- answers that change when the options are shuffled in 2.3% of 2,000 tests, down from 18.5% before tuning
+For Flash 9B, its authors report:
+- 186 of 231 public JevBench items (80.5%) for this 4-bit build, and 188 (81.4%) for the 8-bit MLX build
+- 79.4% on their 10,000 text questions, against 84.1% for OpenJev 27B
 
-No paper or independent evaluation is cited for these figures. Part of this study is to see whether they hold on our cards.
+The Flash 9B cards give no calibration score, no comparison with the untuned base model and no test with shuffled options.
+
+The main OpenJev card describes the larger model of the family, which the Flash 9B card calls OpenJev 27B. On the same 10,000 questions it reports 84.0% for that model (84.1% on the Flash 9B card) against 80.4% for its base model before tuning. On 2,000 agent decisions, its answers change in 2.3% of cases when the options are shuffled, against 18.5% before tuning. These figures are not for Flash 9B.
+
+No paper or independent evaluation is cited for any of these figures. Part of this study is to see what holds on our cards.
+
+Correction, 21 October: the first version of this page gave the main card's figures (84.0% against 80.4%, and 2.3% against 18.5%) as if they were Flash 9B's. It also quoted a Brier score of 0.19, which neither card's text reports. Research questions 1, 3 and 4 below keep their hypotheses as declared, with a note where they relied on those figures.
 
 ## Why it fits BoxBox
 
@@ -68,6 +72,7 @@ Measures:
 1. **Can a zero-shot model match the fine-tuned adapters on the call?**
    - Studies of text classification mostly find that fine-tuned small models beat zero-shot large ones. That holds across news, tweets and speeches (Bucher and Martini 2024) and on pathology reports (Gondara et al. 2025). Zero-shot methods lose on most tasks across 32 datasets in 8 languages (Vajjala and Shimangaud 2025).
    - Small models can still classify well zero-shot, and size alone does not decide (Lepagnol et al. 2024). OpenJev is also not a plain chat model: it is tuned for decisions, which gave it 3.6 points over its untuned base on its authors' benchmark.
+   - Note: that gain belongs to the larger OpenJev, and its card gives 3.7 points (8,403 against 8,036 of 10,000). The 3.6 was the gap between the rounded percentages. The Flash 9B card gives no comparison with its untuned base.
    - Hypothesis: A and B keep a higher CALL agreement than OpenJev on complete cards, where the rule is applied to numbers they were trained on.
    - Measured by CALL agreement by family on validation and the mini-test.
 2. **Is a threshold on calibrated probabilities a better way to abstain than B's learnt NO CALL?**
@@ -76,10 +81,12 @@ Measures:
    - Measured by the risk and coverage curve against baseline, A and B, with each NO CALL cause and the usable incomplete cards reported apart.
 3. **Are its probabilities calibrated on our cards?**
    - Hypothesis: calibration is worse on our cards than the Brier of 0.19 its authors report, since race cards are far from their data.
+   - Note: neither card's text reports a Brier score, so the 0.19 has no source. The hypothesis can only be read as "poorly calibrated on our cards", with no published figure to compare with.
    - Measured by Brier, ECE and the reliability diagram on validation, then on the mini-test with nothing refitted.
 4. **Does option order change its calls?**
    - Large language models favour some option letters when answering multiple-choice questions, whatever the options say (Zheng et al. 2024). OpenJev also reads its answer from option letters, and its authors report fixing most of that bias.
    - Hypothesis: the share of changed calls on our cards stays close to the reported 2.3%.
+   - Note: the 2.3% and the bias fix are reported for the larger OpenJev, on agent decisions. The Flash 9B cards report no shuffle test.
    - Measured by one validation run with the three options shuffled under a fixed seed.
 5. **Do the diagnostic questions explain its errors?**
    - Hypothesis: on cards where OpenJev makes an unjustified call, it often still answers `required_known` correctly. That would mean it can see the missing field but does not draw the policy's conclusion from it.
@@ -247,11 +254,11 @@ The hypothesis does not hold, in either part.
 
 ### 3. Calibration
 
-The probabilities are poorly calibrated on our cards, and worse on unseen targets with nothing refitted: ECE 0.132 on validation and 0.236 on the mini-test. On validation, OpenJev is overconfident in the middle of the range and underconfident at the top. Our Brier score, 0.520 on validation, cannot be set against the 0.19 of the model card, because the card does not define its Brier score.
+The probabilities are poorly calibrated on our cards, and worse on unseen targets with nothing refitted: ECE 0.132 on validation and 0.236 on the mini-test. On validation, OpenJev is overconfident in the middle of the range and underconfident at the top. Neither card's text reports a Brier score, so our 0.520 on validation has no published figure to compare with. The 0.19 named in the hypothesis has no source.
 
 ### 4. Option order
 
-The hypothesis does not hold. With the three options in another order, 16 of 100 validation calls change, against 2.3% on the model card. The changes come from every family: 5 complete, 4 blocking incomplete, 4 usable incomplete, 2 out of scope and 1 follow-up. The CALL prompt of the shuffled run differs only by the option order, so the order alone causes these changes. Zheng et al. (2024) describe this preference for some option letters or positions.
+The hypothesis does not hold. With the three options in another order, 16 of 100 validation calls change. The 2.3% the hypothesis named belongs to the larger OpenJev, on agent decisions, and the Flash 9B cards report no shuffle test. So there is no published figure for this model. Our 16% is far above the 2.3% reported for the larger OpenJev, and nearer the 18.5% its card gives for the untuned base, though that card measures agent decisions, not race cards. The changes come from every family: 5 complete, 4 blocking incomplete, 4 usable incomplete, 2 out of scope and 1 follow-up. The CALL prompt of the shuffled run differs only by the option order, so the order alone causes these changes. Zheng et al. (2024) describe this preference for some option letters or positions.
 
 ### 5. Diagnostics
 
@@ -304,4 +311,4 @@ The run folders are not in Git.
 - Vajjala, S. and Shimangaud, S. (2025). Text Classification in the LLM Era: Where do we stand? [arXiv:2502.11830](https://arxiv.org/abs/2502.11830)
 - Wen, B. et al. Know Your Limits: A Survey of Abstention in Large Language Models. TACL. [arXiv:2407.18418](https://arxiv.org/abs/2407.18418)
 - Zheng, C. et al. (2024). Large Language Models Are Not Robust Multiple Choice Selectors. ICLR. [arXiv:2309.03882](https://arxiv.org/abs/2309.03882)
-- OpenJev model cards: [OpenJev](https://huggingface.co/openjev/openjev) and [OpenJev Flash 9B, MLX 4-bit](https://huggingface.co/openjev/OpenJev-Flash-9B-MLX-4bit)
+- OpenJev model cards: [OpenJev](https://huggingface.co/openjev/openjev), the larger model; [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B); and [OpenJev Flash 9B, MLX 4-bit](https://huggingface.co/openjev/OpenJev-Flash-9B-MLX-4bit)
