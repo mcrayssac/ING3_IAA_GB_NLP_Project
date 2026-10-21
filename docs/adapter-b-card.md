@@ -57,7 +57,7 @@ Against A with the same seed:
 
 ## Limits
 
-B refuses almost every card that has an unknown field, even when the rule does not need that field. Its training corpus has no such card, so it learnt that any unknown field means NO CALL. Some long answers stop at the 64 new tokens used at inference. It applies one fixed pit rule to the card it is given and is not a race strategy tool.
+B refuses almost every card that has an unknown field, even when the rule does not need that field. Its training corpus has no such card, which most likely taught it that any unknown field means NO CALL. Some long answers stop at the 64 new tokens used at inference. It applies one fixed pit rule to the card it is given and is not a race strategy tool.
 
 ## Data
 

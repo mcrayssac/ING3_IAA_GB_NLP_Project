@@ -133,7 +133,7 @@ The effect is the same at every epoch. It comes from the corpus, not from the ch
 
 - **Fewer unjustified decisions:** B removes most of A's main failure. Where the answer is NO CALL, A made a call on 53 to 60% of the targets, and B on 0 to 5%.
 - **More excessive refusals:** B refuses about a quarter of the targets where a call is due. These refusals all fall on the 15 "usable incomplete" targets: 15, 15 and 14 of them for seeds 2026, 2027 and 2028. These cards have an unknown field that the rule does not need on their path. B refuses on none of the 30 complete cards and none of the 15 follow-ups.
-- **Why:** neither corpus contains a usable incomplete card. A never sees an unknown field. B sees 60 cards with an unknown field, and they are all NO CALL. So B learns that any unknown field means NO CALL, not that a required unknown field does. A corpus with usable incomplete examples next to the 60 replacements would be the next variant to test.
+- **Most likely why:** neither corpus contains a usable incomplete card. A never sees an unknown field. B sees 60 cards with an unknown field, and they are all NO CALL. The simplest reading is that B learnt "an unknown field means NO CALL" rather than "a required unknown field means NO CALL". The pattern fits it: B refuses 44 of the 45 usable incomplete validation targets over the three seeds, and 6 of 6 in the mini-test. No experiment has tested it yet. A corpus that adds usable incomplete examples next to the 60 replacements would.
 - **The 2.3a order:** it puts unjustified decisions before excessive refusals, so it prefers this trade-off. That is a declared preference of the protocol, not a proof that B is better overall. The mini-test and the human ratings decide the comparison.
 - **Optimistic numbers:** checkpoints were chosen on these same targets, for A and for B, so these validation numbers favour both. B's NO CALL sentence is also word for word the reference sentence of the validation targets with a missing field. The mini-test is the fair comparison. So are the 10 validation targets whose field is missing in the real data rather than removed.
 
@@ -203,7 +203,7 @@ engine = load_conversation_engine(config, instructions=instructions, adapter_dir
 
 `selected_adapter` checks the hashes and returns the config with seed 2027 and the p01 prompt. The summary is in `runs/2026-10-21_3-2-adapter-b-summary.json`.
 
-`push` uploaded the three selected checkpoints, the summary and the model card `docs/adapter-b-card.md` to `ING3NLPProject/boxbox-adapter-b`, a private repo of the team organisation, at revision `ccb43411cd02b41c0ac50f481247fbd0d37a0e5c`:
+`push` uploaded the three selected checkpoints, the summary and the model card `docs/adapter-b-card.md` to `ING3NLPProject/boxbox-adapter-b`, a private repo of the team organisation, at revision `f182f8e9150fa518576eb99c0785bae5dd3ed5f8`:
 - adapter B is the folder `s2027-e3`, and `s2026-e2` and `s2028-e3` are the other two seeds
 - the three adapter files on the Hub have the same SHA-256 as the local ones
 - the revision is recorded in `configs/adapter-b-selection.json`
@@ -223,6 +223,12 @@ Each of the nine checkpoints was reloaded in a new process:
 - **Speed:** each seed trained for about 71.5 minutes, at 10.9 s per update, then validated its three checkpoints in about 9 minutes.
 - **Memory:** the largest allocation read at the end of an update was 15.6 to 16.7 GB.
 - **Smoke checks:** the smoke run read 12.0 s per update and 14.6 GB. A first smoke run read 15.6 s per update while another application was using the CPU, and it is kept as `runs/2026-10-20_3-2-smoke-busy`.
+
+## Run files
+
+The run folders stay out of Git, so the team gets them as `3-2-runs.zip`, shared with the review of #17. It holds the three B runs, the summary, the logs, the two smoke runs and the mini-test run, without the weights, which are on the Hub. With it, a teammate can check the selection, the reload results and every answer.
+
+The zip also holds the mini-test's version key and the unmasked `paired.csv`, so raters must not open it. They get only the masked sheet, `3-2-mini-test-review.csv`.
 
 ## Not done yet
 
