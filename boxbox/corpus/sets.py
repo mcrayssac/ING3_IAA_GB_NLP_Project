@@ -64,6 +64,11 @@ EVAL_CAP = 6  # cards per race and driver in an evaluation set: three capped poo
 # (team decision on #20): their track-status items take any SC/VSC card that the rule
 # stops on the track status, even with another field unknown.
 ANY_TRACK_CARD = {"final"}
+# The final races give no usable incomplete BOX card by chance, and section 8 reviews
+# 4 of them (team decision on #20): 8 of the final set's 15 constructed usable cards
+# come from BOX paths (box_old_tyres without the gap ahead, box_no_car_behind without
+# the pit loss).
+USABLE_BOX = {"final": 8}
 CALLS = {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
 
 
@@ -165,8 +170,11 @@ def _natural(records, used, wanted, rng, count) -> list[dict[str, Any]]:
     return _pick(rest, keep, count, rng, Counter())
 
 
-def _irrelevant(records, used, rng, count) -> list[dict[str, Any]]:
-    """Complete cards on paths with a field the rule ignores, each with that field removed."""
+def _irrelevant(records, used, rng, count, box=0) -> list[dict[str, Any]]:
+    """Complete cards on paths with a field the rule ignores, each with that field removed.
+
+    With `box`, that many of them come first from the BOX paths (final set only).
+    """
     pool = [
         {**r, "path": path_of(r["card"])}
         for r in sorted(records, key=lambda r: r["card_id"])
@@ -175,6 +183,12 @@ def _irrelevant(records, used, rng, count) -> list[dict[str, Any]]:
         and path_of(r["card"]) in IRRELEVANT
     ]
     rng.shuffle(pool)
+    if box:
+        boxes = [r for r in pool if r["path"].startswith("box_")][:box]
+        if len(boxes) < box:
+            raise ValueError(f"only {len(boxes)} BOX cards for {box} usable BOX items")
+        ids = {r["card_id"] for r in boxes}
+        pool = boxes + [r for r in pool if r["card_id"] not in ids]
     items = []
     for i, record in enumerate(pool[:count]):
         fields = IRRELEVANT[record["path"]]
@@ -209,7 +223,7 @@ def eval_set(
     )
     items += [track_item(r, rng, "eval") for r in neutral]
     used = {r["card_id"] for r in cards + neutral}
-    items += _irrelevant(records, used, rng, syn_decidable)
+    items += _irrelevant(records, used, rng, syn_decidable, USABLE_BOX.get(split, 0))
     used |= {item["card_id"] for item in items}
     missing = _natural(
         records, used, lambda d: "missing" in d[1], rng, kinds["missing"] - syn_missing

@@ -180,3 +180,18 @@ def test_final_track_items_accept_sc_cards_with_an_unknown_field() -> None:
     errors = check_set(validation, EVAL_KINDS["validation"], races, EVAL_CAP, 4)
     assert any("track status items" in e for e in errors)
     assert TRACK_ITEMS["validation"] == 4
+
+
+def test_final_usable_cards_include_box_calls() -> None:
+    """Team decision on #20: section 8 reviews 4 usable incomplete BOX targets."""
+    from collections import Counter
+
+    from boxbox.rules import decide
+
+    items = eval_set(records(), "final", 2026)
+    usable = Counter(
+        decide(i["card"])[0]
+        for i in items
+        if i["kind"] == "decidable" and i.get("removed_field")
+    )
+    assert usable["BOX"] >= 8 and sum(usable.values()) == 15
