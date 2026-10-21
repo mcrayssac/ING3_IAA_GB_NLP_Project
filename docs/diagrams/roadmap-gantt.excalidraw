@@ -62,15 +62,15 @@
       "frameId": null,
       "roundness": null,
       "seed": 1175014064,
-      "version": 11,
-      "versionNonce": 1571763280,
+      "version": 12,
+      "versionNonce": 1536200259,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
-      "text": "17-22 October 2026  /  Paris time  /  Snapshot: 17 October",
-      "originalText": "17-22 October 2026  /  Paris time  /  Snapshot: 17 October",
+      "text": "17-22 October 2026  /  Paris time  /  Snapshot: 21 October",
+      "originalText": "17-22 October 2026  /  Paris time  /  Snapshot: 21 October",
       "fontSize": 22,
       "fontFamily": 1,
       "lineHeight": 1.25,
@@ -2608,7 +2608,7 @@
     {
       "id": "M-FYrVmi5mufC5aYO2QTB",
       "type": "line",
-      "x": -470.00564827774497,
+      "x": 99.99435172225503,
       "y": -3736.952734852527,
       "width": 0,
       "height": 1636,
@@ -2624,11 +2624,11 @@
       "frameId": null,
       "roundness": null,
       "seed": 1900361904,
-      "version": 11,
-      "versionNonce": 1435138736,
+      "version": 12,
+      "versionNonce": 1937684634,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
       "points": [
@@ -2648,7 +2648,7 @@
       "endArrowhead": null,
       "customData": {
         "kind": "snapshot",
-        "date": "2026-10-17"
+        "date": "2026-10-21T18:00"
       },
       "index": "bH4",
       "created": 1792249066353,
@@ -2657,7 +2657,7 @@
     {
       "id": "N8DXW4tC0WzMgYTNh66Qw",
       "type": "ellipse",
-      "x": -475.00564827774497,
+      "x": 94.99435172225503,
       "y": -3742.952734852527,
       "width": 10,
       "height": 10,
@@ -2673,11 +2673,11 @@
       "frameId": null,
       "roundness": null,
       "seed": 2138743472,
-      "version": 11,
-      "versionNonce": 2054408272,
+      "version": 12,
+      "versionNonce": 734031593,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
       "index": "bH5",
@@ -2792,10 +2792,10 @@
       "type": "text",
       "x": -71.00564827774497,
       "y": -3717.952734852527,
-      "width": 266.20000000000005,
+      "width": 181.5,
       "height": 27.5,
       "angle": 0,
-      "strokeColor": "#c92a2a",
+      "strokeColor": "#495057",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 1.3,
@@ -2806,15 +2806,15 @@
       "frameId": null,
       "roundness": null,
       "seed": 1903938224,
-      "version": 11,
-      "versionNonce": 1220146256,
+      "version": 12,
+      "versionNonce": 635999438,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
-      "text": "17 Oct / current stage",
-      "originalText": "17 Oct / current stage",
+      "text": "17 Oct / design",
+      "originalText": "17 Oct / design",
       "fontSize": 22,
       "fontFamily": 1,
       "lineHeight": 1.25,
@@ -3162,6 +3162,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-3-4-done-check",
+      "type": "line",
+      "x": -165.00564827774497,
+      "y": -2758.952734852528,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 2034229889,
+      "version": 1,
+      "versionNonce": 983019326,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "3.4"
+      },
+      "index": "bHIG",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "nvlUrdbgIifYs1Gfau2t_",
       "type": "rectangle",
       "x": -110.00564827774497,
@@ -3184,11 +3237,11 @@
         "type": 3
       },
       "seed": 1968681788,
-      "version": 1,
-      "versionNonce": 1827792942,
+      "version": 2,
+      "versionNonce": 1845172925,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792255135565,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35",
       "locked": false,
       "customData": {
@@ -3197,7 +3250,7 @@
         "category": "M",
         "start": "2026-10-20T08:00",
         "end": "2026-10-20T17:00",
-        "status": "planned",
+        "status": "done",
         "optional": true
       },
       "index": "bHIV",
@@ -3312,10 +3365,10 @@
       "type": "text",
       "x": -71.00564827774497,
       "y": -2712.952734852528,
-      "width": 242.00000000000003,
+      "width": 266.20000000000005,
       "height": 27.5,
       "angle": 0,
-      "strokeColor": "#495057",
+      "strokeColor": "#c92a2a",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 1.3,
@@ -3326,15 +3379,15 @@
       "frameId": null,
       "roundness": null,
       "seed": 703294640,
-      "version": 11,
-      "versionNonce": 1431565488,
+      "version": 12,
+      "versionNonce": 684558809,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
-      "text": "21 Oct / conclusions",
-      "originalText": "21 Oct / conclusions",
+      "text": "21 Oct / current stage",
+      "originalText": "21 Oct / current stage",
       "fontSize": 22,
       "fontFamily": 1,
       "lineHeight": 1.25,
@@ -3678,6 +3731,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-1-5-done-check",
+      "type": "line",
+      "x": -450.00564827774497,
+      "y": -3608.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 1388130518,
+      "version": 1,
+      "versionNonce": 1042894021,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "1.5"
+      },
+      "index": "bHTV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "iyzO9SF-QqMmPmR_6qgmN",
       "type": "rectangle",
       "x": -395.00564827774497,
@@ -3700,11 +3806,11 @@
         "type": 3
       },
       "seed": 1529855152,
-      "version": 11,
-      "versionNonce": 1327242416,
+      "version": 12,
+      "versionNonce": 487729525,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4",
       "locked": false,
       "customData": {
@@ -3713,7 +3819,7 @@
         "category": "M",
         "start": "2026-10-17T16:00",
         "end": "2026-10-17T23:00",
-        "status": "ready"
+        "status": "done"
       },
       "index": "bHU",
       "created": 1792249066354
@@ -3765,6 +3871,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-1-6-done-check",
+      "type": "line",
+      "x": -450.00564827774497,
+      "y": -3564.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 1579436068,
+      "version": 1,
+      "versionNonce": 90942370,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "1.6"
+      },
+      "index": "bHVV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "w0SAHPLz4R3B1qQ6GPiX1",
       "type": "rectangle",
       "x": -395.00564827774497,
@@ -3787,11 +3946,11 @@
         "type": 3
       },
       "seed": 1133269168,
-      "version": 11,
-      "versionNonce": 1221920432,
+      "version": 12,
+      "versionNonce": 1288969731,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/5",
       "locked": false,
       "customData": {
@@ -3800,7 +3959,7 @@
         "category": "T",
         "start": "2026-10-17T16:00",
         "end": "2026-10-17T20:00",
-        "status": "ready"
+        "status": "done"
       },
       "index": "bHW",
       "created": 1792249066354
@@ -3852,6 +4011,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-1-done-check",
+      "type": "line",
+      "x": -405.00564827774497,
+      "y": -3447.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 33216968,
+      "version": 1,
+      "versionNonce": 391339548,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.1"
+      },
+      "index": "bHXV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "4kw7nrnP60iwQhUZd9HHM",
       "type": "rectangle",
       "x": -350.00564827774497,
@@ -3874,11 +4086,11 @@
         "type": 3
       },
       "seed": 1154737328,
-      "version": 11,
-      "versionNonce": 803254448,
+      "version": 12,
+      "versionNonce": 1936692051,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/6",
       "locked": false,
       "customData": {
@@ -3887,7 +4099,7 @@
         "category": "D",
         "start": "2026-10-18T08:00",
         "end": "2026-10-18T12:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHY",
       "created": 1792249066354
@@ -3939,6 +4151,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-2-done-check",
+      "type": "line",
+      "x": -352.50564827774497,
+      "y": -3403.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 662170473,
+      "version": 1,
+      "versionNonce": 2009028008,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.2"
+      },
+      "index": "bHZV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "i8pu-42Xp4unLge0tU0cq",
       "type": "rectangle",
       "x": -297.50564827774497,
@@ -3961,11 +4226,11 @@
         "type": 3
       },
       "seed": 1615231152,
-      "version": 11,
-      "versionNonce": 1273436848,
+      "version": 12,
+      "versionNonce": 514047050,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/7",
       "locked": false,
       "customData": {
@@ -3974,7 +4239,7 @@
         "category": "D",
         "start": "2026-10-18T13:00",
         "end": "2026-10-18T22:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHa",
       "created": 1792249066354
@@ -4026,6 +4291,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-3a-done-check",
+      "type": "line",
+      "x": -405.00564827774497,
+      "y": -3359.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 607217833,
+      "version": 1,
+      "versionNonce": 1629255251,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.3a"
+      },
+      "index": "bHbV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "KglFTKg0JrdtMeOFes_3j",
       "type": "rectangle",
       "x": -350.00564827774497,
@@ -4048,11 +4366,11 @@
         "type": 3
       },
       "seed": 1193544880,
-      "version": 11,
-      "versionNonce": 797983920,
+      "version": 12,
+      "versionNonce": 1472342693,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/8",
       "locked": false,
       "customData": {
@@ -4061,7 +4379,7 @@
         "category": "E",
         "start": "2026-10-18T08:00",
         "end": "2026-10-18T10:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHc",
       "created": 1792249066354
@@ -4113,6 +4431,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-3b-done-check",
+      "type": "line",
+      "x": -352.50564827774497,
+      "y": -3315.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 2140763673,
+      "version": 1,
+      "versionNonce": 1038845976,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.3b"
+      },
+      "index": "bHdV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "C-Ll1tPNnnaytgLj1wfMM",
       "type": "rectangle",
       "x": -297.50564827774497,
@@ -4135,11 +4506,11 @@
         "type": 3
       },
       "seed": 1521262768,
-      "version": 11,
-      "versionNonce": 1485057712,
+      "version": 12,
+      "versionNonce": 1161885504,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/9",
       "locked": false,
       "customData": {
@@ -4148,7 +4519,7 @@
         "category": "E",
         "start": "2026-10-18T13:00",
         "end": "2026-10-18T18:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHe",
       "created": 1792249066354
@@ -4200,6 +4571,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-4-done-check",
+      "type": "line",
+      "x": -405.00564827774497,
+      "y": -3271.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 2065376780,
+      "version": 1,
+      "versionNonce": 1899014099,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.4"
+      },
+      "index": "bHfV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "auCVR4WgkigYlaceepvuF",
       "type": "rectangle",
       "x": -350.00564827774497,
@@ -4222,11 +4646,11 @@
         "type": 3
       },
       "seed": 740308144,
-      "version": 11,
-      "versionNonce": 1332402352,
+      "version": 12,
+      "versionNonce": 1941122821,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/10",
       "locked": false,
       "customData": {
@@ -4235,7 +4659,7 @@
         "category": "E",
         "start": "2026-10-18T08:00",
         "end": "2026-10-18T18:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHg",
       "created": 1792249066354
@@ -4287,6 +4711,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-5a-done-check",
+      "type": "line",
+      "x": -405.00564827774497,
+      "y": -3227.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 564992232,
+      "version": 1,
+      "versionNonce": 687977549,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.5a"
+      },
+      "index": "bHhV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "lEGlnm8rI4wfYCgNUZrIM",
       "type": "rectangle",
       "x": -350.00564827774497,
@@ -4309,11 +4786,11 @@
         "type": 3
       },
       "seed": 2092878000,
-      "version": 11,
-      "versionNonce": 1206665904,
+      "version": 12,
+      "versionNonce": 616259150,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/11",
       "locked": false,
       "customData": {
@@ -4322,7 +4799,7 @@
         "category": "M",
         "start": "2026-10-18T08:00",
         "end": "2026-10-18T18:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHi",
       "created": 1792249066354
@@ -4374,6 +4851,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-5b-done-check",
+      "type": "line",
+      "x": -285.00564827774497,
+      "y": -3183.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 2083631895,
+      "version": 1,
+      "versionNonce": 1797142935,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.5b"
+      },
+      "index": "bHjV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "tubNMCo3YcgHqjT9_DeSP",
       "type": "rectangle",
       "x": -230.00564827774497,
@@ -4396,8 +4926,8 @@
         "type": 3
       },
       "seed": 1036541104,
-      "version": 11,
-      "versionNonce": 1085303984,
+      "version": 12,
+      "versionNonce": 379239050,
       "isDeleted": false,
       "boundElements": [
         {
@@ -4405,7 +4935,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/12",
       "locked": false,
       "customData": {
@@ -4414,7 +4944,7 @@
         "category": "M",
         "start": "2026-10-19T08:00",
         "end": "2026-10-19T10:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHk",
       "created": 1792249066354
@@ -4466,6 +4996,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-6-done-check",
+      "type": "line",
+      "x": -262.50564827774497,
+      "y": -3139.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 1574619925,
+      "version": 1,
+      "versionNonce": 287748092,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.6"
+      },
+      "index": "bHlV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "3rt-dHOmV-JuGlZffBxtQ",
       "type": "rectangle",
       "x": -207.50564827774497,
@@ -4488,8 +5071,8 @@
         "type": 3
       },
       "seed": 276623536,
-      "version": 11,
-      "versionNonce": 593450672,
+      "version": 12,
+      "versionNonce": 133632080,
       "isDeleted": false,
       "boundElements": [
         {
@@ -4501,7 +5084,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/13",
       "locked": false,
       "customData": {
@@ -4510,7 +5093,7 @@
         "category": "M",
         "start": "2026-10-19T10:00",
         "end": "2026-10-19T17:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHm",
       "created": 1792249066354
@@ -4562,6 +5145,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-7-done-check",
+      "type": "line",
+      "x": -202.50564827774497,
+      "y": -3095.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 131582325,
+      "version": 1,
+      "versionNonce": 480591660,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.7"
+      },
+      "index": "bHnV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "FJFD08Seo1oEfuWdu9zbN",
       "type": "rectangle",
       "x": -147.50564827774497,
@@ -4584,8 +5220,8 @@
         "type": 3
       },
       "seed": 1176274096,
-      "version": 11,
-      "versionNonce": 1688273072,
+      "version": 12,
+      "versionNonce": 250622182,
       "isDeleted": false,
       "boundElements": [
         {
@@ -4593,7 +5229,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14",
       "locked": false,
       "customData": {
@@ -4602,7 +5238,7 @@
         "category": "E",
         "start": "2026-10-19T17:00",
         "end": "2026-10-19T21:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHo",
       "created": 1792249066354
@@ -4654,6 +5290,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-2-8-done-check",
+      "type": "line",
+      "x": -202.50564827774497,
+      "y": -3051.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 1308820173,
+      "version": 1,
+      "versionNonce": 274472292,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "2.8"
+      },
+      "index": "bHpV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "j2ir2hAqiKyiR4A_IQHYy",
       "type": "rectangle",
       "x": -147.50564827774497,
@@ -4676,11 +5365,11 @@
         "type": 3
       },
       "seed": 1608980656,
-      "version": 11,
-      "versionNonce": 605907632,
+      "version": 12,
+      "versionNonce": 873453290,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15",
       "locked": false,
       "customData": {
@@ -4689,7 +5378,7 @@
         "category": "M",
         "start": "2026-10-19T17:00",
         "end": "2026-10-19T21:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHq",
       "created": 1792249066354
@@ -4741,6 +5430,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-3-1-done-check",
+      "type": "line",
+      "x": -285.00564827774497,
+      "y": -2934.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 39623278,
+      "version": 1,
+      "versionNonce": 656341050,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "3.1"
+      },
+      "index": "bHrV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "PnDaQTyfZexFp6YbzrZMB",
       "type": "rectangle",
       "x": -230.00564827774497,
@@ -4763,11 +5505,11 @@
         "type": 3
       },
       "seed": 253537456,
-      "version": 11,
-      "versionNonce": 1283232944,
+      "version": 12,
+      "versionNonce": 57234497,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/16",
       "locked": false,
       "customData": {
@@ -4776,7 +5518,7 @@
         "category": "D",
         "start": "2026-10-19T08:00",
         "end": "2026-10-19T16:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHs",
       "created": 1792249066354
@@ -4828,6 +5570,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-3-2-done-check",
+      "type": "line",
+      "x": -165.00564827774497,
+      "y": -2890.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 177858818,
+      "version": 1,
+      "versionNonce": 1780964030,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "3.2"
+      },
+      "index": "bHtV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "0ZhqZo8z9CgIyEWnYkc8O",
       "type": "rectangle",
       "x": -110.00564827774497,
@@ -4850,8 +5645,8 @@
         "type": 3
       },
       "seed": 889012400,
-      "version": 11,
-      "versionNonce": 862355120,
+      "version": 12,
+      "versionNonce": 1068988035,
       "isDeleted": false,
       "boundElements": [
         {
@@ -4859,7 +5654,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17",
       "locked": false,
       "customData": {
@@ -4868,7 +5663,7 @@
         "category": "M",
         "start": "2026-10-20T08:00",
         "end": "2026-10-20T13:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHu",
       "created": 1792249066354
@@ -4920,6 +5715,59 @@
       "baseFontSize": null
     },
     {
+      "id": "boxbox-task-3-3-done-check",
+      "type": "line",
+      "x": -112.50564827774497,
+      "y": -2846.952734852527,
+      "width": 18,
+      "height": 14,
+      "angle": 0,
+      "strokeColor": "#087f5b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2.4,
+      "strokeStyle": "solid",
+      "roughness": 0.7,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "roundness": null,
+      "seed": 972972321,
+      "version": 1,
+      "versionNonce": 1132882088,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1792598400000,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          18,
+          -7
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "customData": {
+        "kind": "done-check",
+        "taskId": "3.3"
+      },
+      "index": "bHvV",
+      "created": 1792598400000,
+      "polygon": false
+    },
+    {
       "id": "73FHCsB0xxfcn9uX0Dx8O",
       "type": "rectangle",
       "x": -57.50564827774497,
@@ -4942,8 +5790,8 @@
         "type": 3
       },
       "seed": 1657328816,
-      "version": 11,
-      "versionNonce": 964896944,
+      "version": 12,
+      "versionNonce": 1751355321,
       "isDeleted": false,
       "boundElements": [
         {
@@ -4951,7 +5799,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18",
       "locked": false,
       "customData": {
@@ -4960,7 +5808,7 @@
         "category": "E",
         "start": "2026-10-20T13:00",
         "end": "2026-10-20T17:00",
-        "status": "planned"
+        "status": "done"
       },
       "index": "bHw",
       "created": 1792249066354
@@ -5034,11 +5882,11 @@
         "type": 3
       },
       "seed": 1505716400,
-      "version": 11,
-      "versionNonce": 1786417840,
+      "version": 12,
+      "versionNonce": 1144731372,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19",
       "locked": false,
       "customData": {
@@ -5047,7 +5895,7 @@
         "category": "M",
         "start": "2026-10-20T17:00",
         "end": "2026-10-20T18:00",
-        "status": "planned"
+        "status": "review"
       },
       "index": "bHy",
       "created": 1792249066354
@@ -5121,11 +5969,11 @@
         "type": 3
       },
       "seed": 186711216,
-      "version": 11,
-      "versionNonce": 485801136,
+      "version": 12,
+      "versionNonce": 1933891462,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792249066355,
+      "updated": 1792598400000,
       "link": "https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/20",
       "locked": false,
       "customData": {
@@ -5134,7 +5982,7 @@
         "category": "D",
         "start": "2026-10-20T18:00",
         "end": "2026-10-20T22:00",
-        "status": "planned"
+        "status": "review"
       },
       "index": "bI0",
       "created": 1792249066354
@@ -6702,7 +7550,7 @@
       "type": "text",
       "x": -140.00564827774497,
       "y": -2034.952734852528,
-      "width": 181.50000000000003,
+      "width": 181.5,
       "height": 27.5,
       "angle": 0,
       "strokeColor": "#343a40",
@@ -6716,15 +7564,15 @@
       "frameId": null,
       "roundness": null,
       "seed": 175531184,
-      "version": 12,
-      "versionNonce": 203423766,
+      "version": 13,
+      "versionNonce": 920059081,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1792255135565,
+      "updated": 1792598400000,
       "link": null,
       "locked": false,
-      "text": "17 Oct snapshot",
-      "originalText": "17 Oct snapshot",
+      "text": "21 Oct snapshot",
+      "originalText": "21 Oct snapshot",
       "fontSize": 22,
       "fontFamily": 1,
       "lineHeight": 1.25,
