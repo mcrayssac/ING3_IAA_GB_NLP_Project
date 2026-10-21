@@ -1,0 +1,105 @@
+{
+  "task": "4.1",
+  "created_at": "2026-10-21T17:53:51+02:00",
+  "freeze": {
+    "file": "configs/freeze.json",
+    "sha256": "50067b54741c5c78f601bc3bf3c9148bc4c2d466dcd68f792991f7c2a25eed49",
+    "frozen_at": "2026-10-21T14:49:59+02:00",
+    "git_commit": "b24364a255fc28589d03570c19d11a34909db30f",
+    "check": "intact"
+  },
+  "git_commit": "ddda0f3af02cc796b63981648bc3a7db2643dba6",
+  "git_dirty": false,
+  "seed": 2026,
+  "splits_document_sha256": "c2a91c43076c34cc588c9877a375f6bde4905d1253fb23d06aa7a413ac27cc39",
+  "final_races": [
+    "2023-14",
+    "2023-16",
+    "2024-07",
+    "2024-19",
+    "2025-08",
+    "2025-19",
+    "2025-20"
+  ],
+  "races_with_cards": [
+    "2023-14",
+    "2023-16",
+    "2024-07",
+    "2024-19",
+    "2025-08",
+    "2025-19",
+    "2025-20"
+  ],
+  "card_files": {
+    "2023-14.jsonl": "0ee47fe90bb0b9d7e8608472c1a05b58f530c1f262b3964a09aa691c784c36cb",
+    "2023-16.jsonl": "8e06166a7ab313d0eadcaba936479075151ce6332bec330416a7a3d1268b3278",
+    "2024-07.jsonl": "a11aea284cf48da2145531eb9e88b92efab27c70766f0df4cccbdb0e432754f4",
+    "2024-19.jsonl": "454e6f55c60b98eea4ed694b4570336bb5ef52c9df7af42c81d2e355376a4b31",
+    "2025-08.jsonl": "58b6179aaa8620ed3020222130c5fef738cbc32cfb31e5610e2a02a4f8f03650",
+    "2025-19.jsonl": "0018f2d97720d8b21888065d056c3f018c05f9115973ec2627a136a30d1f488d",
+    "2025-20.jsonl": "ffb0c07f80746c238b3cae1eb423d4e90ef3500b0ae00d5966f0b106a04ca412"
+  },
+  "files": {
+    "final.jsonl": "185bceb802d258be03b79a32e9313be0a7f79ca45aeaf7a4745ac0a9ebfd8073",
+    "cases.jsonl": "49b4aea370afb4b3866eb21733e36eb21ea30510daf372c8a48fdc8627fa0b8f",
+    "review-selection.json": "97b50b2d6f505270021682e71d23527c0403c40ce0cde13811d52adc051bec4e"
+  },
+  "sampling_manifest_sha256": "065d5b3641d8941c157f51e258217a1293ff291c6f5227a46c187d37924c0a48",
+  "coverage": {
+    "dialogues": 200,
+    "targets": 200,
+    "kinds": {
+      "complete": 60,
+      "multi": 40,
+      "out_of_scope": 30,
+      "missing": 40,
+      "decidable": 30
+    },
+    "families": {
+      "complete": 60,
+      "follow_up": 34,
+      "out_of_scope": 28,
+      "blocking_incomplete": 48,
+      "usable_incomplete": 30
+    },
+    "expected_calls": {
+      "STAY OUT": 87,
+      "BOX": 29,
+      "NO CALL": 84
+    },
+    "races": {
+      "2023-14": 23,
+      "2023-16": 13,
+      "2024-07": 30,
+      "2024-19": 22,
+      "2025-08": 39,
+      "2025-19": 32,
+      "2025-20": 41
+    },
+    "follow_up_card_states": {
+      "complete": 18,
+      "blocking_incomplete": 8,
+      "usable_incomplete": 8
+    },
+    "history_sensitive": 22
+  },
+  "review_targets": {
+    "count": 40,
+    "families": {
+      "complete": 8,
+      "blocking_incomplete": 8,
+      "usable_incomplete": 8,
+      "follow_up": 8,
+      "out_of_scope": 8
+    },
+    "races": {
+      "2025-19": 6,
+      "2025-20": 6,
+      "2025-08": 6,
+      "2023-14": 6,
+      "2024-07": 6,
+      "2024-19": 5,
+      "2023-16": 5
+    }
+  }
+}

@@ -60,6 +60,15 @@ TRACK_ITEMS = {"train": 15, "validation": 4, "mini_test": 2, "final": 8}
 INCOMPLETE_WHY = {"final": {"blocking": 8, "usable": 8}}
 PREFIXES = {"validation": "V", "mini_test": "M", "final": "F"}
 EVAL_CAP = 6  # cards per race and driver in an evaluation set: three capped pools of 2
+# The final races have SC/VSC cards but none with every other decision field known
+# (team decision on #20): their track-status items take any SC/VSC card that the rule
+# stops on the track status, even with another field unknown.
+ANY_TRACK_CARD = {"final"}
+# The final races give no usable incomplete BOX card by chance, and section 8 reviews
+# 4 of them (team decision on #20): 8 of the final set's 15 constructed usable cards
+# come from BOX paths (box_old_tyres without the gap ahead, box_no_car_behind without
+# the pit loss).
+USABLE_BOX = {"final": 8}
 CALLS = {"CALL: BOX", "CALL: STAY OUT", "CALL: NO CALL"}
 
 
@@ -119,6 +128,18 @@ def _neutral(card: dict[str, Any]) -> bool:
     return card["track_status"] != "GREEN" and known
 
 
+def track_card(card: dict[str, Any]) -> bool:
+    """An SC or VSC card that the rule answers NO CALL because of the track status."""
+    return card["track_status"] in {"SC", "VSC"} and decide(card)[1].startswith(
+        "The card does not show green-flag running"
+    )
+
+
+def track_rule(split: str):
+    """The card test of a split's track-status items: neutral, or any SC/VSC card."""
+    return track_card if split in ANY_TRACK_CARD else _neutral
+
+
 def corpus_a(records: list[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
     """400 dialogues: 260 complete calls, 80 with a follow-up, 60 out of scope."""
     rng, used = random.Random(f"{seed}-A"), Counter()
@@ -149,8 +170,13 @@ def _natural(records, used, wanted, rng, count) -> list[dict[str, Any]]:
     return _pick(rest, keep, count, rng, Counter())
 
 
-def _irrelevant(records, used, rng, count) -> list[dict[str, Any]]:
-    """Complete cards on paths with a field the rule ignores, each with that field removed."""
+def _irrelevant(records, used, rng, count, box=0, taken=None) -> list[dict[str, Any]]:
+    """Complete cards on paths with a field the rule ignores, each with that field removed.
+
+    With `box`, that many of them come first from the BOX paths (final set only), each
+    from a race and driver still under EVAL_CAP, counting the items already in the set
+    (`taken`).
+    """
     pool = [
         {**r, "path": path_of(r["card"])}
         for r in sorted(records, key=lambda r: r["card_id"])
@@ -159,6 +185,21 @@ def _irrelevant(records, used, rng, count) -> list[dict[str, Any]]:
         and path_of(r["card"]) in IRRELEVANT
     ]
     rng.shuffle(pool)
+    if box:
+        boxes, taken = [], Counter(taken or {})
+        for record in pool:
+            key = record["card_id"].rsplit("-", 1)[0]
+            if (
+                len(boxes) < box
+                and record["path"].startswith("box_")
+                and taken[key] < EVAL_CAP
+            ):
+                taken[key] += 1
+                boxes.append(record)
+        if len(boxes) < box:
+            raise ValueError(f"only {len(boxes)} BOX cards for {box} usable BOX items")
+        ids = {r["card_id"] for r in boxes}
+        pool = boxes + [r for r in pool if r["card_id"] not in ids]
     items = []
     for i, record in enumerate(pool[:count]):
         fields = IRRELEVANT[record["path"]]
@@ -188,10 +229,15 @@ def eval_set(
         fields = REQUIRED[record["path"]]
         field = fields[i % len(fields)]
         items.append(removed_item(record, "missing", field, rng, "eval"))
-    neutral = _pick(_rest(records, cards), _neutral, TRACK_ITEMS[split], rng, capped)
+    neutral = _pick(
+        _rest(records, cards), track_rule(split), TRACK_ITEMS[split], rng, capped
+    )
     items += [track_item(r, rng, "eval") for r in neutral]
     used = {r["card_id"] for r in cards + neutral}
-    items += _irrelevant(records, used, rng, syn_decidable)
+    taken = Counter(_race_driver_of(i) for i in items)
+    items += _irrelevant(
+        records, used, rng, syn_decidable, USABLE_BOX.get(split, 0), taken
+    )
     used |= {item["card_id"] for item in items}
     missing = _natural(
         records, used, lambda d: "missing" in d[1], rng, kinds["missing"] - syn_missing
@@ -280,16 +326,20 @@ def check_set(
     races: set[str],
     cap: int,
     track: int,
+    track_ok=_neutral,
 ) -> list[str]:
-    """Every problem found in one set; an empty list means it passes."""
+    """Every problem found in one set; an empty list means it passes.
+
+    `track_ok` tests the card of each track-status item (`track_rule(split)`).
+    """
     errors = [f"{i['id']}: {e}" for i in items for e in _answer_errors(i)]
     counts = Counter(item["kind"] for item in items)
     if dict(counts) != kinds:
         errors.append(f"kinds {dict(counts)} instead of {kinds}")
     tracks = [i for i in items if i["scope"] == "track_status"]
-    if len(tracks) != track or any(not _neutral(i["card"]) for i in tracks):
+    if len(tracks) != track or any(not track_ok(i["card"]) for i in tracks):
         errors.append(
-            f"{len(tracks)} track status items instead of {track} neutral ones"
+            f"{len(tracks)} track status items instead of {track} with valid cards"
         )
     if len({i["card_id"] for i in items}) != len(items):
         errors.append("a card is used twice")

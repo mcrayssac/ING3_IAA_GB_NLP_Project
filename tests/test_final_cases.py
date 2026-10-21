@@ -154,3 +154,82 @@ def test_incomplete_whys_respect_the_race_driver_cap() -> None:
     assert taken["2024-01-77"] <= EVAL_CAP
     with pytest.raises(ValueError, match="under the cap"):
         _why_incomplete(crowded, set(), random.Random(0), 8, "blocking", Counter(taken))
+
+
+def test_final_track_items_accept_sc_cards_with_an_unknown_field() -> None:
+    """Team decision on #20: the final races have SC/VSC cards, none neutral."""
+    from boxbox.corpus import EVAL_CAP, EVAL_KINDS, TRACK_ITEMS, check_set, track_rule
+
+    cards = []
+    for record in records():
+        card = record["card"]
+        if card["track_status"] != "GREEN":  # no neutral card left, as in the final
+            card = {**card, "gap_behind": {"state": "UNKNOWN", "seconds": None}}
+        cards.append({**record, "card": card})
+    races = {f"2024-{n:02d}" for n in range(1, 21)}
+    items = eval_set(cards, "final", 2026)
+    tracks = [i for i in items if i["scope"] == "track_status"]
+    assert len(tracks) == 8
+    assert all(i["card"]["gap_behind"]["state"] == "UNKNOWN" for i in tracks)
+    assert (
+        check_set(items, EVAL_KINDS["final"], races, EVAL_CAP, 8, track_rule("final"))
+        == []
+    )
+    # validation keeps the neutral rule: the same cards cannot fill its track items
+    validation = eval_set(cards, "validation", 2026)
+    errors = check_set(validation, EVAL_KINDS["validation"], races, EVAL_CAP, 4)
+    assert any("track status items" in e for e in errors)
+    assert TRACK_ITEMS["validation"] == 4
+
+
+def test_final_usable_cards_include_box_calls() -> None:
+    """Team decision on #20: section 8 reviews 4 usable incomplete BOX targets."""
+    from collections import Counter
+
+    from boxbox.rules import decide
+
+    items = eval_set(records(), "final", 2026)
+    usable = Counter(
+        decide(i["card"])[0]
+        for i in items
+        if i["kind"] == "decidable" and i.get("removed_field")
+    )
+    assert usable["BOX"] >= 8 and sum(usable.values()) == 15
+
+
+def test_track_items_take_sc_or_vsc_cards_only() -> None:
+    """Regression (#59 review): other non-green statuses are not track-status items."""
+    from boxbox.corpus.sets import track_card
+
+    sc = next(r["card"] for r in records() if r["card"]["track_status"] == "SC")
+    assert track_card(sc) and track_card({**sc, "track_status": "VSC"})
+    for status in ("UNKNOWN", "RED", None):
+        assert not track_card({**sc, "track_status": status})
+
+
+def test_box_preselection_respects_the_race_driver_cap() -> None:
+    """Regression (#59 review): BOX cards crowded on one car stay under the cap."""
+    import random
+    from collections import Counter
+
+    from boxbox.corpus import EVAL_CAP
+    from boxbox.corpus.build import path_of
+    from boxbox.corpus.sets import _irrelevant
+
+    boxes = [
+        r
+        for r in records()
+        if path_of(r["card"]) in ("box_old_tyres", "box_no_car_behind")
+    ]
+    crowded = [
+        {**r, "card_id": f"2024-01-77-L{30 + i}"} for i, r in enumerate(boxes[:12])
+    ]
+    spread = [
+        {**r, "card_id": f"2024-02-{i:02d}-L30"} for i, r in enumerate(boxes[12:20])
+    ]
+    taken = Counter({"2024-01-77": EVAL_CAP - 1})
+    items = _irrelevant(crowded + spread, set(), random.Random(0), 8, 8, taken)
+    per_car = Counter(i["card_id"].rsplit("-", 1)[0] for i in items)
+    assert len(items) == 8 and per_car["2024-01-77"] <= 1
+    with pytest.raises(ValueError, match="BOX cards"):
+        _irrelevant(crowded, set(), random.Random(0), 8, 8, taken)

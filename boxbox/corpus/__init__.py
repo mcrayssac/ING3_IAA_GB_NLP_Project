@@ -14,6 +14,7 @@ from .sets import (
     check_unseen,
     corpus_a,
     eval_set,
+    track_rule,
 )
 from .variants import B_SHARED, check_corpus_b, corpus_b, exposure, pairs
 
@@ -38,4 +39,5 @@ __all__ = [
     "pairs",
     "path_of",
     "remove_field",
+    "track_rule",
 ]

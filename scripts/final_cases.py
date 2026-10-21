@@ -43,6 +43,7 @@ from boxbox.corpus import (
     check_unseen,
     eval_set,
     load_corpus,
+    track_rule,
 )
 from boxbox.evaluation import (
     SamplingError,
@@ -139,7 +140,12 @@ def build(out: Path = OUT, cards_dir: Path = CARDS_DIR) -> Path:
     items = eval_set(load_cards(SPLIT, config, cards_dir=cards_dir), SPLIT, SEED)
     records = [r for race in races for r in read_jsonl(cards_dir / f"{race}.jsonl")[0]]
     errors = check_set(
-        items, EVAL_KINDS[SPLIT], set(races), EVAL_CAP, TRACK_ITEMS[SPLIT]
+        items,
+        EVAL_KINDS[SPLIT],
+        set(races),
+        EVAL_CAP,
+        TRACK_ITEMS[SPLIT],
+        track_rule(SPLIT),
     )
     errors += check_incomplete_whys(items, SPLIT)
     errors += check_unseen(load_corpus("A_train"), items)

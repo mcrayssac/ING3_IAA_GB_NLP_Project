@@ -22,7 +22,9 @@ Both commands first run the freeze check of 3.5 and stop on any difference. They
 | `review-selection.json` | the 40 human-review targets of protocol section 8, chosen from case metadata before any answer, for every retained version |
 | `manifest.json` | freeze hash and commit, split document, card file hashes, file hashes, coverage and review-target counts |
 
-The 200 dialogues are twice the validation set: 60 complete calls, 40 blocking (20 real incomplete cards, 20 with a required field removed), 30 usable incomplete (15 real, 15 with an ignored field removed), 40 with a follow-up and 30 out of scope, 8 of them safety-car or VSC calls.
+The 200 dialogues are twice the validation set: 60 complete calls, 40 blocking (20 real incomplete cards, 20 with a required field removed), 30 usable incomplete (15 real, 15 with an ignored field removed), 40 with a follow-up and 30 out of scope, 8 of them safety-car or VSC calls. Validation and the mini-test took those 8 from neutral cards, where every other decision field is known. The final races have 149 SC/VSC cards and none is neutral, so the final set takes them from any SC/VSC card that the rule stops on the track status, even with another field unknown (team decision on #20).
+
+Section 8 also reviews 4 usable incomplete targets that call BOX. In the final races no real incomplete card is decidable with BOX, and the first build found none among the constructed ones either: the 40 targets could not be selected (`data/final-sampling-failure-20261021T174812.json`, kept as evidence). So 8 of the 15 constructed usable cards are taken first from BOX paths: `box_old_tyres` without the gap ahead, `box_no_car_behind` without the pit loss (team decision on #20). This uses card metadata only; no answer exists yet.
 
 Protocol section 8 fills 8 follow-up slots with history-sensitive targets: 2 on blocking cards, 2 on usable incomplete cards and 4 on complete cards. The 2.2 generator only asks follow-ups on complete cards, so the final set adds 16 of its 40 follow-ups as a "why?" on an incomplete card: 8 with a required field removed (the rule answers NO CALL) and 8 with an ignored field removed (the call stays). Both answers are the rule's answer on the changed card, as for every "why" follow-up. They are built last, and take a card only from a race and driver still under the cap of 6 cards. This was decided before building the final set, from the protocol only. Validation and the mini-test are unchanged: the addition is used for the final split only.
 
@@ -31,7 +33,7 @@ Protocol section 8 fills 8 follow-up slots with history-sensitive targets: 2 on 
 `build` stops, and writes nothing in `data/final/`, when:
 
 - the freeze check fails;
-- a dialogue fails the checks of validation and the mini-test: categories, at most 6 cards per race and driver, the rule's answers, one sentence per WHY, safety-car items on neutral cards;
+- a dialogue fails the checks of validation and the mini-test: categories, at most 6 cards per race and driver, the rule's answers, one sentence per WHY, safety-car items on cards the rule stops on the track status;
 - the incomplete "why" follow-ups are not 8 blocking and 8 usable;
 - a question has the wording of a corpus A question, numbers aside;
 - a card comes from a race of another split;
@@ -46,3 +48,4 @@ If the final races do not have enough cards for 200 dialogues, `build` stops wit
 - The questions use the held-out wordings of 2.2, which validation and the mini-test use too. The cards and races are new; the wordings are not new to prompt and checkpoint selection, which saw validation. Only wordings of corpus A are refused.
 - The dialogues' references are the rule's answers and the corpus templates, checked automatically as in 2.2. They are not read by hand before scoring.
 - The final races keep the data limits of 2.1: strict-cutoff availability of the gap behind, actual race distance and the slick-tyre proxy for a dry track.
+- On the 8 safety-car items, a field can be unknown as well as the track status: NO CALL then has two reasons on the card, and the reference names the first, the track status.
