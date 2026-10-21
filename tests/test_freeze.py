@@ -30,6 +30,7 @@ def copy(tmp_path, monkeypatch) -> Path:
     for folder in ("configs", "reference", "data/corpus", "boxbox/rules", "docs"):
         shutil.copytree(folder, tmp_path / folder, dirs_exist_ok=True)
     shutil.copy("data/splits.json", tmp_path / "data/splits.json")
+    (tmp_path / freeze.FREEZE).unlink(missing_ok=True)  # each test records its own
     monkeypatch.chdir(tmp_path)
     return tmp_path
 
