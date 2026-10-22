@@ -35,6 +35,15 @@ The record also keeps the time (Europe/Paris), the commit, the decision and acce
 - A correction that changes outputs needs an explicit team decision and a new freeze before any final evaluation. The old record is kept.
 - The final test stays closed until 4.1 opens it under this freeze.
 
+## Experimental milestone
+
+The freeze covers the A/B study. The Experimental milestone, merged into `main` in PR #69, edits none of the sealed files:
+
+- `boxbox.rules.decide` now goes through `policy2.decide`. It sends 2.0 cards to policy 2.0 and leaves every 1.0 card to the sealed policy 1.1 in `boxbox/rules/decision.py`, which gives the same calls as before.
+- The 2.0 files (cards, priors, policy 2.0, replay) and `data/splits-v2.json` sit outside the freeze.
+- `python -m scripts.freeze check` still reports "freeze intact".
+- `python -m scripts.rebuild_data cards` now rebuilds the 1.0 cards with the corrected track status: 65,674 cards instead of 65,904. The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the merge. No trained model has read cards 2.0 or policy 2.0. The adapters A and B, and every result of the study, were trained and scored on 1.0 cards with policy 1.1, so the Replay tab shows the rule engine's calls and has no model chat. Training on 2.0 cards is future work.
+
 ## Known limits carried into the final evaluation
 
 - B trades fewer unjustified decisions for more excessive refusals on usable incomplete cards ([interim analysis](interim-ab-analysis.md)); it is a research arm, not a product upgrade.

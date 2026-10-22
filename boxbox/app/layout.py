@@ -12,6 +12,7 @@ from boxbox.config import RunConfig
 from boxbox.rules import POLICY_VERSION, TYRE_LIMITS
 
 from . import panels as P
+from .replay import replay_tab
 from .session import (
     Respond,
     latest_answer,
@@ -35,13 +36,13 @@ CSS = """
   --bx-ink: #0f172a; --bx-muted: #475569; --bx-ring: #64748b; --bx-bad: #b91c1c;
   --bx-box: #b45309; --bx-stay: #1d4ed8; --bx-nocall: #475569;
   --bx-zone1: #e2e8f0; --bx-zone2: #cbd5e1; --bx-zone3: #94a3b8; --bx-zone-ink: #0f172a;
-  --bx-unknown: rgba(100, 116, 139, 0.16);
+  --bx-unknown: rgba(100, 116, 139, 0.16); --bx-window: #b08600;
 }
 .dark {
   --bx-ink: #f1f5f9; --bx-muted: #94a3b8; --bx-ring: #64748b; --bx-bad: #f87171;
   --bx-box: #f28c28; --bx-stay: #60a5fa; --bx-nocall: #9aa0a6;
   --bx-zone1: #334155; --bx-zone2: #475569; --bx-zone3: #64748b; --bx-zone-ink: #ffffff;
-  --bx-unknown: rgba(148, 163, 184, 0.16);
+  --bx-unknown: rgba(148, 163, 184, 0.16); --bx-window: #facc15;
 }
 .brand { font-size: 1.4em; font-weight: 800; }
 .brand span { font-weight: 400; color: var(--bx-muted); }
@@ -73,6 +74,12 @@ CSS = """
 .chart text { font-size: 13px; fill: var(--bx-ink); }
 .chart .ring { fill: none; stroke: var(--bx-ring); stroke-width: 6; }
 .chart .band { fill: none; stroke: var(--bx-ink); stroke-width: 14; stroke-dasharray: 2 3; }
+.chart.replay .band { stroke: var(--bx-window); stroke-dasharray: none; }
+.chart.replay .readout { text-align: center; color: var(--bx-muted); }
+.calls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.calls .label { font-size: 0.85em; color: var(--bx-muted); margin-bottom: 4px; }
+@media (max-width: 720px) { .calls { grid-template-columns: 1fr; } }
+.track { font-weight: 700; }
 .chart .rejoin { fill: var(--bx-ink); }
 .chart .car { stroke: var(--bx-ink); stroke-width: 2.5; }
 .chart .zone1 { fill: var(--bx-zone1); }
@@ -228,53 +235,58 @@ def build_app(
     badge = "stub" if respond is stub_respond else "engine"
     with gr.Blocks(title="BoxBox", analytics_enabled=False) as app:  # no telemetry
         card, history = gr.State(cards[first]), gr.State([])
-        with gr.Row():
-            gr.HTML(
-                f'<span class="brand">BoxBox <span>pit call assistant</span></span> '
-                f'<span class="{badge}">{engine}</span>'
-                f'<span class="badge">Policy {POLICY_VERSION}</span>'
-            )
-            picker = gr.Dropdown(list(cards), value=first, label=PICKER, scale=2)
-            upload = gr.UploadButton(
-                "Upload card (JSON)",
-                file_types=[".json"],
-                size="sm",
-                scale=0,
-                min_width=170,
-            )
-        with gr.Row():
-            with gr.Column(scale=2):  # the numbers first, then the pictures of them
-                situation, inputs, tyres, circle = (
-                    gr.HTML(),
-                    gr.HTML(),
-                    gr.HTML(),
-                    gr.HTML(),
+        with gr.Tab("Card"):
+            with gr.Row():
+                gr.HTML(
+                    f'<span class="brand">BoxBox <span>pit call assistant</span></span> '
+                    f'<span class="{badge}">{engine}</span>'
+                    f'<span class="badge">Policy {POLICY_VERSION}</span>'
                 )
-                with gr.Accordion("Raw card", open=False):
-                    raw = gr.Code(language="json")
-            with gr.Column(scale=3):
-                call = gr.HTML(P.banner(None))
-                rule_on = gr.Checkbox(False, label="Policy check: show the rule's call")
-                policy = gr.HTML(visible=False)
-                chat = gr.Chatbot(
-                    label="Conversation",
-                    height=380,
-                    buttons=["copy", "copy_all"],
-                    placeholder=PLACEHOLDER,
+                picker = gr.Dropdown(list(cards), value=first, label=PICKER, scale=2)
+                upload = gr.UploadButton(
+                    "Upload card (JSON)",
+                    file_types=[".json"],
+                    size="sm",
+                    scale=0,
+                    min_width=170,
                 )
-                with gr.Row():
-                    quick = [gr.Button(q, size="sm") for q in QUICK]
-                with gr.Row():
-                    message = gr.Textbox(
-                        placeholder="Ask about this lap", show_label=False, scale=5
+            with gr.Row():
+                with gr.Column(scale=2):  # the numbers first, then the pictures of them
+                    situation, inputs, tyres, circle = (
+                        gr.HTML(),
+                        gr.HTML(),
+                        gr.HTML(),
+                        gr.HTML(),
                     )
-                    send_button = gr.Button("Send", variant="primary", scale=1)
-                with gr.Row():
-                    reset = gr.Button("Reset", size="sm", scale=0)
-                    gr.Markdown(history_line(turns))
-                error = gr.Markdown()
-        with gr.Accordion("Role and limits", open=False):
-            gr.Markdown(role_text(respond is stub_respond))
+                    with gr.Accordion("Raw card", open=False):
+                        raw = gr.Code(language="json")
+                with gr.Column(scale=3):
+                    call = gr.HTML(P.banner(None))
+                    rule_on = gr.Checkbox(
+                        False, label="Policy check: show the rule's call"
+                    )
+                    policy = gr.HTML(visible=False)
+                    chat = gr.Chatbot(
+                        label="Conversation",
+                        height=380,
+                        buttons=["copy", "copy_all"],
+                        placeholder=PLACEHOLDER,
+                    )
+                    with gr.Row():
+                        quick = [gr.Button(q, size="sm") for q in QUICK]
+                    with gr.Row():
+                        message = gr.Textbox(
+                            placeholder="Ask about this lap", show_label=False, scale=5
+                        )
+                        send_button = gr.Button("Send", variant="primary", scale=1)
+                    with gr.Row():
+                        reset = gr.Button("Reset", size="sm", scale=0)
+                        gr.Markdown(history_line(turns))
+                    error = gr.Markdown()
+            with gr.Accordion("Role and limits", open=False):
+                gr.Markdown(role_text(respond is stub_respond))
+        with gr.Tab("Replay"):
+            replay_tab()
         everything = [card, history, chat, message, error, situation, circle, tyres]
         everything += [inputs, raw, call, policy]
         exchange = [history, chat, message, error, call, policy]

@@ -6,9 +6,9 @@ The Gradio app in `boxbox/app/` is a pit-wall screen. It shows one race card bes
 
 BoxBox is for pit strategists and paddock team members who debrief or train on completed races. The team agreed this audience on 19 October (#10). It replaces the earlier content creators and analysts.
 
-The scope stays the one in `docs/race-card-contract.md`: one car, one lap of a completed dry race, policy 1.1. Live races, wet strategy, forecasts, multi-stop plans, betting and team radio stay out, because the cards and the model only know historical laps.
+The Card tab keeps the scope of `docs/race-card-contract.md`: one car, one lap of a completed dry race, policy 1.1. The Replay tab adds policy 2.0 from `docs/race-card-contract-v2.md`, which also gives calls under a safety car, a virtual safety car and rain. Live races, forecasts, multi-stop plans, betting and team radio stay out, because the cards and the model only know historical laps.
 
-The screen shows only what the model saw. The one exception is the policy check, which is off until the user turns it on.
+The screen shows only what the model saw, with two exceptions: the policy check on the Card tab, which is off until the user turns it on, and the Replay tab, which shows the whole field and the policy 2.0 call on a 2.0 card, which the trained model has never read.
 
 ## Screen layout
 
@@ -117,7 +117,7 @@ A toggle under the banner, off by default.
 - When on, it shows "Rule on this card:" with the rule's call, in its call colour, and WHY from `decide(card)`, and a badge saying whether the latest answer matches that call.
 - An out-of-scope request should differ, because the assistant answers NO CALL to it. A note under the badge says so.
 - It adds the "used by the rule" column to the decision inputs.
-- It stays off by default because the default screen shows only what the model saw.
+- It stays off by default, so the Card tab shows only what the model saw until the user turns it on.
 
 ### Conversation
 
@@ -136,6 +136,18 @@ A toggle under the banner, off by default.
 - When the engine raises an error, the app shows it in plain words under the input and as a `gr.Warning`, for example "The engine failed: <message>. The conversation is unchanged."
 - The failed turn is not stored in the history.
 
+## Replay tab (Experimental milestone)
+
+A second tab plays a race back on the circle as if from the pit wall. It shows more than one card, so it is the second exception to "only what the model saw", and it never shows anything timed after its clock.
+
+- Pickers: a race from the open splits of `data/splits-v2.json` (2023 to 2026, without `final` and `test_2026`), then a driver, listed by acronym and number.
+- Controls: Play, Pause, speeds x1, x2 and x4, and "Jump to lap", which moves the clock to the leader's start of that lap, never before the whole field has crossed the line once. The race can be picked with the mouse or the keyboard, and the same lap can be jumped to again.
+- Clock line: local time at the track, elapsed race time, the race lap (the lap after the latest one anyone completed, so it holds during a suspension) and the track status at the clock. A red flag lasts until the race resumes.
+- Circle: the selected car on top, every other car placed by time gap from its line crossings and the sector times of the faster of its last two laps, so an out-lap does not slow the next prediction. Under a SC or VSC the prediction is scaled by the field's latest pace, so a safety car does not pile cars on the line; under green it is not. Cars wear their team colour from OpenF1 and their acronym; when cars bunch up, only labels far enough apart are drawn and the others keep their dot. The readout and the screen-reader label name the nearest car ahead and behind, in seconds.
+- Pit window: a yellow arc from one pit loss to one pit loss plus 2.0 s behind the car, for the track status at the clock. While that condition is the card's own, the arc uses the card's pit loss, the one its call uses. It moves the moment a safety car comes out, before the next card, and it disappears under a red flag. Without a card for the lap, the surface comes from the driver's latest card. A readout under the circle names the condition and the seconds.
+- Calls: policy 2.0 on the 2.0 card next to policy 1.1 on the 1.0 card, which is what the trained model reads. Both labels give the card's lap. A lap's card appears once the car behind and the cars it counts in its pit window have crossed the line, as on a timing screen; until then the previous card stays up. A safety car that came out during the lap reaches the calls at the next card. A car that has stopped running shows no card.
+- The model's chat is not on this tab until adapters are trained on 2.0 cards.
+
 ## Appearance and colour
 
 The screen follows the system light or dark setting, with no switch of its own. Every custom colour is a CSS variable with a light and a dark value, checked against the block background (white in light, `#1e293b` in dark):
@@ -148,6 +160,7 @@ The screen follows the system light or dark setting, with no switch of its own. 
 | BOX | `#b45309` (5.0:1) | `#f28c28` (6.0:1) | BOX call |
 | STAY OUT | `#1d4ed8` (6.7:1) | `#60a5fa` (5.8:1) | STAY OUT call |
 | NO CALL | `#475569` (7.6:1) | `#9aa0a6` (5.5:1) | NO CALL call |
+| window | `#b08600` (3.4:1) | `#facc15` (9.6:1) | replay pit window |
 
 Each colour keeps one meaning:
 
@@ -155,6 +168,7 @@ Each colour keeps one meaning:
 - Flag and Pirelli colours appear only in the chip dots.
 - Actions such as Send use neutral slate, white on slate at 4.8:1 in light and 7.6:1 in dark.
 - Charts and the unknown-row tint are neutral.
+- On the Replay tab, car dots take the team colour that OpenF1 gives, with no dark variant. Each dot keeps the ink outline and its acronym, so a colour close to a call colour or to the background is never the only cue.
 
 ## Role and limits
 
@@ -190,6 +204,8 @@ A collapsed accordion at the bottom of the screen holds:
 | `boxbox/app/session.py` | `stub_respond`, `sample_cards`, `send` (one exchange with the bounded history), `load_upload` and `latest_answer`. |
 | `boxbox/app/layout.py` | The colour tokens, the event handlers (`show_card`, `pick_card`, `upload_card`, `ask`, `clear`, `toggle`, `busy`, `ready`), `history_line` for the status line, `build_app(respond, engine, cards, turns)` for the layout and wiring, and `launch`, which adds the theme. |
 | `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser. |
+| `boxbox/app/replay.py` | The Replay tab: `race_choices` (races of the open splits of `data/splits-v2.json`), `clock` and `clock_text`, `circle`, `calls` (policy 2.0 next to policy 1.1), `view`, the handlers `pick_race`, `pick_driver`, `jump`, `play`, `pause`, `set_speed` and `tick`, and `replay_tab`, which builds the tab. |
+| `boxbox/data/replay.py` | `Timeline` and `load_timeline`, which rebuilds the race's 1.0 and 2.0 cards in memory from OpenF1 data in `data/cache/openf1`, then `progress`, `gap`, `pace`, `race_lap`, `frame`, `cards_at`, `status_now` and `pit_window`. Every value at clock t comes from data timed at or before t. |
 | `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
 - The footer shows only "Built with Gradio". The API link, the run history and Gradio's telemetry are off, and every event is private to the screen.
@@ -226,5 +242,14 @@ Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the n
 - two sessions that stay independent
 - an upload that is not one JSON object
 - the picker with 5 synthetic and 8 real cards
+
+`tests/test_replay.py` checks the Replay tab:
+
+- that nothing timed after the clock is read, and that the card shown was built before the clock
+- car progress through faster and slower laps, angles by time gap, and a slower lap that slows the cars still on it
+- the clock from wall time, its stop at the flag, a start once every car has crossed, and a jump to the leader starting the lap
+- both cards of the lap, a card that waits for the car behind to cross, and no card for a stopped car
+- the pit window following the track status at the clock
+- team colours and acronyms, and bunched cars that keep their dots but not all their labels
 
 The browser walkthrough runs on the synthetic and real cards, in light and dark, before review.

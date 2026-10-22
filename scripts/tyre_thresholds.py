@@ -26,10 +26,13 @@ def stop_ages() -> dict[str, list[int]]:
         table = race_table(document["races"][race_id])
         stops = {
             (driver, lap)
-            for driver, lap, pit_in, status in zip(
-                table["driver_number"], table["lap"], table["pit_in"], table["status"]
+            for driver, lap, pit_in, neutralised in zip(
+                table["driver_number"],
+                table["lap"],
+                table["pit_in"],
+                table["neutralised_in_lap"],
             )
-            if pit_in and status == "GREEN"
+            if pit_in and not neutralised
         }
         for card in race_cards:
             if (card["driver_number"], card["lap"]) in stops and card[

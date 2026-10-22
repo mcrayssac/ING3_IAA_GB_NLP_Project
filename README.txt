@@ -17,7 +17,10 @@ a07cc9a04f16550a088caea529712d1d335b0ac1 (Apache 2.0, about 6.2 GB of weights).
 2. Tests
 --------
 
-    .venv/bin/python -m pytest -q
+    .venv/bin/python -m pytest -q tests
+
+Always pass the tests folder: without it, pytest also searches runs/, whose
+run folders keep copies of the sources, and fails on their imports.
 
 3. Race data (task 2.1)
 -----------------------
@@ -30,6 +33,15 @@ rebuild makes 286 requests, one every 2.1 s at OpenF1's free rate, so at least
 
     .venv/bin/python -m scripts.rebuild_data cards
     .venv/bin/python -m scripts.rebuild_data card --race 2024-01 --driver 1 --lap 20
+
+The cards command rebuilds the 1.0 cards with the corrected track status of
+the Experimental milestone (last section): 65,674 cards instead of the 65,904
+of 18 October, and 16 races get their real distance back. The frozen corpus and
+results were built from the cards of 18 October, which only commit 631b783 (the
+last commit before the milestone was merged) rebuilds exactly. Do not run this
+command over a data/cards/ folder you still need. With rebuilt cards,
+validation_cases and the steps built on it stop with "V-001: card differs from
+its recorded source/transformation".
 
 The splits were made once with the command below, which refuses to overwrite
 the existing file:
@@ -108,6 +120,9 @@ whose multi-turn dialogues are longer.
 6. Notebook
 -----------
 
+agent.ipynb is the notebook of the submitted study. The Experimental milestone
+does not change it.
+
     .venv/bin/jupyter notebook agent.ipynb
 
 To execute it from the command line:
@@ -141,10 +156,13 @@ stays false. Existing run directories are never overwritten.
 8. Demo (task 2.4)
 ------------------
 
-The Gradio pit-wall screen opens in the browser. Until task 2.8 it answers
-with a stub that returns the rule's answer, and the screen says so:
+The Gradio pit-wall screen opens in the browser:
 
     .venv/bin/python -m boxbox.app
+
+Started this way, the screen answers with a stub that returns the rule's
+answer, and it says so. The notebook (see section 6 of this guide) launches the
+same screen with adapter A in its section 7, connected in task 2.8.
 
 The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
 4.0, see data/demo/NOTICE). They come from validation races and are rebuilt
@@ -152,14 +170,27 @@ with:
 
     .venv/bin/python -m scripts.demo_cards
 
+The screen has two tabs. The Card tab is the
+screen above. The Replay tab (task 4bis.3) plays a race back on a circle
+against a race clock, at x1, x2 or x4, and "Jump to lap" moves the clock. For
+the chosen driver it shows the policy 2.0 call on the 2.0 card next to the
+policy 1.1 call on the 1.0 card, and the pit window follows the track status
+at the clock. The tab has no chat. The race list holds the races of the open
+splits of data/splits-v2.json, so final and test_2026 stay out. Choosing a
+race rebuilds its cards in memory in a few seconds. The tab needs:
+
+    the OpenF1 cache in data/cache/openf1/, or network access to download it
+    data/splits-v2.json, data/reference/priors-v2.json and
+    data/reference/pit-loss-reference.csv (all committed)
+
 9. Conversation engine (task 2.5a)
 ----------------------------------
 
 The shared conversation engine is implemented in boxbox/model/conversation.py.
 It uses the pinned SmolLM3 tokenizer's native chat template, preserves the
 current card and a bounded complete-turn history, and returns the unmodified
-generated continuation. It is callable by the demo and evaluation code; the
-demo keeps its explicit stub until task 2.8.
+generated continuation. It is callable by the demo and evaluation code, and
+the notebook demo has used it since task 2.8.
 
 Run deterministic engine, demo-contract, config/run, policy and evaluator tests
 without loading weights:
@@ -432,3 +463,62 @@ generate the offline rating page, check progress and import the completed sheet:
   python -m scripts.human_review import --run-dir RUN --sheet review-rated.csv --output ratings-initial.jsonl
 See docs/human-review.md for masking limits, second reviews and closure evidence.
 Do not edit the sheet in a spreadsheet application; use the page and its CSV export.
+
+Experimental milestone (4 bis)
+------------------------------
+
+The Experimental milestone adds the 2026 season, track status read from
+race-control timestamps, 2.0 race cards, policy 2.0 (calls under a safety car,
+a virtual safety car and rain) and the Replay tab (section 8). The adapters A
+and B, and every result of the study, were trained and scored on 1.0 cards with
+policy 1.1: no trained model has read a 2.0 card or policy 2.0, and training on
+2.0 cards is future work. The frozen versions and results are not re-run, and
+the freeze check still passes (the known limits of the milestone are listed at
+the end of docs/4bis-decisions.md):
+
+    .venv/bin/python -m scripts.freeze check
+
+docs/4bis-decisions.md records the decisions and their checks, and
+docs/race-card-contract-v2.md the 2.0 card and policy 2.0. The data is built
+in this order, from the OpenF1 cache or the network:
+
+    .venv/bin/python -m scripts.rebuild_data splits-v2
+    .venv/bin/python -m scripts.rebuild_data priors
+    .venv/bin/python -m scripts.rebuild_data cards-v2
+    .venv/bin/python -m scripts.rebuild_data quality
+
+splits-v2 froze data/splits-v2.json once, on 22 October 2026 (87 races, with
+the last three 2026 races in a closed test_2026), and refuses to overwrite it.
+priors writes data/reference/priors-v2.json from the 60 train races. Both files
+are committed, so a fresh checkout can start at cards-v2, which writes
+data/cards-v2/ and its manifest (not committed). quality compares the computed
+gap ahead with OpenF1's intervals on validation, mini_test, final and
+test_2026; these intervals never feed a card. Section 3 explains why the cards
+command gives corrected 1.0 cards on this branch.
+
+reality_check measures how often a policy says BOX when cars really stopped.
+It reads data/cards-v2/, so run cards-v2 first. Its default splits are
+validation, mini_test and final, and --splits picks others. With --thresholds
+it prints, per compound, the 25th percentile and the median tyre loss on the
+cards of real green stops; the wear limits of policy 2.0 come from the train
+races:
+
+    .venv/bin/python -m scripts.reality_check
+    .venv/bin/python -m scripts.reality_check --splits train --thresholds
+
+On the evaluation races, policy 2.0 says BOX at the start of 53.5% of the
+real stop laps (recall), and 15.5% of its BOX cards are followed by a stop
+within two laps (precision), against 8.1% for a random BOX. Policy 1.1 reaches
+1.3% and 7.1%. On test_2026, opened with the policy frozen and run a second
+time after the replay's causality fixes with no policy change, policy 2.0
+gives 46.3% and 19.4% against 11.7%. docs/4bis-decisions.md gives the race
+by race figures and the limits of this comparison.
+
+Any 1.0 or 2.0 card prints its CALL and WHY lines with the command below. A
+1.0 card gets policy 1.1, a 2.0 card policy 2.0:
+
+    .venv/bin/python -m boxbox.rules CARD.json
+
+Targeted checks:
+
+    .venv/bin/python -m pytest -q tests/test_cards_v2.py tests/test_policy2.py tests/test_priors.py tests/test_replay.py

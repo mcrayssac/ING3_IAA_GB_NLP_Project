@@ -1,0 +1,766 @@
+{
+ "created_utc": "2026-10-22T13:10:44+00:00",
+ "splits_sha256": "2ce4c00ca3885d0f40aa9ae1a13d736ba8bb65782595511380908894697b6c1d",
+ "races": {
+  "2023-02": {
+   "season": 2023,
+   "circuit_key": 149,
+   "date_end": "2023-03-19T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.51,
+    "SC": 24.57
+   },
+   "degradation": {
+    "SOFT": 0.0459,
+    "MEDIUM": 0.0254,
+    "HARD": 0.0252
+   }
+  },
+  "2023-03": {
+   "season": 2023,
+   "circuit_key": 10,
+   "date_end": "2023-04-02T07:00:00+00:00",
+   "pit_loss": {
+    "SC": 9.45
+   },
+   "degradation": {
+    "MEDIUM": 0.0669
+   }
+  },
+  "2023-04": {
+   "season": 2023,
+   "circuit_key": 144,
+   "date_end": "2023-04-30T13:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.99,
+    "SC": 29.82
+   },
+   "degradation": {
+    "MEDIUM": 0.1119,
+    "HARD": 0.0323
+   }
+  },
+  "2023-05": {
+   "season": 2023,
+   "circuit_key": 151,
+   "date_end": "2023-05-07T21:30:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.41
+   },
+   "degradation": {
+    "MEDIUM": 0.0327,
+    "HARD": 0.0235
+   }
+  },
+  "2023-06": {
+   "season": 2023,
+   "circuit_key": 22,
+   "date_end": "2023-05-28T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.69,
+    "WET": 31.28
+   },
+   "degradation": {
+    "MEDIUM": 0.024,
+    "HARD": 0.0358
+   }
+  },
+  "2023-07": {
+   "season": 2023,
+   "circuit_key": 15,
+   "date_end": "2023-06-04T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 23.69
+   },
+   "degradation": {
+    "SOFT": 0.0391,
+    "MEDIUM": 0.0553,
+    "HARD": 0.0644
+   }
+  },
+  "2023-08": {
+   "season": 2023,
+   "circuit_key": 23,
+   "date_end": "2023-06-18T20:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.84,
+    "SC": 10.16
+   },
+   "degradation": {
+    "MEDIUM": 0.0253,
+    "HARD": 0.0181
+   }
+  },
+  "2023-09": {
+   "season": 2023,
+   "circuit_key": 19,
+   "date_end": "2023-07-02T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.73,
+    "VSC": 12.01
+   },
+   "degradation": {
+    "MEDIUM": 0.0657,
+    "HARD": 0.0628
+   }
+  },
+  "2023-10": {
+   "season": 2023,
+   "circuit_key": 2,
+   "date_end": "2023-07-09T16:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.86,
+    "SC": 22.83,
+    "VSC": 15.89
+   },
+   "degradation": {
+    "SOFT": 0.0335,
+    "MEDIUM": 0.0416,
+    "HARD": 0.024
+   }
+  },
+  "2023-11": {
+   "season": 2023,
+   "circuit_key": 4,
+   "date_end": "2023-07-23T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.98
+   },
+   "degradation": {
+    "MEDIUM": 0.0539,
+    "HARD": 0.0588
+   }
+  },
+  "2023-12": {
+   "season": 2023,
+   "circuit_key": 7,
+   "date_end": "2023-07-30T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.2
+   },
+   "degradation": {
+    "SOFT": 0.1306,
+    "MEDIUM": 0.1471
+   }
+  },
+  "2023-13": {
+   "season": 2023,
+   "circuit_key": 55,
+   "date_end": "2023-08-27T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.02,
+    "SC": 24.46,
+    "WET": 30.01
+   },
+   "degradation": {
+    "SOFT": 0.0388,
+    "MEDIUM": 0.0478
+   }
+  },
+  "2023-15": {
+   "season": 2023,
+   "circuit_key": 61,
+   "date_end": "2023-09-17T14:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 29.8,
+    "SC": 17.85,
+    "VSC": 30.34
+   },
+   "degradation": {
+    "SOFT": 0.0485,
+    "MEDIUM": 0.0789,
+    "HARD": 0.0454
+   }
+  },
+  "2023-17": {
+   "season": 2023,
+   "circuit_key": 150,
+   "date_end": "2023-10-08T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 27.8
+   },
+   "degradation": {
+    "MEDIUM": 0.0108,
+    "HARD": 0.0407
+   }
+  },
+  "2023-18": {
+   "season": 2023,
+   "circuit_key": 9,
+   "date_end": "2023-10-22T21:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.81
+   },
+   "degradation": {
+    "MEDIUM": 0.0896,
+    "HARD": 0.0676
+   }
+  },
+  "2023-19": {
+   "season": 2023,
+   "circuit_key": 65,
+   "date_end": "2023-10-29T22:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.99
+   },
+   "degradation": {
+    "MEDIUM": 0.0421,
+    "HARD": 0.0503
+   }
+  },
+  "2023-20": {
+   "season": 2023,
+   "circuit_key": 14,
+   "date_end": "2023-11-05T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.89
+   },
+   "degradation": {
+    "SOFT": 0.0459,
+    "MEDIUM": 0.0493
+   }
+  },
+  "2023-21": {
+   "season": 2023,
+   "circuit_key": 152,
+   "date_end": "2023-11-19T07:59:59+00:00",
+   "pit_loss": {
+    "GREEN": 23.39,
+    "SC": 12.63,
+    "VSC": 34.18
+   },
+   "degradation": {
+    "MEDIUM": 0.0936,
+    "HARD": 0.0389
+   }
+  },
+  "2023-22": {
+   "season": 2023,
+   "circuit_key": 70,
+   "date_end": "2023-11-26T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.29
+   },
+   "degradation": {
+    "MEDIUM": 0.0881,
+    "HARD": 0.0612
+   }
+  },
+  "2024-01": {
+   "season": 2024,
+   "circuit_key": 63,
+   "date_end": "2024-03-02T17:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 24.3
+   },
+   "degradation": {
+    "SOFT": 0.1211,
+    "HARD": 0.1061
+   }
+  },
+  "2024-02": {
+   "season": 2024,
+   "circuit_key": 149,
+   "date_end": "2024-03-09T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.41,
+    "SC": 10.98
+   },
+   "degradation": {
+    "SOFT": 0.096,
+    "MEDIUM": 0.0413,
+    "HARD": 0.04
+   }
+  },
+  "2024-03": {
+   "season": 2024,
+   "circuit_key": 10,
+   "date_end": "2024-03-24T06:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.32
+   },
+   "degradation": {
+    "MEDIUM": 0.0699,
+    "HARD": 0.0386
+   }
+  },
+  "2024-04": {
+   "season": 2024,
+   "circuit_key": 46,
+   "date_end": "2024-04-07T07:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.34
+   },
+   "degradation": {
+    "SOFT": 0.1706,
+    "MEDIUM": 0.1049,
+    "HARD": 0.1205
+   }
+  },
+  "2024-05": {
+   "season": 2024,
+   "circuit_key": 49,
+   "date_end": "2024-04-21T09:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.98,
+    "SC": 21.93,
+    "VSC": 18.3
+   },
+   "degradation": {
+    "SOFT": 0.1094,
+    "MEDIUM": 0.1397,
+    "HARD": 0.0878
+   }
+  },
+  "2024-06": {
+   "season": 2024,
+   "circuit_key": 151,
+   "date_end": "2024-05-05T22:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.82,
+    "SC": 13.74,
+    "VSC": 11.41
+   },
+   "degradation": {
+    "SOFT": 0.0262,
+    "MEDIUM": 0.0155,
+    "HARD": 0.0219
+   }
+  },
+  "2024-08": {
+   "season": 2024,
+   "circuit_key": 22,
+   "date_end": "2024-05-26T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.26
+   },
+   "degradation": {
+    "SOFT": 0.109,
+    "MEDIUM": 0.0234,
+    "HARD": 0.036
+   }
+  },
+  "2024-09": {
+   "season": 2024,
+   "circuit_key": 23,
+   "date_end": "2024-06-09T20:00:00+00:00",
+   "pit_loss": {
+    "SC": 17.75,
+    "WET": 26.05
+   },
+   "degradation": {
+    "MEDIUM": 0.0589,
+    "HARD": 0.0501
+   }
+  },
+  "2024-11": {
+   "season": 2024,
+   "circuit_key": 19,
+   "date_end": "2024-06-30T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.92
+   },
+   "degradation": {
+    "MEDIUM": 0.0755,
+    "HARD": 0.0632
+   }
+  },
+  "2024-12": {
+   "season": 2024,
+   "circuit_key": 2,
+   "date_end": "2024-07-07T16:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 24.18,
+    "WET": 26.81
+   },
+   "degradation": {
+    "SOFT": 0.0082
+   }
+  },
+  "2024-13": {
+   "season": 2024,
+   "circuit_key": 4,
+   "date_end": "2024-07-21T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.21
+   },
+   "degradation": {
+    "MEDIUM": 0.0697,
+    "HARD": 0.0753
+   }
+  },
+  "2024-17": {
+   "season": 2024,
+   "circuit_key": 144,
+   "date_end": "2024-09-15T13:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.44
+   },
+   "degradation": {
+    "MEDIUM": 0.1004,
+    "HARD": 0.0371
+   }
+  },
+  "2024-18": {
+   "season": 2024,
+   "circuit_key": 61,
+   "date_end": "2024-09-22T14:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 29.01
+   },
+   "degradation": {
+    "SOFT": 0.0372,
+    "MEDIUM": 0.0618,
+    "HARD": 0.059
+   }
+  },
+  "2024-20": {
+   "season": 2024,
+   "circuit_key": 65,
+   "date_end": "2024-10-27T22:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 23.53
+   },
+   "degradation": {
+    "MEDIUM": 0.0557,
+    "HARD": 0.0291
+   }
+  },
+  "2024-21": {
+   "season": 2024,
+   "circuit_key": 14,
+   "date_end": "2024-11-03T17:30:00+00:00",
+   "pit_loss": {
+    "VSC": 19.87,
+    "WET": 26.23
+   },
+   "degradation": {}
+  },
+  "2024-22": {
+   "season": 2024,
+   "circuit_key": 152,
+   "date_end": "2024-11-24T07:59:59+00:00",
+   "pit_loss": {
+    "GREEN": 21.98
+   },
+   "degradation": {
+    "MEDIUM": 0.1571,
+    "HARD": 0.0803
+   }
+  },
+  "2024-23": {
+   "season": 2024,
+   "circuit_key": 150,
+   "date_end": "2024-12-01T18:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 29.99,
+    "SC": 15.02
+   },
+   "degradation": {
+    "SOFT": 0.1609
+   }
+  },
+  "2024-24": {
+   "season": 2024,
+   "circuit_key": 70,
+   "date_end": "2024-12-08T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 23.77
+   },
+   "degradation": {
+    "SOFT": 0.1748,
+    "MEDIUM": 0.0482,
+    "HARD": 0.0554
+   }
+  },
+  "2025-02": {
+   "season": 2025,
+   "circuit_key": 49,
+   "date_end": "2025-03-23T09:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.41
+   },
+   "degradation": {
+    "MEDIUM": 0.0505,
+    "HARD": 0.0354
+   }
+  },
+  "2025-06": {
+   "season": 2025,
+   "circuit_key": 151,
+   "date_end": "2025-05-04T22:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 17.33,
+    "VSC": 13.09
+   },
+   "degradation": {
+    "MEDIUM": 0.0301,
+    "HARD": 0.0086
+   }
+  },
+  "2025-07": {
+   "season": 2025,
+   "circuit_key": 6,
+   "date_end": "2025-05-18T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 27.57,
+    "SC": 18.99,
+    "VSC": 16.85
+   },
+   "degradation": {
+    "MEDIUM": 0.0346,
+    "HARD": 0.0534
+   }
+  },
+  "2025-09": {
+   "season": 2025,
+   "circuit_key": 15,
+   "date_end": "2025-06-01T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.11,
+    "SC": 9.22
+   },
+   "degradation": {
+    "SOFT": 0.1123,
+    "MEDIUM": 0.0605
+   }
+  },
+  "2025-10": {
+   "season": 2025,
+   "circuit_key": 23,
+   "date_end": "2025-06-15T20:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.33
+   },
+   "degradation": {
+    "MEDIUM": 0.0932,
+    "HARD": 0.019
+   }
+  },
+  "2025-13": {
+   "season": 2025,
+   "circuit_key": 7,
+   "date_end": "2025-07-27T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.97
+   },
+   "degradation": {}
+  },
+  "2025-14": {
+   "season": 2025,
+   "circuit_key": 4,
+   "date_end": "2025-08-03T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.47
+   },
+   "degradation": {
+    "SOFT": 0.1128,
+    "MEDIUM": 0.0612,
+    "HARD": 0.0391
+   }
+  },
+  "2025-15": {
+   "season": 2025,
+   "circuit_key": 55,
+   "date_end": "2025-08-31T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 18.29,
+    "SC": 15.01
+   },
+   "degradation": {
+    "SOFT": 0.0352,
+    "MEDIUM": 0.0124,
+    "HARD": 0.0298
+   }
+  },
+  "2025-16": {
+   "season": 2025,
+   "circuit_key": 39,
+   "date_end": "2025-09-07T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 25.25
+   },
+   "degradation": {
+    "SOFT": 0.0581,
+    "MEDIUM": 0.0248,
+    "HARD": 0.0139
+   }
+  },
+  "2025-17": {
+   "season": 2025,
+   "circuit_key": 144,
+   "date_end": "2025-09-21T13:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.9
+   },
+   "degradation": {
+    "MEDIUM": 0.0235,
+    "HARD": 0.0123
+   }
+  },
+  "2025-21": {
+   "season": 2025,
+   "circuit_key": 14,
+   "date_end": "2025-11-09T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.85
+   },
+   "degradation": {
+    "SOFT": 0.0766,
+    "MEDIUM": 0.0514,
+    "HARD": 0.0309
+   }
+  },
+  "2025-23": {
+   "season": 2025,
+   "circuit_key": 150,
+   "date_end": "2025-11-30T18:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 27.28
+   },
+   "degradation": {
+    "SOFT": 0.0325,
+    "MEDIUM": 0.0155
+   }
+  },
+  "2026-01": {
+   "season": 2026,
+   "circuit_key": 10,
+   "date_end": "2026-03-08T06:00:00+00:00",
+   "pit_loss": {},
+   "degradation": {
+    "SOFT": 0.0662,
+    "MEDIUM": 0.0361,
+    "HARD": 0.0322
+   }
+  },
+  "2026-02": {
+   "season": 2026,
+   "circuit_key": 49,
+   "date_end": "2026-03-15T09:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 36.26,
+    "SC": 17.82
+   },
+   "degradation": {
+    "MEDIUM": 0.1439,
+    "HARD": 0.0357
+   }
+  },
+  "2026-03": {
+   "season": 2026,
+   "circuit_key": 46,
+   "date_end": "2026-03-29T07:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 24.47,
+    "SC": 17.43
+   },
+   "degradation": {
+    "MEDIUM": 0.0413,
+    "HARD": 0.0199
+   }
+  },
+  "2026-04": {
+   "season": 2026,
+   "circuit_key": 151,
+   "date_end": "2026-05-03T19:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.05
+   },
+   "degradation": {
+    "SOFT": 0.0131,
+    "MEDIUM": 0.0312,
+    "HARD": 0.0149
+   }
+  },
+  "2026-05": {
+   "season": 2026,
+   "circuit_key": 23,
+   "date_end": "2026-05-24T22:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 27.36
+   },
+   "degradation": {
+    "SOFT": 0.0054
+   }
+  },
+  "2026-06": {
+   "season": 2026,
+   "circuit_key": 22,
+   "date_end": "2026-06-07T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 22.14
+   },
+   "degradation": {
+    "SOFT": 0.0083,
+    "MEDIUM": 0.0317,
+    "HARD": 0.0385
+   }
+  },
+  "2026-07": {
+   "season": 2026,
+   "circuit_key": 15,
+   "date_end": "2026-06-14T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 24.19
+   },
+   "degradation": {
+    "SOFT": 0.0917,
+    "MEDIUM": 0.1481,
+    "HARD": 0.0911
+   }
+  },
+  "2026-08": {
+   "season": 2026,
+   "circuit_key": 19,
+   "date_end": "2026-06-28T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 21.49
+   },
+   "degradation": {
+    "SOFT": 0.0739,
+    "MEDIUM": 0.0782,
+    "HARD": 0.0705
+   }
+  },
+  "2026-09": {
+   "season": 2026,
+   "circuit_key": 2,
+   "date_end": "2026-07-05T16:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 23.48,
+    "SC": 31.01
+   },
+   "degradation": {
+    "MEDIUM": 0.0438,
+    "HARD": 0.0718
+   }
+  },
+  "2026-10": {
+   "season": 2026,
+   "circuit_key": 7,
+   "date_end": "2026-07-19T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 19.88,
+    "SC": 15.71
+   },
+   "degradation": {
+    "MEDIUM": 0.1179,
+    "HARD": 0.0367
+   }
+  },
+  "2026-11": {
+   "season": 2026,
+   "circuit_key": 4,
+   "date_end": "2026-07-26T15:00:00+00:00",
+   "pit_loss": {
+    "GREEN": 20.96
+   },
+   "degradation": {
+    "SOFT": 0.0474,
+    "MEDIUM": 0.0405,
+    "HARD": 0.0788
+   }
+  }
+ }
+}
