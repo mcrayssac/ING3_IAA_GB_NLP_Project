@@ -12,8 +12,9 @@ from typing import Any
 from boxbox.config import RunConfig
 
 SPLITS_FILE = Path("data/splits.json")
+SPLITS_V2_FILE = Path("data/splits-v2.json")
 CARDS_DIR = Path("data/cards")
-CLOSED_SPLITS = {"final"}  # read only once the versions are frozen
+CLOSED_SPLITS = {"final", "test_2026"}  # read only once the versions are frozen
 SPLIT_NAMES = ("train", "validation", "mini_test", "final")
 FRACTIONS = {"train": 0.70, "validation": 0.10, "mini_test": 0.10, "final": 0.10}
 

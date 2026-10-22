@@ -25,7 +25,7 @@ HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
 def race_choices() -> list[tuple[str, str]]:
     """(label, race id) of every race whose split is open, in race order."""
     document = load_splits()
-    closed = {r for name in CLOSED_SPLITS for r in document["splits"][name]}
+    closed = {r for name in CLOSED_SPLITS for r in document["splits"].get(name, [])}
     races = [r for r in document["races"].values() if r["race_id"] not in closed]
     return [(f"{r['season']} {r['event']}", r["race_id"]) for r in races]
 
