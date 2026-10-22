@@ -71,7 +71,7 @@ These changes were recorded in the issues. The task tables below keep the planne
 - **MVP:** the gate passed with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). The 2.7 mini-test rated all 40 targets instead of an 8-per-family sample ([#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14#issuecomment-6289853131)). Task 2.8 left notebook steps 3 to 6 to the 5.x tasks ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15)).
 - **Schedule:** B trained overnight from 20 to 21 October, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 with baseline, A and B retained and boxbox-eval 1.1.0 accepted unchanged ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)).
 - **Optional 3.4:** OpenJev ran as an exploratory study outside the freeze and stays out of the final comparison ([#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35#issuecomment-6320237374)).
-- **Experimental milestone:** milestone 4 bis was added and done on 22 October, after 4.4 and outside the study. It has no issues: its choices and checks are in the [decision log](4bis-decisions.md).
+- **Experimental milestone:** milestone 4 bis was added and done on 22 October, after 4.4 and outside the study. Its issues are [4bis.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65), [4bis.2](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66) and [4bis.3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67), and its choices and checks are in the [decision log](4bis-decisions.md).
 
 ## Shared pickup and parallel work
 
@@ -159,9 +159,9 @@ This milestone widens the race data, makes it match what happened on track and g
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 4bis.1 | **Data v2.** Build track status from race-control timestamps, add the 2026 season with `data/splits-v2.json`, add weather, driver and interval extras with a gap check, then pit loss per condition, tyre degradation, priors from earlier train races and card 2.0. | D | 22 Oct | - | done (22 Oct) | - |
-| 4bis.2 | **Policy 2.0.** Give calls under SC, VSC and rain, with wear limits per compound, the undercut and the mandatory stop under a neutralisation; worn tyres box whatever the traffic. Measure agreement with real stops with `scripts/reality_check.py`. | D | 22 Oct | 4bis.1 | done (22 Oct) | - |
-| 4bis.3 | **Replay.** Replay a race in the app, first as a spike on 1.0 cards, then on 2.0 cards. | E | 22 Oct | 4bis.1 | done (22 Oct) | - |
+| 4bis.1 | **Data v2.** Build track status from race-control timestamps, add the 2026 season with `data/splits-v2.json`, add weather, driver and interval extras with a gap check, then pit loss per condition, tyre degradation, priors from earlier train races and card 2.0. | D | 22 Oct | - | done (22 Oct) | [#65](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65) |
+| 4bis.2 | **Policy 2.0.** Give calls under SC, VSC and rain, with wear limits per compound, the undercut and the mandatory stop under a neutralisation; worn tyres box whatever the traffic. Measure agreement with real stops with `scripts/reality_check.py`. | D | 22 Oct | 4bis.1 | done (22 Oct) | [#66](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66) |
+| 4bis.3 | **Replay.** Replay a race in the app, first as a spike on 1.0 cards, then on 2.0 cards. | E | 22 Oct | 4bis.1, 4bis.2 | done (22 Oct) | [#67](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67) |
 
 ### 5. Delivery and presentation
 
