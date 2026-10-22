@@ -42,7 +42,7 @@ The freeze covers the A/B study. The Experimental milestone, merged into `main` 
 - `boxbox.rules.decide` now goes through `policy2.decide`. It sends 2.0 cards to policy 2.0 and leaves every 1.0 card to the sealed policy 1.1 in `boxbox/rules/decision.py`, which gives the same calls as before.
 - The 2.0 files (cards, priors, policy 2.0, replay) and `data/splits-v2.json` sit outside the freeze.
 - `python -m scripts.freeze check` still reports "freeze intact".
-- `python -m scripts.rebuild_data cards` now rebuilds the 1.0 cards with the corrected track status: 65,656 cards instead of 65,904. The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the merge.
+- `python -m scripts.rebuild_data cards` now rebuilds the 1.0 cards with the corrected track status: 65,674 cards instead of 65,904. The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the merge. No trained model has read cards 2.0 or policy 2.0. The adapters A and B, and every result of the study, were trained and scored on 1.0 cards with policy 1.1, so the Replay tab shows the rule engine's calls and has no model chat. Training on 2.0 cards is future work.
 
 ## Known limits carried into the final evaluation
 

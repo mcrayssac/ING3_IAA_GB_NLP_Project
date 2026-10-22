@@ -155,7 +155,7 @@ Windows include implementation, checks and hand-off review; they are not effort 
 
 ### 4 bis. Experimental
 
-This milestone widens the race data, makes it match what happened on track and gives calls in more situations, for research and a product beyond the study. The study is not re-run. The [decision log](4bis-decisions.md) records each choice and its check, and the [2.0 contract](race-card-contract-v2.md) defines card 2.0 and policy 2.0. The task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2` were merged into `4bis-experimental`, then into `main-experimental`, without pull requests. `main-experimental` was then merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69).
+This milestone widens the race data, makes it match what happened on track and gives calls in more situations, for research and a product beyond the study. The study is not re-run, and the adapters stay trained on 1.0 cards: training on 2.0 cards is future work. The [decision log](4bis-decisions.md) records each choice and its check, and the [2.0 contract](race-card-contract-v2.md) defines card 2.0 and policy 2.0. The task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2` were merged into `4bis-experimental`, then into `main-experimental`, without pull requests. `main-experimental` was then merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69).
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|

@@ -35,11 +35,13 @@ rebuild makes 286 requests, one every 2.1 s at OpenF1's free rate, so at least
     .venv/bin/python -m scripts.rebuild_data card --race 2024-01 --driver 1 --lap 20
 
 The cards command rebuilds the 1.0 cards with the corrected track status of
-the Experimental milestone (last section): 65,656 cards instead of the 65,904
+the Experimental milestone (last section): 65,674 cards instead of the 65,904
 of 18 October, and 16 races get their real distance back. The frozen corpus and
 results were built from the cards of 18 October, which only commit 631b783 (the
 last commit before the milestone was merged) rebuilds exactly. Do not run this
-command over a data/cards/ folder you still need.
+command over a data/cards/ folder you still need. With rebuilt cards,
+validation_cases and the steps built on it stop with "V-001: card differs from
+its recorded source/transformation".
 
 The splits were made once with the command below, which refuses to overwrite
 the existing file:
@@ -467,9 +469,12 @@ Experimental milestone (4 bis)
 
 The Experimental milestone adds the 2026 season, track status read from
 race-control timestamps, 2.0 race cards, policy 2.0 (calls under a safety car,
-a virtual safety car and rain) and the Replay tab (section 8). The frozen
-versions and results of the study are not re-run, and the freeze check still
-passes:
+a virtual safety car and rain) and the Replay tab (section 8). The adapters A
+and B, and every result of the study, were trained and scored on 1.0 cards with
+policy 1.1: no trained model has read a 2.0 card or policy 2.0, and training on
+2.0 cards is future work. The frozen versions and results are not re-run, and
+the freeze check still passes (the known limits of the milestone are listed at
+the end of docs/4bis-decisions.md):
 
     .venv/bin/python -m scripts.freeze check
 

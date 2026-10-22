@@ -148,13 +148,13 @@ A 2.0 card keeps every 1.0 field and adds the card time `as_of`, the surface, ty
 
 Pit loss is measured per condition (GREEN, SC, VSC, WET) against the cars that did not stop on the same laps (D5). With too few stops of that condition, the card scales the race's green estimate by the condition's ratio to green, then falls back on a circuit prior, then on a published reference or the train median. Across the 60 train races the median green pit loss is 22.0 s, and a stop under SC, VSC or on a wet track costs 0.70, 0.78 and 1.36 times as much. The two references, Madring at 24.0 s and Kuala Lumpur at 22.5 s, sit in `data/reference/pit-loss-reference.csv` with their sources.
 
-Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D7). A card uses the race's own value once it is reliable, otherwise the circuit's value from earlier train races, then the compound's. The train medians are 0.058, 0.053 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.047, 0.041 and 0.037 in 2026.
+Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D7). A card uses the race's own value once it is reliable, otherwise the circuit's value from earlier train races, then the compound's. The train medians are 0.058, 0.055 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.047, 0.043 and 0.038 in 2026.
 
 `data/reference/priors-v2.json` holds the pit loss per condition and the degradation of each train race. Circuit priors come only from train races that ended before the card's race. The condition ratios and the wear limits are constants learned on all train races (D11).
 
 ### Current rebuild
 
-`rebuild_data cards` gives 65,656 1.0 cards instead of the 65,904 of 18 October. With the corrected track status, 16 races get their real distance back and lose their last-lap cards, and in `train` 875 NO CALL cards become STAY OUT (D3). `rebuild_data cards-v2` gives 90,868 2.0 cards for the 87 races, none of them malformed, and 6,098 of them are WET.
+`rebuild_data cards` gives 65,674 1.0 cards instead of the 65,904 of 18 October. With the corrected track status, 16 races get their real distance back and lose their last-lap cards, and in `train` 875 NO CALL cards become STAY OUT (D3). `rebuild_data cards-v2` gives 90,868 2.0 cards for the 87 races, none of them malformed, and 6,098 of them are WET.
 
 ### Gap check
 
@@ -162,4 +162,4 @@ Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D
 
 ### Frozen 1.0 cards
 
-The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the Experimental milestone was merged. From a later commit, `rebuild_data cards` overwrites `data/cards/` with the corrected cards, so do not run it there when you need the frozen ones.
+The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the Experimental milestone was merged. From a later commit, `rebuild_data cards` overwrites `data/cards/` with the corrected cards, so do not run it there when you need the frozen ones. The code that compares rebuilt cards with the committed corpus, such as `validation_cases`, refuses the rebuilt cards with `V-001: card differs from its recorded source/transformation`.
