@@ -412,3 +412,13 @@ task 4.4. The complete 1,940-file handover archive is 4.2-final-delivery.zip
 (SHA-256 2993ac76fe620d3aaf3df811369fdd88a4fbdd1911e0c8582318b6af99896a2b).
 The archive contains the run, code, tests and audit evidence; it is stored
 outside Git and should be copied intact.
+
+Human review (4.3)
+------------------
+Copy review/review.csv from the 4.2 run to a folder outside the repository, then
+generate the offline rating page, check progress and import the completed sheet:
+  python -m scripts.human_review page --run-dir RUN --sheet review-rated.csv --output review-page.html
+  python -m scripts.human_review check --run-dir RUN --sheet review-rated.csv
+  python -m scripts.human_review import --run-dir RUN --sheet review-rated.csv --output ratings-initial.jsonl
+See docs/human-review.md for masking limits, second reviews and closure evidence.
+Do not edit the sheet in a spreadsheet application; use the page and its CSV export.
