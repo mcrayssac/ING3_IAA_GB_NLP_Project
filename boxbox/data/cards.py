@@ -1,7 +1,8 @@
-"""Race cards in the 1.0 contract shape, built from the per-lap table only.
+"""Race cards built from the per-lap table: the 1.0 shape and the 2.0 shape.
 
 A card for lap L is a snapshot at the start of lap L: every value comes from laps
-up to L - 1, the cutoff. Nothing is imputed; an unknown value stays unknown.
+up to L - 1, the cutoff. Nothing is imputed; an unknown value stays unknown. The 1.0
+card feeds the frozen model; the 2.0 card adds conditions, tyres and neighbours.
 """
 
 from __future__ import annotations
@@ -34,22 +35,23 @@ class CutoffFacts:
     order: list[str]
     order_complete: bool
     end_s: dict[str, float]
-    status: str
     wet: bool
     pit_loss: float | None
     pit_loss_lap: int | None
     pit_loss_stops: int
     reference_lap: float | None
     reference_laps: int
+    known_at: pd.Timestamp | None = None  # the leader's crossing at the cutoff
 
 
 def _clean(laps: pd.DataFrame) -> pd.Series:
-    """Green racing laps: no pit entry or exit, not lap 1, timed."""
+    """Green dry racing laps: no pit entry or exit, no neutralisation, not lap 1."""
     return (
         ~laps["pit_in"]
         & ~laps["pit_out"]
         & (laps["lap"] > 1)
-        & (laps["status"] == "GREEN")
+        & ~laps["neutralised_in_lap"]
+        & ~laps["compound"].isin(WET_COMPOUNDS)
         & laps["lap_seconds"].notna()
     )
 
@@ -64,7 +66,7 @@ def pit_loss(hist: pd.DataFrame) -> tuple[float | None, int | None, int]:
             if (
                 len(pair) < 2
                 or not pair["pit_out"].iloc[1]
-                or (pair["status"] != "GREEN").any()
+                or pair["neutralised_in_lap"].any()
             ):
                 continue
             pace = laps[(laps["lap"] < in_lap) & _clean(laps)].tail(PACE_LAPS)[
@@ -89,16 +91,17 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
     timed_before = hist.loc[
         (hist["lap"] == cutoff - 1) & hist["end_s"].notna(), "driver_number"
     ]
-    clean = hist[_clean(hist)]["lap_seconds"]
-    loss, loss_lap, stops = pit_loss(hist)
-    statuses = hist.loc[hist["lap"] == cutoff, "status"]
+    # every card of this lap is built after the leader crosses, so laps that end
+    # later, and their neutralised flags, are not known to all of them yet
+    known = hist[hist["end_s"] <= at_cutoff["end_s"].min()]
+    clean = known[_clean(known)]["lap_seconds"]
+    loss, loss_lap, stops = pit_loss(known)
     return CutoffFacts(
         lap=cutoff,
         order=list(at_cutoff["driver_number"]),
         # a car timed on the previous lap but not on this one has an unknown place
         order_complete=set(timed_before) <= set(at_cutoff["driver_number"]),
         end_s=dict(zip(at_cutoff["driver_number"], at_cutoff["end_s"])),
-        status=statuses.iloc[0] if len(statuses) else "UNKNOWN",
         wet=bool(hist["compound"].isin(WET_COMPOUNDS).any()),
         pit_loss=loss,
         pit_loss_lap=loss_lap,
@@ -107,6 +110,7 @@ def cutoff_facts(table: pd.DataFrame, cutoff: int) -> CutoffFacts:
         if len(clean) >= MIN_REFERENCE_LAPS
         else None,
         reference_laps=len(clean),
+        known_at=at_cutoff["at_line"].min() if len(at_cutoff) else None,
     )
 
 
@@ -155,7 +159,7 @@ def _check_scope(mine: pd.Series, facts: CutoffFacts) -> None:
     """Raise CardNotEligible for a situation BoxBox does not cover."""
     if mine["pit_in"]:
         raise CardNotEligible("starts the lap in the pit lane")
-    if facts.status == "RED":
+    if mine["status"] == "RED":
         raise CardNotEligible("red flag at the cutoff")
     if facts.wet:
         raise CardNotEligible("wet running by the cutoff")
@@ -189,7 +193,7 @@ def build_card(
         "driver_number": driver,
         "as_of_completed_lap": lap - 1,
         "surface": "DRY",
-        "track_status": facts.status,
+        "track_status": mine["status"],
         "compound": mine["compound"],
         "tyre_age_laps": None if pd.isna(age) else int(age),
         "gap_ahead": _gap(facts, driver, -1, mine["lap_seconds"]),

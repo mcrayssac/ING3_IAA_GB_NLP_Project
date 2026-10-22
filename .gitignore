@@ -1,7 +1,9 @@
 runs/
-data/cache/
+data/cache
 .env
 __pycache__/
 .ipynb_checkpoints/
-.venv/
+.venv
 data/cards/
+data/cards-v2/
+data/v1-reference/

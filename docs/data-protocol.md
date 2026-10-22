@@ -35,12 +35,12 @@ A card is a snapshot at the start of lap L, so every value comes from laps up to
 
 | Field | How it is computed |
 |---|---|
-| `race`, `lap`, `total_laps`, `driver_number` | Jolpica round and event name. `total_laps` is the race's last lap in OpenF1, which is also the scheduled distance unless the race was shortened. |
-| `track_status` | Status at the end of lap L - 1 from race control. SC and VSC run from the lap they are deployed until the lap they come in. A red flag marks its lap and ends any SC or VSC still open. Sector yellows stay GREEN, because they do not neutralise the race. Laps are the leader's laps. |
+| `race`, `lap`, `total_laps`, `driver_number` | Jolpica round and event name. `total_laps` is the last lap started before the leader takes the chequered flag, which is also the scheduled distance unless the race was shortened. OpenF1 often keeps the leader's lap after the flag (lap 51 of the 50-lap 2023 Saudi race), so that lap and every lap started after it are dropped. Without a flag message (2023-14) the session end stands in for it. |
+| `track_status` | Status at the moment the driver crosses the line at the end of lap L - 1, from race-control timestamps. A SC or VSC runs from its deployment to the "TRACK CLEAR" that follows its "IN THIS LAP" or "ENDING" message. A SC deployed during a VSC ends the VSC. A red flag ends both and lasts until the race resumes ("SESSION STARTED"); in 2026 its "TRACK CLEAR" comes minutes earlier. A restart behind the SC runs from "SESSION STARTED" to the next line crossing after the SC enters the pits. Sector yellows stay GREEN, because they do not neutralise the race. Each lap also records whether any of these periods overlapped it. |
 | `compound`, `tyre_age_laps` | The stint that contains lap L - 1. Age is `tyre_age_at_start` plus the laps run in the stint, so it counts earlier sessions. |
 | `gap_ahead`, `gap_behind` | Time at the line at the end of lap L - 1, against the neighbours in running order, with the neighbour's `driver_number`. The leader has NONE ahead and the last runner NONE behind. A gap of at least the driver's own lap time is UNKNOWN, because the neighbour is a lap or more away. If a car timed at the end of lap L - 2 has no time at the end of lap L - 1, its place is unknown, so both gaps are UNKNOWN without a neighbour number. The gap behind is the time the car behind takes to reach the line after the car, so it is known once that car crosses, in the first seconds of lap L, as on a timing screen. |
-| `pit_loss_seconds`, `pit_loss_as_of_completed_lap` | An in-lap comes from the `pit` endpoint or is the lap before an out-lap, because the `pit` endpoint is empty for 2023 rounds 1 to 6. OpenF1 stores the out-lap flag on lap L, but the car is already in the pit lane when lap L - 1 ends, so this is known at the cutoff. Median of the field's green stops whose in-lap and out-lap are completed by L - 1: in-lap + out-lap minus twice the driver's median of their last 5 clean green laps (at least 2). Values outside 5 to 60 s are dropped as data errors. Fewer than 3 stops gives null. The second field is the latest out-lap used. |
-| `reference_lap_seconds` | Median of the field's clean green laps up to L - 1, null with fewer than 5. |
+| `pit_loss_seconds`, `pit_loss_as_of_completed_lap` | An in-lap comes from the `pit` endpoint or is the lap before an out-lap, because the `pit` endpoint is empty for 2023 rounds 1 to 6. OpenF1 stores the out-lap flag on lap L, but the car is already in the pit lane when lap L - 1 ends, so this is known at the cutoff. Median of the field's green stops, with no SC, VSC or red flag during the in-lap or the out-lap, whose out-lap ends before the leader crosses the line at the end of L - 1: in-lap + out-lap minus twice the driver's median of their last 5 clean green laps (at least 2). Values outside 5 to 60 s are dropped as data errors. Fewer than 3 stops gives null. The second field is the latest out-lap used. |
+| `reference_lap_seconds` | Median of the field's clean laps that end before the leader crosses the line at the end of L - 1, null with fewer than 5. A clean lap has no pit entry or exit, no neutralisation and no wet tyre. |
 
 Each JSONL record holds `card_id`, `split`, `card` and `provenance` (source, session key, cutoff lap, stops and laps used). The model only ever sees `card`.
 
@@ -87,7 +87,7 @@ Card gaps were compared with OpenF1's official gap to the leader for car 11 righ
 
 ## Known limits
 
-- `total_laps` is the race's last lap in OpenF1. For a race stopped early it would be the distance actually run, which is not known before the start. `decide` only checks that `lap` does not exceed it, so no call depends on it.
+- `total_laps` is the last lap started before the chequered flag. For a race stopped early it is the distance actually run, which is not known before the start. `decide` only checks that `lap` does not exceed it, so no call depends on it.
 - `surface` is DRY because the rebuild skips every card from the first intermediate or wet tyre on. A damp track where every car stays on slicks still counts as dry.
 
 ## Deviation from the research plan
