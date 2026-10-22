@@ -1,0 +1,4240 @@
+{
+  "coverage": {
+    "human_ratings": "pending",
+    "population": {
+      "D": 116,
+      "Z": 84,
+      "families": {
+        "blocking_incomplete": 48,
+        "complete": 60,
+        "follow_up": 34,
+        "out_of_scope": 28,
+        "usable_incomplete": 30
+      },
+      "labels": {
+        "BOX": 29,
+        "NO CALL": 84,
+        "STAY OUT": 87
+      },
+      "races": {
+        "2023-14": 23,
+        "2023-16": 13,
+        "2024-07": 30,
+        "2024-19": 22,
+        "2025-08": 39,
+        "2025-19": 32,
+        "2025-20": 41
+      },
+      "targets": 200
+    },
+    "responses": 600,
+    "sessions": 1,
+    "targets": 200,
+    "task": "4.2",
+    "versions": {
+      "A": {
+        "families": {
+          "blocking_incomplete": 48,
+          "complete": 60,
+          "follow_up": 34,
+          "out_of_scope": 28,
+          "usable_incomplete": 30
+        },
+        "possibly_truncated": 2,
+        "races": {
+          "2023-14": 23,
+          "2023-16": 13,
+          "2024-07": 30,
+          "2024-19": 22,
+          "2025-08": 39,
+          "2025-19": 32,
+          "2025-20": 41
+        },
+        "responses": 200,
+        "statuses": {
+          "ok": 200
+        }
+      },
+      "B": {
+        "families": {
+          "blocking_incomplete": 48,
+          "complete": 60,
+          "follow_up": 34,
+          "out_of_scope": 28,
+          "usable_incomplete": 30
+        },
+        "possibly_truncated": 2,
+        "races": {
+          "2023-14": 23,
+          "2023-16": 13,
+          "2024-07": 30,
+          "2024-19": 22,
+          "2025-08": 39,
+          "2025-19": 32,
+          "2025-20": 41
+        },
+        "responses": 200,
+        "statuses": {
+          "ok": 200
+        }
+      },
+      "baseline": {
+        "families": {
+          "blocking_incomplete": 48,
+          "complete": 60,
+          "follow_up": 34,
+          "out_of_scope": 28,
+          "usable_incomplete": 30
+        },
+        "possibly_truncated": 53,
+        "races": {
+          "2023-14": 23,
+          "2023-16": 13,
+          "2024-07": 30,
+          "2024-19": 22,
+          "2025-08": 39,
+          "2025-19": 32,
+          "2025-20": 41
+        },
+        "responses": 200,
+        "statuses": {
+          "ok": 200
+        }
+      }
+    }
+  },
+  "evaluator_summaries": {
+    "baseline": {
+      "metrics": {
+        "overall/strict_format_rate": {
+          "numerator": 153,
+          "denominator": 200,
+          "value": 0.765,
+          "exact": {
+            "numerator": 153,
+            "denominator": 200
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_label_validity": {
+          "numerator": 155,
+          "denominator": 200,
+          "value": 0.775,
+          "exact": {
+            "numerator": 31,
+            "denominator": 40
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_agreement": {
+          "numerator": 43,
+          "denominator": 200,
+          "value": 0.215,
+          "exact": {
+            "numerator": 43,
+            "denominator": 200
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unjustified_decision_rate": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/decision_coverage": {
+          "numerator": 155,
+          "denominator": 200,
+          "value": 0.775,
+          "exact": {
+            "numerator": 31,
+            "denominator": 40
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "overall/eligible_decision_coverage": {
+          "numerator": 96,
+          "denominator": 116,
+          "value": 0.8275862068965517,
+          "exact": {
+            "numerator": 24,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unusable_label_rate": {
+          "numerator": 45,
+          "denominator": 200,
+          "value": 0.225,
+          "exact": {
+            "numerator": 9,
+            "denominator": 40
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 200,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/strict_format_rate": {
+          "numerator": 59,
+          "denominator": 60,
+          "value": 0.9833333333333333,
+          "exact": {
+            "numerator": 59,
+            "denominator": 60
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_label_validity": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_agreement": {
+          "numerator": 24,
+          "denominator": 60,
+          "value": 0.4,
+          "exact": {
+            "numerator": 2,
+            "denominator": 5
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/complete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/complete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/complete/eligible_decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/strict_format_rate": {
+          "numerator": 47,
+          "denominator": 48,
+          "value": 0.9791666666666666,
+          "exact": {
+            "numerator": 47,
+            "denominator": 48
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_label_validity": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_agreement": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unjustified_decision_rate": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/decision_coverage": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/blocking_incomplete/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/strict_format_rate": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_label_validity": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_agreement": {
+          "numerator": 13,
+          "denominator": 30,
+          "value": 0.43333333333333335,
+          "exact": {
+            "numerator": 13,
+            "denominator": 30
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/usable_incomplete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/decision_coverage": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/usable_incomplete/eligible_decision_coverage": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/strict_format_rate": {
+          "numerator": 6,
+          "denominator": 34,
+          "value": 0.17647058823529413,
+          "exact": {
+            "numerator": 3,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_label_validity": {
+          "numerator": 6,
+          "denominator": 34,
+          "value": 0.17647058823529413,
+          "exact": {
+            "numerator": 3,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_agreement": {
+          "numerator": 6,
+          "denominator": 34,
+          "value": 0.17647058823529413,
+          "exact": {
+            "numerator": 3,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 8,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 8,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 26,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/decision_coverage": {
+          "numerator": 6,
+          "denominator": 34,
+          "value": 0.17647058823529413,
+          "exact": {
+            "numerator": 3,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/follow_up/eligible_decision_coverage": {
+          "numerator": 6,
+          "denominator": 26,
+          "value": 0.23076923076923078,
+          "exact": {
+            "numerator": 3,
+            "denominator": 13
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unusable_label_rate": {
+          "numerator": 28,
+          "denominator": 34,
+          "value": 0.8235294117647058,
+          "exact": {
+            "numerator": 14,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 34,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/strict_format_rate": {
+          "numerator": 11,
+          "denominator": 28,
+          "value": 0.39285714285714285,
+          "exact": {
+            "numerator": 11,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_label_validity": {
+          "numerator": 11,
+          "denominator": 28,
+          "value": 0.39285714285714285,
+          "exact": {
+            "numerator": 11,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_agreement": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/unjustified_decision_rate": {
+          "numerator": 11,
+          "denominator": 28,
+          "value": 0.39285714285714285,
+          "exact": {
+            "numerator": 11,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/out_of_scope/decision_coverage": {
+          "numerator": 11,
+          "denominator": 28,
+          "value": 0.39285714285714285,
+          "exact": {
+            "numerator": 11,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/out_of_scope/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/out_of_scope/unusable_label_rate": {
+          "numerator": 17,
+          "denominator": 28,
+          "value": 0.6071428571428571,
+          "exact": {
+            "numerator": 17,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/strict_format_rate": {
+          "numerator": 25,
+          "denominator": 29,
+          "value": 0.8620689655172413,
+          "exact": {
+            "numerator": 25,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_label_validity": {
+          "numerator": 25,
+          "denominator": 29,
+          "value": 0.8620689655172413,
+          "exact": {
+            "numerator": 25,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_agreement": {
+          "numerator": 13,
+          "denominator": 29,
+          "value": 0.4482758620689655,
+          "exact": {
+            "numerator": 13,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/BOX/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/BOX/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/decision_coverage": {
+          "numerator": 25,
+          "denominator": 29,
+          "value": 0.8620689655172413,
+          "exact": {
+            "numerator": 25,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/BOX/eligible_decision_coverage": {
+          "numerator": 25,
+          "denominator": 29,
+          "value": 0.8620689655172413,
+          "exact": {
+            "numerator": 25,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/unusable_label_rate": {
+          "numerator": 4,
+          "denominator": 29,
+          "value": 0.13793103448275862,
+          "exact": {
+            "numerator": 4,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/strict_format_rate": {
+          "numerator": 70,
+          "denominator": 87,
+          "value": 0.8045977011494253,
+          "exact": {
+            "numerator": 70,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_label_validity": {
+          "numerator": 71,
+          "denominator": 87,
+          "value": 0.8160919540229885,
+          "exact": {
+            "numerator": 71,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_agreement": {
+          "numerator": 30,
+          "denominator": 87,
+          "value": 0.3448275862068966,
+          "exact": {
+            "numerator": 10,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/STAY OUT/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/STAY OUT/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/decision_coverage": {
+          "numerator": 71,
+          "denominator": 87,
+          "value": 0.8160919540229885,
+          "exact": {
+            "numerator": 71,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/STAY OUT/eligible_decision_coverage": {
+          "numerator": 71,
+          "denominator": 87,
+          "value": 0.8160919540229885,
+          "exact": {
+            "numerator": 71,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/unusable_label_rate": {
+          "numerator": 16,
+          "denominator": 87,
+          "value": 0.1839080459770115,
+          "exact": {
+            "numerator": 16,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/strict_format_rate": {
+          "numerator": 58,
+          "denominator": 84,
+          "value": 0.6904761904761905,
+          "exact": {
+            "numerator": 29,
+            "denominator": 42
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_label_validity": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_agreement": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/unjustified_decision_rate": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/NO CALL/decision_coverage": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/NO CALL/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/NO CALL/unusable_label_rate": {
+          "numerator": 25,
+          "denominator": 84,
+          "value": 0.2976190476190476,
+          "exact": {
+            "numerator": 25,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/strict_format_rate": {
+          "numerator": 58,
+          "denominator": 84,
+          "value": 0.6904761904761905,
+          "exact": {
+            "numerator": 29,
+            "denominator": 42
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_label_validity": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_agreement": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/unjustified_decision_rate": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/Z/decision_coverage": {
+          "numerator": 59,
+          "denominator": 84,
+          "value": 0.7023809523809523,
+          "exact": {
+            "numerator": 59,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/Z/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/Z/unusable_label_rate": {
+          "numerator": 25,
+          "denominator": 84,
+          "value": 0.2976190476190476,
+          "exact": {
+            "numerator": 25,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/strict_format_rate": {
+          "numerator": 95,
+          "denominator": 116,
+          "value": 0.8189655172413793,
+          "exact": {
+            "numerator": 95,
+            "denominator": 116
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_label_validity": {
+          "numerator": 96,
+          "denominator": 116,
+          "value": 0.8275862068965517,
+          "exact": {
+            "numerator": 24,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_agreement": {
+          "numerator": 43,
+          "denominator": 116,
+          "value": 0.3706896551724138,
+          "exact": {
+            "numerator": 43,
+            "denominator": 116
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/D/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/D/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/decision_coverage": {
+          "numerator": 96,
+          "denominator": 116,
+          "value": 0.8275862068965517,
+          "exact": {
+            "numerator": 24,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/D/eligible_decision_coverage": {
+          "numerator": 96,
+          "denominator": 116,
+          "value": 0.8275862068965517,
+          "exact": {
+            "numerator": 24,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/unusable_label_rate": {
+          "numerator": 20,
+          "denominator": 116,
+          "value": 0.1724137931034483,
+          "exact": {
+            "numerator": 5,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/macro_label_agreement": {
+          "numerator": {
+            "numerator": 23,
+            "denominator": 29
+          },
+          "denominator": 3,
+          "value": 0.26436781609195403,
+          "exact": {
+            "numerator": 23,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        },
+        "overall/macro_family_agreement": {
+          "numerator": {
+            "numerator": 103,
+            "denominator": 102
+          },
+          "denominator": 5,
+          "value": 0.2019607843137255,
+          "exact": {
+            "numerator": 103,
+            "denominator": 510
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        }
+      },
+      "confusion": {
+        "BOX": {
+          "BOX": 13,
+          "STAY OUT": 12,
+          "NO CALL": 0,
+          "INVALID": 4
+        },
+        "STAY OUT": {
+          "BOX": 41,
+          "STAY OUT": 30,
+          "NO CALL": 0,
+          "INVALID": 16
+        },
+        "NO CALL": {
+          "BOX": 34,
+          "STAY OUT": 25,
+          "NO CALL": 0,
+          "INVALID": 25
+        }
+      },
+      "attribute_counts": {
+        "follow_up_by_card_state": {
+          "complete": 24,
+          "blocking_incomplete": 8,
+          "usable_incomplete": 8
+        },
+        "out_of_scope_follow_up": 6
+      }
+    },
+    "A": {
+      "metrics": {
+        "overall/strict_format_rate": {
+          "numerator": 200,
+          "denominator": 200,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_label_validity": {
+          "numerator": 200,
+          "denominator": 200,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_agreement": {
+          "numerator": 133,
+          "denominator": 200,
+          "value": 0.665,
+          "exact": {
+            "numerator": 133,
+            "denominator": 200
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/justified_abstention_call_rate": {
+          "numerator": 40,
+          "denominator": 84,
+          "value": 0.47619047619047616,
+          "exact": {
+            "numerator": 10,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unjustified_decision_rate": {
+          "numerator": 44,
+          "denominator": 84,
+          "value": 0.5238095238095238,
+          "exact": {
+            "numerator": 11,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/decision_coverage": {
+          "numerator": 160,
+          "denominator": 200,
+          "value": 0.8,
+          "exact": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "overall/eligible_decision_coverage": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 200,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 200,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/strict_format_rate": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_label_validity": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_agreement": {
+          "numerator": 42,
+          "denominator": 60,
+          "value": 0.7,
+          "exact": {
+            "numerator": 7,
+            "denominator": 10
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/complete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/complete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/complete/eligible_decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/strict_format_rate": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_label_validity": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_agreement": {
+          "numerator": 5,
+          "denominator": 48,
+          "value": 0.10416666666666667,
+          "exact": {
+            "numerator": 5,
+            "denominator": 48
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/justified_abstention_call_rate": {
+          "numerator": 5,
+          "denominator": 48,
+          "value": 0.10416666666666667,
+          "exact": {
+            "numerator": 5,
+            "denominator": 48
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unjustified_decision_rate": {
+          "numerator": 43,
+          "denominator": 48,
+          "value": 0.8958333333333334,
+          "exact": {
+            "numerator": 43,
+            "denominator": 48
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/decision_coverage": {
+          "numerator": 43,
+          "denominator": 48,
+          "value": 0.8958333333333334,
+          "exact": {
+            "numerator": 43,
+            "denominator": 48
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/blocking_incomplete/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/strict_format_rate": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_label_validity": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_agreement": {
+          "numerator": 25,
+          "denominator": 30,
+          "value": 0.8333333333333334,
+          "exact": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/usable_incomplete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/decision_coverage": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/usable_incomplete/eligible_decision_coverage": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/strict_format_rate": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_label_validity": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_agreement": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/justified_abstention_call_rate": {
+          "numerator": 8,
+          "denominator": 8,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 8,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 26,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/decision_coverage": {
+          "numerator": 26,
+          "denominator": 34,
+          "value": 0.7647058823529411,
+          "exact": {
+            "numerator": 13,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/follow_up/eligible_decision_coverage": {
+          "numerator": 26,
+          "denominator": 26,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 34,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 34,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/strict_format_rate": {
+          "numerator": 28,
+          "denominator": 28,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_label_validity": {
+          "numerator": 28,
+          "denominator": 28,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_agreement": {
+          "numerator": 27,
+          "denominator": 28,
+          "value": 0.9642857142857143,
+          "exact": {
+            "numerator": 27,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/justified_abstention_call_rate": {
+          "numerator": 27,
+          "denominator": 28,
+          "value": 0.9642857142857143,
+          "exact": {
+            "numerator": 27,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/unjustified_decision_rate": {
+          "numerator": 1,
+          "denominator": 28,
+          "value": 0.03571428571428571,
+          "exact": {
+            "numerator": 1,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/out_of_scope/decision_coverage": {
+          "numerator": 1,
+          "denominator": 28,
+          "value": 0.03571428571428571,
+          "exact": {
+            "numerator": 1,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/out_of_scope/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/out_of_scope/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/strict_format_rate": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_label_validity": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_agreement": {
+          "numerator": 25,
+          "denominator": 29,
+          "value": 0.8620689655172413,
+          "exact": {
+            "numerator": 25,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/BOX/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/BOX/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/decision_coverage": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/BOX/eligible_decision_coverage": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/strict_format_rate": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_label_validity": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_agreement": {
+          "numerator": 68,
+          "denominator": 87,
+          "value": 0.7816091954022989,
+          "exact": {
+            "numerator": 68,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/STAY OUT/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/STAY OUT/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/decision_coverage": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/STAY OUT/eligible_decision_coverage": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/strict_format_rate": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_label_validity": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_agreement": {
+          "numerator": 40,
+          "denominator": 84,
+          "value": 0.47619047619047616,
+          "exact": {
+            "numerator": 10,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/justified_abstention_call_rate": {
+          "numerator": 40,
+          "denominator": 84,
+          "value": 0.47619047619047616,
+          "exact": {
+            "numerator": 10,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/unjustified_decision_rate": {
+          "numerator": 44,
+          "denominator": 84,
+          "value": 0.5238095238095238,
+          "exact": {
+            "numerator": 11,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/NO CALL/decision_coverage": {
+          "numerator": 44,
+          "denominator": 84,
+          "value": 0.5238095238095238,
+          "exact": {
+            "numerator": 11,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/NO CALL/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/NO CALL/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/strict_format_rate": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_label_validity": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_agreement": {
+          "numerator": 40,
+          "denominator": 84,
+          "value": 0.47619047619047616,
+          "exact": {
+            "numerator": 10,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/justified_abstention_call_rate": {
+          "numerator": 40,
+          "denominator": 84,
+          "value": 0.47619047619047616,
+          "exact": {
+            "numerator": 10,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/unjustified_decision_rate": {
+          "numerator": 44,
+          "denominator": 84,
+          "value": 0.5238095238095238,
+          "exact": {
+            "numerator": 11,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/Z/decision_coverage": {
+          "numerator": 44,
+          "denominator": 84,
+          "value": 0.5238095238095238,
+          "exact": {
+            "numerator": 11,
+            "denominator": 21
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/Z/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/Z/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/strict_format_rate": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_label_validity": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_agreement": {
+          "numerator": 93,
+          "denominator": 116,
+          "value": 0.8017241379310345,
+          "exact": {
+            "numerator": 93,
+            "denominator": 116
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/D/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/D/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/decision_coverage": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/D/eligible_decision_coverage": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/macro_label_agreement": {
+          "numerator": {
+            "numerator": 1291,
+            "denominator": 609
+          },
+          "denominator": 3,
+          "value": 0.7066228790366721,
+          "exact": {
+            "numerator": 1291,
+            "denominator": 1827
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        },
+        "overall/macro_family_agreement": {
+          "numerator": {
+            "numerator": 2017,
+            "denominator": 560
+          },
+          "denominator": 5,
+          "value": 0.7203571428571428,
+          "exact": {
+            "numerator": 2017,
+            "denominator": 2800
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        }
+      },
+      "confusion": {
+        "BOX": {
+          "BOX": 25,
+          "STAY OUT": 4,
+          "NO CALL": 0,
+          "INVALID": 0
+        },
+        "STAY OUT": {
+          "BOX": 19,
+          "STAY OUT": 68,
+          "NO CALL": 0,
+          "INVALID": 0
+        },
+        "NO CALL": {
+          "BOX": 16,
+          "STAY OUT": 28,
+          "NO CALL": 40,
+          "INVALID": 0
+        }
+      },
+      "attribute_counts": {
+        "follow_up_by_card_state": {
+          "complete": 24,
+          "blocking_incomplete": 8,
+          "usable_incomplete": 8
+        },
+        "out_of_scope_follow_up": 6
+      }
+    },
+    "B": {
+      "metrics": {
+        "overall/strict_format_rate": {
+          "numerator": 200,
+          "denominator": 200,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_label_validity": {
+          "numerator": 200,
+          "denominator": 200,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/call_agreement": {
+          "numerator": 166,
+          "denominator": 200,
+          "value": 0.83,
+          "exact": {
+            "numerator": 83,
+            "denominator": 100
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/justified_abstention_call_rate": {
+          "numerator": 83,
+          "denominator": 84,
+          "value": 0.9880952380952381,
+          "exact": {
+            "numerator": 83,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unjustified_decision_rate": {
+          "numerator": 1,
+          "denominator": 84,
+          "value": 0.011904761904761904,
+          "exact": {
+            "numerator": 1,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/excessive_refusal_rate": {
+          "numerator": 30,
+          "denominator": 116,
+          "value": 0.25862068965517243,
+          "exact": {
+            "numerator": 15,
+            "denominator": 58
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/decision_coverage": {
+          "numerator": 87,
+          "denominator": 200,
+          "value": 0.435,
+          "exact": {
+            "numerator": 87,
+            "denominator": 200
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "overall/eligible_decision_coverage": {
+          "numerator": 86,
+          "denominator": 116,
+          "value": 0.7413793103448276,
+          "exact": {
+            "numerator": 43,
+            "denominator": 58
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "overall/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 200,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 200,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/strict_format_rate": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_label_validity": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/call_agreement": {
+          "numerator": 57,
+          "denominator": 60,
+          "value": 0.95,
+          "exact": {
+            "numerator": 19,
+            "denominator": 20
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/complete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/complete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/complete/eligible_decision_coverage": {
+          "numerator": 60,
+          "denominator": 60,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/complete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/complete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 60,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/strict_format_rate": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_label_validity": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/call_agreement": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/justified_abstention_call_rate": {
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/decision_coverage": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/blocking_incomplete/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/blocking_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/blocking_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/strict_format_rate": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_label_validity": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/call_agreement": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/usable_incomplete/excessive_refusal_rate": {
+          "numerator": 30,
+          "denominator": 30,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/decision_coverage": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/usable_incomplete/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/usable_incomplete/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/usable_incomplete/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 30,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/strict_format_rate": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_label_validity": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/call_agreement": {
+          "numerator": 34,
+          "denominator": 34,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/justified_abstention_call_rate": {
+          "numerator": 8,
+          "denominator": 8,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 8,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 26,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/decision_coverage": {
+          "numerator": 26,
+          "denominator": 34,
+          "value": 0.7647058823529411,
+          "exact": {
+            "numerator": 13,
+            "denominator": 17
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/follow_up/eligible_decision_coverage": {
+          "numerator": 26,
+          "denominator": 26,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/follow_up/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 34,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/follow_up/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 34,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/strict_format_rate": {
+          "numerator": 28,
+          "denominator": 28,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_label_validity": {
+          "numerator": 28,
+          "denominator": 28,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/call_agreement": {
+          "numerator": 27,
+          "denominator": 28,
+          "value": 0.9642857142857143,
+          "exact": {
+            "numerator": 27,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/justified_abstention_call_rate": {
+          "numerator": 27,
+          "denominator": 28,
+          "value": 0.9642857142857143,
+          "exact": {
+            "numerator": 27,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "family/out_of_scope/unjustified_decision_rate": {
+          "numerator": 1,
+          "denominator": 28,
+          "value": 0.03571428571428571,
+          "exact": {
+            "numerator": 1,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "family/out_of_scope/decision_coverage": {
+          "numerator": 1,
+          "denominator": 28,
+          "value": 0.03571428571428571,
+          "exact": {
+            "numerator": 1,
+            "denominator": 28
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "family/out_of_scope/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "family/out_of_scope/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "family/out_of_scope/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 28,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/strict_format_rate": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_label_validity": {
+          "numerator": 29,
+          "denominator": 29,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/call_agreement": {
+          "numerator": 21,
+          "denominator": 29,
+          "value": 0.7241379310344828,
+          "exact": {
+            "numerator": 21,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/BOX/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/BOX/excessive_refusal_rate": {
+          "numerator": 8,
+          "denominator": 29,
+          "value": 0.27586206896551724,
+          "exact": {
+            "numerator": 8,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/decision_coverage": {
+          "numerator": 21,
+          "denominator": 29,
+          "value": 0.7241379310344828,
+          "exact": {
+            "numerator": 21,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/BOX/eligible_decision_coverage": {
+          "numerator": 21,
+          "denominator": 29,
+          "value": 0.7241379310344828,
+          "exact": {
+            "numerator": 21,
+            "denominator": 29
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/BOX/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/BOX/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 29,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/strict_format_rate": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_label_validity": {
+          "numerator": 87,
+          "denominator": 87,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/call_agreement": {
+          "numerator": 62,
+          "denominator": 87,
+          "value": 0.7126436781609196,
+          "exact": {
+            "numerator": 62,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/STAY OUT/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/STAY OUT/excessive_refusal_rate": {
+          "numerator": 22,
+          "denominator": 87,
+          "value": 0.25287356321839083,
+          "exact": {
+            "numerator": 22,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/decision_coverage": {
+          "numerator": 65,
+          "denominator": 87,
+          "value": 0.7471264367816092,
+          "exact": {
+            "numerator": 65,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/STAY OUT/eligible_decision_coverage": {
+          "numerator": 65,
+          "denominator": 87,
+          "value": 0.7471264367816092,
+          "exact": {
+            "numerator": 65,
+            "denominator": 87
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/STAY OUT/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/STAY OUT/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 87,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/strict_format_rate": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_label_validity": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/call_agreement": {
+          "numerator": 83,
+          "denominator": 84,
+          "value": 0.9880952380952381,
+          "exact": {
+            "numerator": 83,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/justified_abstention_call_rate": {
+          "numerator": 83,
+          "denominator": 84,
+          "value": 0.9880952380952381,
+          "exact": {
+            "numerator": 83,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "label/NO CALL/unjustified_decision_rate": {
+          "numerator": 1,
+          "denominator": 84,
+          "value": 0.011904761904761904,
+          "exact": {
+            "numerator": 1,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "label/NO CALL/decision_coverage": {
+          "numerator": 1,
+          "denominator": 84,
+          "value": 0.011904761904761904,
+          "exact": {
+            "numerator": 1,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "label/NO CALL/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "label/NO CALL/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "label/NO CALL/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/strict_format_rate": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_label_validity": {
+          "numerator": 84,
+          "denominator": 84,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/call_agreement": {
+          "numerator": 83,
+          "denominator": 84,
+          "value": 0.9880952380952381,
+          "exact": {
+            "numerator": 83,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/justified_abstention_call_rate": {
+          "numerator": 83,
+          "denominator": 84,
+          "value": 0.9880952380952381,
+          "exact": {
+            "numerator": 83,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/Z/unjustified_decision_rate": {
+          "numerator": 1,
+          "denominator": 84,
+          "value": 0.011904761904761904,
+          "exact": {
+            "numerator": 1,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/excessive_refusal_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/Z/decision_coverage": {
+          "numerator": 1,
+          "denominator": 84,
+          "value": 0.011904761904761904,
+          "exact": {
+            "numerator": 1,
+            "denominator": 84
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/Z/eligible_decision_coverage": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/Z/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/Z/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 84,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/strict_format_rate": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_label_validity": {
+          "numerator": 116,
+          "denominator": 116,
+          "value": 1.0,
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/call_agreement": {
+          "numerator": 83,
+          "denominator": 116,
+          "value": 0.7155172413793104,
+          "exact": {
+            "numerator": 83,
+            "denominator": 116
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/justified_abstention_call_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "higher"
+        },
+        "eligibility/D/unjustified_decision_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "exact": null,
+          "status": "undefined",
+          "reason": "empty_population",
+          "direction": "lower"
+        },
+        "eligibility/D/excessive_refusal_rate": {
+          "numerator": 30,
+          "denominator": 116,
+          "value": 0.25862068965517243,
+          "exact": {
+            "numerator": 15,
+            "denominator": 58
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/decision_coverage": {
+          "numerator": 86,
+          "denominator": 116,
+          "value": 0.7413793103448276,
+          "exact": {
+            "numerator": 43,
+            "denominator": 58
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "descriptive"
+        },
+        "eligibility/D/eligible_decision_coverage": {
+          "numerator": 86,
+          "denominator": 116,
+          "value": 0.7413793103448276,
+          "exact": {
+            "numerator": 43,
+            "denominator": 58
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher"
+        },
+        "eligibility/D/unusable_label_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "eligibility/D/response_failure_rate": {
+          "numerator": 0,
+          "denominator": 116,
+          "value": 0.0,
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "lower"
+        },
+        "overall/macro_label_agreement": {
+          "numerator": {
+            "numerator": 1969,
+            "denominator": 812
+          },
+          "denominator": 3,
+          "value": 0.8082922824302134,
+          "exact": {
+            "numerator": 1969,
+            "denominator": 2436
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        },
+        "overall/macro_family_agreement": {
+          "numerator": {
+            "numerator": 137,
+            "denominator": 35
+          },
+          "denominator": 5,
+          "value": 0.7828571428571428,
+          "exact": {
+            "numerator": 137,
+            "denominator": 175
+          },
+          "status": "defined",
+          "reason": null,
+          "direction": "higher",
+          "missing_components": []
+        }
+      },
+      "confusion": {
+        "BOX": {
+          "BOX": 21,
+          "STAY OUT": 0,
+          "NO CALL": 8,
+          "INVALID": 0
+        },
+        "STAY OUT": {
+          "BOX": 3,
+          "STAY OUT": 62,
+          "NO CALL": 22,
+          "INVALID": 0
+        },
+        "NO CALL": {
+          "BOX": 1,
+          "STAY OUT": 0,
+          "NO CALL": 83,
+          "INVALID": 0
+        }
+      },
+      "attribute_counts": {
+        "follow_up_by_card_state": {
+          "complete": 24,
+          "blocking_incomplete": 8,
+          "usable_incomplete": 8
+        },
+        "out_of_scope_follow_up": 6
+      }
+    }
+  },
+  "versions": {
+    "A": {
+      "call_agreement_count": 133,
+      "extracted_calls": {
+        "BOX": 60,
+        "NO CALL": 40,
+        "STAY OUT": 100
+      },
+      "inference_seconds": 2063.381482665194,
+      "possibly_truncated": 2,
+      "responses": 200,
+      "statuses": {
+        "ok": 200
+      },
+      "stop_conditions": {
+        "eos_token": 198,
+        "max_new_tokens": 2
+      },
+      "strict_format_count": 200
+    },
+    "B": {
+      "call_agreement_count": 166,
+      "extracted_calls": {
+        "BOX": 25,
+        "NO CALL": 113,
+        "STAY OUT": 62
+      },
+      "inference_seconds": 1909.3403507916955,
+      "possibly_truncated": 2,
+      "responses": 200,
+      "statuses": {
+        "ok": 200
+      },
+      "stop_conditions": {
+        "eos_token": 198,
+        "max_new_tokens": 2
+      },
+      "strict_format_count": 200
+    },
+    "baseline": {
+      "call_agreement_count": 43,
+      "extracted_calls": {
+        "BOX": 88,
+        "INVALID": 45,
+        "STAY OUT": 67
+      },
+      "inference_seconds": 2095.801418207935,
+      "possibly_truncated": 53,
+      "responses": 200,
+      "statuses": {
+        "ok": 200
+      },
+      "stop_conditions": {
+        "eos_token": 147,
+        "max_new_tokens": 53
+      },
+      "strict_format_count": 153
+    }
+  },
+  "input_tokens_min": 775,
+  "input_tokens_max": 883,
+  "history_reductions": 0,
+  "review_rows": 120,
+  "pending_ratings": 120,
+  "paired_rows": 200,
+  "session_failures": [],
+  "complete_sha256": "d1726c3606db0a18cc43f9546257b9e0c0b977d433507fdc91557f036432d83f",
+  "outputs_sha256": "81d220b479a81a599cbf95dcbfcd66b25853b01581d25454c4f0d9767eeef012",
+  "attempts_sha256": "8c7f059316be021e857d03198f3b452eb4621b4cef3b1473863f58c85d6855fc",
+  "task": "4.2",
+  "run_directory": "4-2-final-50067b54741c-49b4aea370af",
+  "base_commit": "e68a4b66f06ac6d81ff42bd313dd6ab892aefb9c",
+  "freeze_sha256": "50067b54741c5c78f601bc3bf3c9148bc4c2d466dcd68f792991f7c2a25eed49",
+  "cases_sha256": "49b4aea370afb4b3866eb21733e36eb21ea30510daf372c8a48fdc8627fa0b8f",
+  "source_sha256": "ce886a87033152e00206825a5dc3ba56b9791a48398b6335fca3ec6980cd44bb",
+  "started_utc": "2026-10-21T18:24:09.885955+00:00",
+  "finished_utc": "2026-10-21T20:05:49.537913+00:00",
+  "wall_since_preparation_seconds": 6132.047282934189,
+  "generation_cumulative_seconds": 6068.523251664825,
+  "runtime": {
+    "device": "mps",
+    "dtype": "torch.bfloat16",
+    "environment": {
+      "cpu": "Apple M1",
+      "libraries": {
+        "accelerate": "1.15.0",
+        "datasets": "5.1.0",
+        "peft": "0.21.2",
+        "torch": "2.14.1",
+        "transformers": "5.20.1",
+        "trl": "1.16.0"
+      },
+      "machine": "arm64",
+      "os": "Darwin 25.6.0",
+      "python": "3.13.13",
+      "ram_gb": 17.2
+    },
+    "template_sha256": "3e0e275a527f249670056e0078e474eadbdd007c134b4fdfae5a7b3089702814"
+  },
+  "technical_resumes": 0,
+  "limitations": [
+    "Automatic format and CALL agreement are diagnostics, not human WHY ratings or optimal strategy.",
+    "The frozen token limit and every raw continuation were retained.",
+    "Source causal-availability limitations remain upstream.",
+    "Human review, statistical comparisons and teammate acceptance remain separate tasks."
+  ],
+  "archive": {
+    "zip": {
+      "name": "4.2-final-delivery.zip",
+      "sha256": "2993ac76fe620d3aaf3df811369fdd88a4fbdd1911e0c8582318b6af99896a2b",
+      "files": 1940
+    },
+    "tar_gz": {
+      "name": "4.2-final-delivery.tar.gz",
+      "sha256": "1d985b2f5a4e86a4cf0c5e02cdab59ecfb4e6fd12e2163b926589d1307f3146d",
+      "files": 1940
+    }
+  },
+  "interpretation": {
+    "automatic_counts": "descriptive_counts_only",
+    "paired_gains_and_race_level_uncertainty": "task_4.4",
+    "human_why_ratings": "pending_for_task_4.3",
+    "combined_conclusions": "task_4.5",
+    "possibly_truncated_responses": {
+      "count": 57,
+      "stop_condition": "max_new_tokens=64",
+      "cooperative_30_second_stops": 0,
+      "raw_continuations_retained": true
+    },
+    "masking": {
+      "full_archive_contains_version_keys_and_version_labelled_outputs": true,
+      "raters_with_full_archive_can_unmask": true,
+      "task_4.3_should_record_rater_access": true
+    },
+    "training_and_population_limits": [
+      "one selected training seed per adapter: A s2028-e1 and B s2027-e3",
+      "final scoring ran on an Apple M1; B was selected on an Apple M3 Max",
+      "seven races; the largest race, 2025-20, contributes 41 of 200 targets",
+      "final races/cards are new, but the question wordings also occur in validation and were seen during prompt/checkpoint selection"
+    ],
+    "source_causal_availability_limits": "as_recorded_by_task_4.1"
+  }
+}

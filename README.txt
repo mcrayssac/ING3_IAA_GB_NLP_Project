@@ -386,3 +386,29 @@ run, with τ chosen leaving one race out:
 U1 reaches 59 of 100 on validation with τ chosen leaving one race out, against
 60 for the original. On the mini-test it gets 18 of 40 at argmax, as before,
 and 21 with the threshold, against 23.
+
+Frozen final scoring (4.2)
+--------------------------
+After the accepted freeze and integrated final cases, follow
+  docs/final-scoring.md
+from the repository root. The runner checks the frozen baseline/A/B, preserves
+all raw results and errors, and supports explicitly logged technical resumes:
+  python -m scripts.final_scoring prepare
+  python -m scripts.final_scoring run --run-dir RUN_DIRECTORY_PRINTED_ABOVE
+  python -m scripts.final_scoring seal --run-dir RUN_DIRECTORY_PRINTED_ABOVE
+  python -m scripts.final_scoring verify --run-dir RUN_DIRECTORY_PRINTED_ABOVE
+Do not create another run to improve final answers. Human review and statistical
+analysis use the saved outputs in tasks 4.3 and 4.4. Run folders are local/ignored
+and must be copied intact to hand over results. On 21 October, the initial Hub
+access failure was resolved with locally supplied checkpoints matching the freeze.
+Run runs/4-2-final-50067b54741c-49b4aea370af completed with 600 responses (200 each),
+zero request errors and no technical resume; seal/verify passed. Its 120 review
+rows remain pending. Counts and hashes: docs/final-scoring-results.json. Preserve
+this run and reuse it; do not generate another final comparison.
+The 4.2 results page includes the unjustified-decision and excessive-refusal
+rates, decision coverage, family agreement and the expected/predicted CALL table.
+These are descriptive counts; paired gains and race-level uncertainty belong to
+task 4.4. The complete 1,940-file handover archive is 4.2-final-delivery.zip
+(SHA-256 2993ac76fe620d3aaf3df811369fdd88a4fbdd1911e0c8582318b6af99896a2b).
+The archive contains the run, code, tests and audit evidence; it is stored
+outside Git and should be copied intact.
