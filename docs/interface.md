@@ -136,6 +136,18 @@ A toggle under the banner, off by default.
 - When the engine raises an error, the app shows it in plain words under the input and as a `gr.Warning`, for example "The engine failed: <message>. The conversation is unchanged."
 - The failed turn is not stored in the history.
 
+## Replay tab (milestone 4 bis)
+
+A second tab plays a race back on the circle as if from the pit wall. It shows more than one card, so it is an exception to "the screen shows only what the model saw", and it never shows anything timed after its clock.
+
+- Pickers: a race from the open splits of `data/splits-v2.json` (2023 to 2026, without `final` and `test_2026`), then a driver, listed by acronym and number.
+- Controls: Play, Pause, speeds x1, x2 and x4, and "Jump to lap", which moves the clock to the leader's start of that lap, never before the whole field has crossed the line once. The race can be picked with the mouse or the keyboard, and the same lap can be jumped to again.
+- Clock line: local time at the track, elapsed race time, the race lap (the lap after the latest one anyone completed, so it holds during a suspension) and the track status at the clock. A red flag lasts until the race resumes.
+- Circle: the selected car on top, every other car placed by time gap from its line crossings and the sector times of the faster of its last two laps, so an out-lap does not slow the next prediction. Under a SC or VSC the prediction is scaled by the field's latest pace, so a safety car does not pile cars on the line; under green it is not. Cars wear their team colour from OpenF1 and their acronym; when cars bunch up, only labels far enough apart are drawn and the others keep their dot. The readout and the screen-reader label name the nearest car ahead and behind, in seconds.
+- Pit window: a yellow arc from one pit loss to one pit loss plus 2.0 s behind the car, for the track status at the clock. While that condition is the card's own, the arc uses the card's pit loss, the one its call uses. It moves the moment a safety car comes out, before the next card, and it disappears under a red flag. Without a card for the lap, the surface comes from the driver's latest card. A readout under the circle names the condition and the seconds.
+- Calls: policy 2.0 on the 2.0 card next to policy 1.1 on the 1.0 card, which is what the trained model reads. Both labels give the card's lap. A lap's card appears once the car behind and the cars it counts in its pit window have crossed the line, as on a timing screen; until then the previous card stays up. A safety car that came out during the lap reaches the calls at the next card. A car that has stopped running shows no card.
+- The model's chat is not on this tab until adapters are trained on 2.0 cards.
+
 ## Appearance and colour
 
 The screen follows the system light or dark setting, with no switch of its own. Every custom colour is a CSS variable with a light and a dark value, checked against the block background (white in light, `#1e293b` in dark):
@@ -148,6 +160,7 @@ The screen follows the system light or dark setting, with no switch of its own. 
 | BOX | `#b45309` (5.0:1) | `#f28c28` (6.0:1) | BOX call |
 | STAY OUT | `#1d4ed8` (6.7:1) | `#60a5fa` (5.8:1) | STAY OUT call |
 | NO CALL | `#475569` (7.6:1) | `#9aa0a6` (5.5:1) | NO CALL call |
+| window | `#b08600` (3.4:1) | `#facc15` (9.6:1) | replay pit window |
 
 Each colour keeps one meaning:
 
@@ -155,6 +168,7 @@ Each colour keeps one meaning:
 - Flag and Pirelli colours appear only in the chip dots.
 - Actions such as Send use neutral slate, white on slate at 4.8:1 in light and 7.6:1 in dark.
 - Charts and the unknown-row tint are neutral.
+- On the Replay tab, car dots take the team colour that OpenF1 gives, with no dark variant. Each dot keeps the ink outline and its acronym, so a colour close to a call colour or to the background is never the only cue.
 
 ## Role and limits
 
