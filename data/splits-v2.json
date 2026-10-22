@@ -1,0 +1,904 @@
+{
+  "created_utc": "2026-10-22T10:47:19+00:00",
+  "source": "OpenF1 race sessions, Jolpica rounds and event names",
+  "unit": "whole race",
+  "base": {
+    "file": "data/splits.json",
+    "splits_sha256": "5305103d3fb1bb581cd76528ac6eee19bfc53d99c73baac413ea6163f702e1bb"
+  },
+  "snapshot": "2026-10-22",
+  "rule": "2023-2025 keep data/splits.json; 2026 races ended 3 days before the snapshot go in time order: the last 3 to test_2026, the 3 before to validation, the rest to train",
+  "counts": {
+    "train": 60,
+    "validation": 10,
+    "mini_test": 7,
+    "final": 7,
+    "test_2026": 3
+  },
+  "races": {
+    "2023-01": {
+      "race_id": "2023-01",
+      "season": 2023,
+      "round": 1,
+      "event": "Bahrain Grand Prix",
+      "session_key": 7953,
+      "circuit_key": 63,
+      "date_end": "2023-03-05T17:00:00+00:00"
+    },
+    "2023-02": {
+      "race_id": "2023-02",
+      "season": 2023,
+      "round": 2,
+      "event": "Saudi Arabian Grand Prix",
+      "session_key": 7779,
+      "circuit_key": 149,
+      "date_end": "2023-03-19T19:00:00+00:00"
+    },
+    "2023-03": {
+      "race_id": "2023-03",
+      "season": 2023,
+      "round": 3,
+      "event": "Australian Grand Prix",
+      "session_key": 7787,
+      "circuit_key": 10,
+      "date_end": "2023-04-02T07:00:00+00:00"
+    },
+    "2023-04": {
+      "race_id": "2023-04",
+      "season": 2023,
+      "round": 4,
+      "event": "Azerbaijan Grand Prix",
+      "session_key": 9070,
+      "circuit_key": 144,
+      "date_end": "2023-04-30T13:00:00+00:00"
+    },
+    "2023-05": {
+      "race_id": "2023-05",
+      "season": 2023,
+      "round": 5,
+      "event": "Miami Grand Prix",
+      "session_key": 9078,
+      "circuit_key": 151,
+      "date_end": "2023-05-07T21:30:00+00:00"
+    },
+    "2023-06": {
+      "race_id": "2023-06",
+      "season": 2023,
+      "round": 6,
+      "event": "Monaco Grand Prix",
+      "session_key": 9094,
+      "circuit_key": 22,
+      "date_end": "2023-05-28T15:00:00+00:00"
+    },
+    "2023-07": {
+      "race_id": "2023-07",
+      "season": 2023,
+      "round": 7,
+      "event": "Spanish Grand Prix",
+      "session_key": 9102,
+      "circuit_key": 15,
+      "date_end": "2023-06-04T15:00:00+00:00"
+    },
+    "2023-08": {
+      "race_id": "2023-08",
+      "season": 2023,
+      "round": 8,
+      "event": "Canadian Grand Prix",
+      "session_key": 9110,
+      "circuit_key": 23,
+      "date_end": "2023-06-18T20:00:00+00:00"
+    },
+    "2023-09": {
+      "race_id": "2023-09",
+      "season": 2023,
+      "round": 9,
+      "event": "Austrian Grand Prix",
+      "session_key": 9118,
+      "circuit_key": 19,
+      "date_end": "2023-07-02T15:00:00+00:00"
+    },
+    "2023-10": {
+      "race_id": "2023-10",
+      "season": 2023,
+      "round": 10,
+      "event": "British Grand Prix",
+      "session_key": 9126,
+      "circuit_key": 2,
+      "date_end": "2023-07-09T16:00:00+00:00"
+    },
+    "2023-11": {
+      "race_id": "2023-11",
+      "season": 2023,
+      "round": 11,
+      "event": "Hungarian Grand Prix",
+      "session_key": 9133,
+      "circuit_key": 4,
+      "date_end": "2023-07-23T15:00:00+00:00"
+    },
+    "2023-12": {
+      "race_id": "2023-12",
+      "season": 2023,
+      "round": 12,
+      "event": "Belgian Grand Prix",
+      "session_key": 9141,
+      "circuit_key": 7,
+      "date_end": "2023-07-30T15:00:00+00:00"
+    },
+    "2023-13": {
+      "race_id": "2023-13",
+      "season": 2023,
+      "round": 13,
+      "event": "Dutch Grand Prix",
+      "session_key": 9149,
+      "circuit_key": 55,
+      "date_end": "2023-08-27T15:00:00+00:00"
+    },
+    "2023-14": {
+      "race_id": "2023-14",
+      "season": 2023,
+      "round": 14,
+      "event": "Italian Grand Prix",
+      "session_key": 9157,
+      "circuit_key": 39,
+      "date_end": "2023-09-03T15:00:00+00:00"
+    },
+    "2023-15": {
+      "race_id": "2023-15",
+      "season": 2023,
+      "round": 15,
+      "event": "Singapore Grand Prix",
+      "session_key": 9165,
+      "circuit_key": 61,
+      "date_end": "2023-09-17T14:00:00+00:00"
+    },
+    "2023-16": {
+      "race_id": "2023-16",
+      "season": 2023,
+      "round": 16,
+      "event": "Japanese Grand Prix",
+      "session_key": 9173,
+      "circuit_key": 46,
+      "date_end": "2023-09-24T07:00:00+00:00"
+    },
+    "2023-17": {
+      "race_id": "2023-17",
+      "season": 2023,
+      "round": 17,
+      "event": "Qatar Grand Prix",
+      "session_key": 9221,
+      "circuit_key": 150,
+      "date_end": "2023-10-08T19:00:00+00:00"
+    },
+    "2023-18": {
+      "race_id": "2023-18",
+      "season": 2023,
+      "round": 18,
+      "event": "United States Grand Prix",
+      "session_key": 9213,
+      "circuit_key": 9,
+      "date_end": "2023-10-22T21:00:00+00:00"
+    },
+    "2023-19": {
+      "race_id": "2023-19",
+      "season": 2023,
+      "round": 19,
+      "event": "Mexico City Grand Prix",
+      "session_key": 9181,
+      "circuit_key": 65,
+      "date_end": "2023-10-29T22:00:00+00:00"
+    },
+    "2023-20": {
+      "race_id": "2023-20",
+      "season": 2023,
+      "round": 20,
+      "event": "São Paulo Grand Prix",
+      "session_key": 9205,
+      "circuit_key": 14,
+      "date_end": "2023-11-05T19:00:00+00:00"
+    },
+    "2023-21": {
+      "race_id": "2023-21",
+      "season": 2023,
+      "round": 21,
+      "event": "Las Vegas Grand Prix",
+      "session_key": 9189,
+      "circuit_key": 152,
+      "date_end": "2023-11-19T07:59:59+00:00"
+    },
+    "2023-22": {
+      "race_id": "2023-22",
+      "season": 2023,
+      "round": 22,
+      "event": "Abu Dhabi Grand Prix",
+      "session_key": 9197,
+      "circuit_key": 70,
+      "date_end": "2023-11-26T15:00:00+00:00"
+    },
+    "2024-01": {
+      "race_id": "2024-01",
+      "season": 2024,
+      "round": 1,
+      "event": "Bahrain Grand Prix",
+      "session_key": 9472,
+      "circuit_key": 63,
+      "date_end": "2024-03-02T17:00:00+00:00"
+    },
+    "2024-02": {
+      "race_id": "2024-02",
+      "season": 2024,
+      "round": 2,
+      "event": "Saudi Arabian Grand Prix",
+      "session_key": 9480,
+      "circuit_key": 149,
+      "date_end": "2024-03-09T19:00:00+00:00"
+    },
+    "2024-03": {
+      "race_id": "2024-03",
+      "season": 2024,
+      "round": 3,
+      "event": "Australian Grand Prix",
+      "session_key": 9488,
+      "circuit_key": 10,
+      "date_end": "2024-03-24T06:00:00+00:00"
+    },
+    "2024-04": {
+      "race_id": "2024-04",
+      "season": 2024,
+      "round": 4,
+      "event": "Japanese Grand Prix",
+      "session_key": 9496,
+      "circuit_key": 46,
+      "date_end": "2024-04-07T07:00:00+00:00"
+    },
+    "2024-05": {
+      "race_id": "2024-05",
+      "season": 2024,
+      "round": 5,
+      "event": "Chinese Grand Prix",
+      "session_key": 9673,
+      "circuit_key": 49,
+      "date_end": "2024-04-21T09:00:00+00:00"
+    },
+    "2024-06": {
+      "race_id": "2024-06",
+      "season": 2024,
+      "round": 6,
+      "event": "Miami Grand Prix",
+      "session_key": 9507,
+      "circuit_key": 151,
+      "date_end": "2024-05-05T22:00:00+00:00"
+    },
+    "2024-07": {
+      "race_id": "2024-07",
+      "season": 2024,
+      "round": 7,
+      "event": "Emilia Romagna Grand Prix",
+      "session_key": 9515,
+      "circuit_key": 6,
+      "date_end": "2024-05-19T15:00:00+00:00"
+    },
+    "2024-08": {
+      "race_id": "2024-08",
+      "season": 2024,
+      "round": 8,
+      "event": "Monaco Grand Prix",
+      "session_key": 9523,
+      "circuit_key": 22,
+      "date_end": "2024-05-26T15:00:00+00:00"
+    },
+    "2024-09": {
+      "race_id": "2024-09",
+      "season": 2024,
+      "round": 9,
+      "event": "Canadian Grand Prix",
+      "session_key": 9531,
+      "circuit_key": 23,
+      "date_end": "2024-06-09T20:00:00+00:00"
+    },
+    "2024-10": {
+      "race_id": "2024-10",
+      "season": 2024,
+      "round": 10,
+      "event": "Spanish Grand Prix",
+      "session_key": 9539,
+      "circuit_key": 15,
+      "date_end": "2024-06-23T15:00:00+00:00"
+    },
+    "2024-11": {
+      "race_id": "2024-11",
+      "season": 2024,
+      "round": 11,
+      "event": "Austrian Grand Prix",
+      "session_key": 9550,
+      "circuit_key": 19,
+      "date_end": "2024-06-30T15:00:00+00:00"
+    },
+    "2024-12": {
+      "race_id": "2024-12",
+      "season": 2024,
+      "round": 12,
+      "event": "British Grand Prix",
+      "session_key": 9558,
+      "circuit_key": 2,
+      "date_end": "2024-07-07T16:00:00+00:00"
+    },
+    "2024-13": {
+      "race_id": "2024-13",
+      "season": 2024,
+      "round": 13,
+      "event": "Hungarian Grand Prix",
+      "session_key": 9566,
+      "circuit_key": 4,
+      "date_end": "2024-07-21T15:00:00+00:00"
+    },
+    "2024-14": {
+      "race_id": "2024-14",
+      "season": 2024,
+      "round": 14,
+      "event": "Belgian Grand Prix",
+      "session_key": 9574,
+      "circuit_key": 7,
+      "date_end": "2024-07-28T15:00:00+00:00"
+    },
+    "2024-15": {
+      "race_id": "2024-15",
+      "season": 2024,
+      "round": 15,
+      "event": "Dutch Grand Prix",
+      "session_key": 9582,
+      "circuit_key": 55,
+      "date_end": "2024-08-25T15:00:00+00:00"
+    },
+    "2024-16": {
+      "race_id": "2024-16",
+      "season": 2024,
+      "round": 16,
+      "event": "Italian Grand Prix",
+      "session_key": 9590,
+      "circuit_key": 39,
+      "date_end": "2024-09-01T15:00:00+00:00"
+    },
+    "2024-17": {
+      "race_id": "2024-17",
+      "season": 2024,
+      "round": 17,
+      "event": "Azerbaijan Grand Prix",
+      "session_key": 9598,
+      "circuit_key": 144,
+      "date_end": "2024-09-15T13:00:00+00:00"
+    },
+    "2024-18": {
+      "race_id": "2024-18",
+      "season": 2024,
+      "round": 18,
+      "event": "Singapore Grand Prix",
+      "session_key": 9606,
+      "circuit_key": 61,
+      "date_end": "2024-09-22T14:00:00+00:00"
+    },
+    "2024-19": {
+      "race_id": "2024-19",
+      "season": 2024,
+      "round": 19,
+      "event": "United States Grand Prix",
+      "session_key": 9617,
+      "circuit_key": 9,
+      "date_end": "2024-10-20T21:00:00+00:00"
+    },
+    "2024-20": {
+      "race_id": "2024-20",
+      "season": 2024,
+      "round": 20,
+      "event": "Mexico City Grand Prix",
+      "session_key": 9625,
+      "circuit_key": 65,
+      "date_end": "2024-10-27T22:00:00+00:00"
+    },
+    "2024-21": {
+      "race_id": "2024-21",
+      "season": 2024,
+      "round": 21,
+      "event": "São Paulo Grand Prix",
+      "session_key": 9636,
+      "circuit_key": 14,
+      "date_end": "2024-11-03T17:30:00+00:00"
+    },
+    "2024-22": {
+      "race_id": "2024-22",
+      "season": 2024,
+      "round": 22,
+      "event": "Las Vegas Grand Prix",
+      "session_key": 9644,
+      "circuit_key": 152,
+      "date_end": "2024-11-24T07:59:59+00:00"
+    },
+    "2024-23": {
+      "race_id": "2024-23",
+      "season": 2024,
+      "round": 23,
+      "event": "Qatar Grand Prix",
+      "session_key": 9655,
+      "circuit_key": 150,
+      "date_end": "2024-12-01T18:00:00+00:00"
+    },
+    "2024-24": {
+      "race_id": "2024-24",
+      "season": 2024,
+      "round": 24,
+      "event": "Abu Dhabi Grand Prix",
+      "session_key": 9662,
+      "circuit_key": 70,
+      "date_end": "2024-12-08T15:00:00+00:00"
+    },
+    "2025-01": {
+      "race_id": "2025-01",
+      "season": 2025,
+      "round": 1,
+      "event": "Australian Grand Prix",
+      "session_key": 9693,
+      "circuit_key": 10,
+      "date_end": "2025-03-16T06:00:00+00:00"
+    },
+    "2025-02": {
+      "race_id": "2025-02",
+      "season": 2025,
+      "round": 2,
+      "event": "Chinese Grand Prix",
+      "session_key": 9998,
+      "circuit_key": 49,
+      "date_end": "2025-03-23T09:00:00+00:00"
+    },
+    "2025-03": {
+      "race_id": "2025-03",
+      "season": 2025,
+      "round": 3,
+      "event": "Japanese Grand Prix",
+      "session_key": 10006,
+      "circuit_key": 46,
+      "date_end": "2025-04-06T07:00:00+00:00"
+    },
+    "2025-04": {
+      "race_id": "2025-04",
+      "season": 2025,
+      "round": 4,
+      "event": "Bahrain Grand Prix",
+      "session_key": 10014,
+      "circuit_key": 63,
+      "date_end": "2025-04-13T17:00:00+00:00"
+    },
+    "2025-05": {
+      "race_id": "2025-05",
+      "season": 2025,
+      "round": 5,
+      "event": "Saudi Arabian Grand Prix",
+      "session_key": 10022,
+      "circuit_key": 149,
+      "date_end": "2025-04-20T19:00:00+00:00"
+    },
+    "2025-06": {
+      "race_id": "2025-06",
+      "season": 2025,
+      "round": 6,
+      "event": "Miami Grand Prix",
+      "session_key": 10033,
+      "circuit_key": 151,
+      "date_end": "2025-05-04T22:00:00+00:00"
+    },
+    "2025-07": {
+      "race_id": "2025-07",
+      "season": 2025,
+      "round": 7,
+      "event": "Emilia Romagna Grand Prix",
+      "session_key": 9987,
+      "circuit_key": 6,
+      "date_end": "2025-05-18T15:00:00+00:00"
+    },
+    "2025-08": {
+      "race_id": "2025-08",
+      "season": 2025,
+      "round": 8,
+      "event": "Monaco Grand Prix",
+      "session_key": 9979,
+      "circuit_key": 22,
+      "date_end": "2025-05-25T15:00:00+00:00"
+    },
+    "2025-09": {
+      "race_id": "2025-09",
+      "season": 2025,
+      "round": 9,
+      "event": "Spanish Grand Prix",
+      "session_key": 9971,
+      "circuit_key": 15,
+      "date_end": "2025-06-01T15:00:00+00:00"
+    },
+    "2025-10": {
+      "race_id": "2025-10",
+      "season": 2025,
+      "round": 10,
+      "event": "Canadian Grand Prix",
+      "session_key": 9963,
+      "circuit_key": 23,
+      "date_end": "2025-06-15T20:00:00+00:00"
+    },
+    "2025-11": {
+      "race_id": "2025-11",
+      "season": 2025,
+      "round": 11,
+      "event": "Austrian Grand Prix",
+      "session_key": 9955,
+      "circuit_key": 19,
+      "date_end": "2025-06-29T15:00:00+00:00"
+    },
+    "2025-12": {
+      "race_id": "2025-12",
+      "season": 2025,
+      "round": 12,
+      "event": "British Grand Prix",
+      "session_key": 9947,
+      "circuit_key": 2,
+      "date_end": "2025-07-06T16:00:00+00:00"
+    },
+    "2025-13": {
+      "race_id": "2025-13",
+      "season": 2025,
+      "round": 13,
+      "event": "Belgian Grand Prix",
+      "session_key": 9939,
+      "circuit_key": 7,
+      "date_end": "2025-07-27T15:00:00+00:00"
+    },
+    "2025-14": {
+      "race_id": "2025-14",
+      "season": 2025,
+      "round": 14,
+      "event": "Hungarian Grand Prix",
+      "session_key": 9928,
+      "circuit_key": 4,
+      "date_end": "2025-08-03T15:00:00+00:00"
+    },
+    "2025-15": {
+      "race_id": "2025-15",
+      "season": 2025,
+      "round": 15,
+      "event": "Dutch Grand Prix",
+      "session_key": 9920,
+      "circuit_key": 55,
+      "date_end": "2025-08-31T15:00:00+00:00"
+    },
+    "2025-16": {
+      "race_id": "2025-16",
+      "season": 2025,
+      "round": 16,
+      "event": "Italian Grand Prix",
+      "session_key": 9912,
+      "circuit_key": 39,
+      "date_end": "2025-09-07T15:00:00+00:00"
+    },
+    "2025-17": {
+      "race_id": "2025-17",
+      "season": 2025,
+      "round": 17,
+      "event": "Azerbaijan Grand Prix",
+      "session_key": 9904,
+      "circuit_key": 144,
+      "date_end": "2025-09-21T13:00:00+00:00"
+    },
+    "2025-18": {
+      "race_id": "2025-18",
+      "season": 2025,
+      "round": 18,
+      "event": "Singapore Grand Prix",
+      "session_key": 9896,
+      "circuit_key": 61,
+      "date_end": "2025-10-05T14:00:00+00:00"
+    },
+    "2025-19": {
+      "race_id": "2025-19",
+      "season": 2025,
+      "round": 19,
+      "event": "United States Grand Prix",
+      "session_key": 9888,
+      "circuit_key": 9,
+      "date_end": "2025-10-19T21:00:00+00:00"
+    },
+    "2025-20": {
+      "race_id": "2025-20",
+      "season": 2025,
+      "round": 20,
+      "event": "Mexico City Grand Prix",
+      "session_key": 9877,
+      "circuit_key": 65,
+      "date_end": "2025-10-26T22:00:00+00:00"
+    },
+    "2025-21": {
+      "race_id": "2025-21",
+      "season": 2025,
+      "round": 21,
+      "event": "São Paulo Grand Prix",
+      "session_key": 9869,
+      "circuit_key": 14,
+      "date_end": "2025-11-09T19:00:00+00:00"
+    },
+    "2025-22": {
+      "race_id": "2025-22",
+      "season": 2025,
+      "round": 22,
+      "event": "Las Vegas Grand Prix",
+      "session_key": 9858,
+      "circuit_key": 152,
+      "date_end": "2025-11-23T06:00:00+00:00"
+    },
+    "2025-23": {
+      "race_id": "2025-23",
+      "season": 2025,
+      "round": 23,
+      "event": "Qatar Grand Prix",
+      "session_key": 9850,
+      "circuit_key": 150,
+      "date_end": "2025-11-30T18:00:00+00:00"
+    },
+    "2025-24": {
+      "race_id": "2025-24",
+      "season": 2025,
+      "round": 24,
+      "event": "Abu Dhabi Grand Prix",
+      "session_key": 9839,
+      "circuit_key": 70,
+      "date_end": "2025-12-07T15:00:00+00:00"
+    },
+    "2026-01": {
+      "race_id": "2026-01",
+      "season": 2026,
+      "round": 1,
+      "event": "Australian Grand Prix",
+      "session_key": 11234,
+      "circuit_key": 10,
+      "date_end": "2026-03-08T06:00:00+00:00"
+    },
+    "2026-02": {
+      "race_id": "2026-02",
+      "season": 2026,
+      "round": 2,
+      "event": "Chinese Grand Prix",
+      "session_key": 11245,
+      "circuit_key": 49,
+      "date_end": "2026-03-15T09:00:00+00:00"
+    },
+    "2026-03": {
+      "race_id": "2026-03",
+      "season": 2026,
+      "round": 3,
+      "event": "Japanese Grand Prix",
+      "session_key": 11253,
+      "circuit_key": 46,
+      "date_end": "2026-03-29T07:00:00+00:00"
+    },
+    "2026-04": {
+      "race_id": "2026-04",
+      "season": 2026,
+      "round": 4,
+      "event": "Miami Grand Prix",
+      "session_key": 11280,
+      "circuit_key": 151,
+      "date_end": "2026-05-03T19:00:00+00:00"
+    },
+    "2026-05": {
+      "race_id": "2026-05",
+      "season": 2026,
+      "round": 5,
+      "event": "Canadian Grand Prix",
+      "session_key": 11291,
+      "circuit_key": 23,
+      "date_end": "2026-05-24T22:00:00+00:00"
+    },
+    "2026-06": {
+      "race_id": "2026-06",
+      "season": 2026,
+      "round": 6,
+      "event": "Monaco Grand Prix",
+      "session_key": 11299,
+      "circuit_key": 22,
+      "date_end": "2026-06-07T15:00:00+00:00"
+    },
+    "2026-07": {
+      "race_id": "2026-07",
+      "season": 2026,
+      "round": 7,
+      "event": "Barcelona Grand Prix",
+      "session_key": 11307,
+      "circuit_key": 15,
+      "date_end": "2026-06-14T15:00:00+00:00"
+    },
+    "2026-08": {
+      "race_id": "2026-08",
+      "season": 2026,
+      "round": 8,
+      "event": "Austrian Grand Prix",
+      "session_key": 11315,
+      "circuit_key": 19,
+      "date_end": "2026-06-28T15:00:00+00:00"
+    },
+    "2026-09": {
+      "race_id": "2026-09",
+      "season": 2026,
+      "round": 9,
+      "event": "British Grand Prix",
+      "session_key": 11326,
+      "circuit_key": 2,
+      "date_end": "2026-07-05T16:00:00+00:00"
+    },
+    "2026-10": {
+      "race_id": "2026-10",
+      "season": 2026,
+      "round": 10,
+      "event": "Belgian Grand Prix",
+      "session_key": 11334,
+      "circuit_key": 7,
+      "date_end": "2026-07-19T15:00:00+00:00"
+    },
+    "2026-11": {
+      "race_id": "2026-11",
+      "season": 2026,
+      "round": 11,
+      "event": "Hungarian Grand Prix",
+      "session_key": 11342,
+      "circuit_key": 4,
+      "date_end": "2026-07-26T15:00:00+00:00"
+    },
+    "2026-12": {
+      "race_id": "2026-12",
+      "season": 2026,
+      "round": 12,
+      "event": "Dutch Grand Prix",
+      "session_key": 11353,
+      "circuit_key": 55,
+      "date_end": "2026-08-23T15:00:00+00:00"
+    },
+    "2026-13": {
+      "race_id": "2026-13",
+      "season": 2026,
+      "round": 13,
+      "event": "Italian Grand Prix",
+      "session_key": 11361,
+      "circuit_key": 39,
+      "date_end": "2026-09-06T15:00:00+00:00"
+    },
+    "2026-14": {
+      "race_id": "2026-14",
+      "season": 2026,
+      "round": 14,
+      "event": "Spanish Grand Prix",
+      "session_key": 11369,
+      "circuit_key": 153,
+      "date_end": "2026-09-13T15:00:00+00:00"
+    },
+    "2026-15": {
+      "race_id": "2026-15",
+      "season": 2026,
+      "round": 15,
+      "event": "Azerbaijan Grand Prix",
+      "session_key": 11377,
+      "circuit_key": 144,
+      "date_end": "2026-09-26T13:00:00+00:00"
+    },
+    "2026-16": {
+      "race_id": "2026-16",
+      "season": 2026,
+      "round": 16,
+      "event": "Bahrain Grand Prix in Malaysia",
+      "session_key": 11731,
+      "circuit_key": 12,
+      "date_end": "2026-10-04T09:00:00+00:00"
+    },
+    "2026-17": {
+      "race_id": "2026-17",
+      "season": 2026,
+      "round": 17,
+      "event": "Singapore Grand Prix",
+      "session_key": 11388,
+      "circuit_key": 61,
+      "date_end": "2026-10-11T14:00:00+00:00"
+    }
+  },
+  "splits": {
+    "train": [
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2023-13",
+      "2023-15",
+      "2023-17",
+      "2023-18",
+      "2023-19",
+      "2023-20",
+      "2023-21",
+      "2023-22",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-08",
+      "2024-09",
+      "2024-11",
+      "2024-12",
+      "2024-13",
+      "2024-17",
+      "2024-18",
+      "2024-20",
+      "2024-21",
+      "2024-22",
+      "2024-23",
+      "2024-24",
+      "2025-02",
+      "2025-06",
+      "2025-07",
+      "2025-09",
+      "2025-10",
+      "2025-13",
+      "2025-14",
+      "2025-15",
+      "2025-16",
+      "2025-17",
+      "2025-21",
+      "2025-23",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11"
+    ],
+    "validation": [
+      "2023-01",
+      "2024-10",
+      "2024-16",
+      "2025-03",
+      "2025-11",
+      "2025-22",
+      "2025-24",
+      "2026-12",
+      "2026-13",
+      "2026-14"
+    ],
+    "mini_test": [
+      "2024-14",
+      "2024-15",
+      "2025-01",
+      "2025-04",
+      "2025-05",
+      "2025-12",
+      "2025-18"
+    ],
+    "final": [
+      "2023-14",
+      "2023-16",
+      "2024-07",
+      "2024-19",
+      "2025-08",
+      "2025-19",
+      "2025-20"
+    ],
+    "test_2026": [
+      "2026-15",
+      "2026-16",
+      "2026-17"
+    ]
+  },
+  "splits_sha256": "2ce4c00ca3885d0f40aa9ae1a13d736ba8bb65782595511380908894697b6c1d",
+  "document_sha256": "f073c38be95b4529a7dfd7ed0c68a50e1081f4f4971d0368ea3bb665eb319181"
+}
