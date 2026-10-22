@@ -1,6 +1,6 @@
-# Milestone 4 bis decisions
+# Experimental milestone (4 bis) decisions
 
-Milestone 4 bis widens the race data and makes it match what happened on track. It is an experimental branch, `4bis-experimental`, outside the submitted study. The submitted results stay reproducible from `main`. Each decision below says what we chose, why, and how we check it. A check marked pending has not run yet.
+The Experimental milestone (4 bis) widens the race data and makes it match what happened on track. It sits outside the submitted study, on branch `main-experimental`, cut from `main` after task 4.4. The work was done on branch `4bis-experimental` with the task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2`, then merged into `main-experimental`. The submitted results stay reproducible from `main`. Each decision below says what we chose, why, and how we check it.
 
 ## D1. The 2026 season is included
 
@@ -76,7 +76,7 @@ Each card has an `as_of` time, the moment the driver crosses the line at the end
 
 The replay runs a race clock and places every car on the circle from its last line crossing and the previous lap's sector times, without reading anything timed after the clock. The pit window is drawn in yellow from the current condition's pit loss, so it moves when a safety car comes out. The call panel shows the policy 2.0 call next to the policy 1.1 call on the 1.0 card. The model's chat returns once adapters are trained on 2.0 cards.
 
-Check: a first replay on 1.0 cards (branch `4bis.3-replay-spike`) plays Saudi Arabia 2024 at x1, x2 and x4 with 9 to 16 ms from tick to render and no skipped tick, so a server-side SVG redrawn by `gr.Timer` is enough. The final replay, merged into `4bis-experimental`, reads the 2.0 cards, rebuilds the 1.0 cards from the same table and shows both calls side by side. Cars wear their team colour and acronym, and "Jump to lap" moves the clock. At Saudi Arabia 2024 the window shrinks from 21.5-23.5 s under green to 15.3-17.3 s when the lap-7 safety car comes out.
+Check: a first replay on 1.0 cards (branch `4bis.3-replay-spike`) plays Saudi Arabia 2024 at x1, x2 and x4 with 9 to 16 ms from tick to render and no skipped tick, so a server-side SVG redrawn by `gr.Timer` is enough. The final replay (branch `4bis.3-replay-v2`), merged into `4bis-experimental` and then into `main-experimental`, reads the 2.0 cards, rebuilds the 1.0 cards from the same table and shows both calls side by side. Cars wear their team colour and acronym, and "Jump to lap" moves the clock. At Saudi Arabia 2024 the window shrinks from 21.5-23.5 s under green to 15.3-17.3 s when the lap-7 safety car comes out.
 
 Two problems showed up on screen and were fixed. Cars placed on the pace of their previous lap piled up on the line when the safety car slowed them, until their own crossing came; the freshest crossings now set a pace factor (1.31 at Saudi Arabia 2024, lap 8). The SC-to-green pit-loss ratio was taken from the few train races before each race, and early in 2024 it came out at 1.11, a SC stop dearer than a green one; it is now a model constant over all train races, like the wear limits. This change leaves the evaluation results above unchanged.
 
@@ -88,7 +88,7 @@ Check: on 21,864 cards with a known gap ahead, the computed gap differs from Ope
 
 ## Agreement with the teams
 
-`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps.
+`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps. The table comes from the first run; D13 gives the adopted rule after the causality fixes of the replay review, on 667 stops.
 
 | Rule | Recall | Precision | BOX share of cards |
 |---|---:|---:|---:|

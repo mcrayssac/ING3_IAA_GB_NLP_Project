@@ -10,7 +10,7 @@ engine = load_conversation_engine(RunConfig())  # load the pinned model once
 answer = engine.respond(card, history, message)  # -> raw str
 ```
 
-`ConversationEngine.respond(card, history, message) -> str` keeps the app contract. `respond_with_trace` returns the same unmodified continuation plus technical observations; `prepare` exposes the actual template-tokenized input without generating. No card, history, or model answer is retained between calls. The caller owns the per-card history and clears it on reset or card change. The demo continues to use its explicit stub until task 2.8.
+`ConversationEngine.respond(card, history, message) -> str` keeps the app contract. `respond_with_trace` returns the same unmodified continuation plus technical observations; `prepare` exposes the actual template-tokenized input without generating. No card, history, or model answer is retained between calls. The caller owns the per-card history and clears it on reset or card change. The notebook demo has used it since task 2.8, and `python -m boxbox.app` keeps the explicit stub.
 
 ## Initial formulation and chat template
 
