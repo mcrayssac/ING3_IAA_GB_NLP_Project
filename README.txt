@@ -423,3 +423,12 @@ The script checks the freeze, the run's completion record and its cases before
 reading any output, and writes a new runs/<date>_4-4-final-analysis folder.
 docs/final-analysis.md gives the tables and the reading, and
 docs/final-analysis-evidence.json every measure with its interval.
+Human review (4.3)
+------------------
+Copy review/review.csv from the 4.2 run to a folder outside the repository, then
+generate the offline rating page, check progress and import the completed sheet:
+  python -m scripts.human_review page --run-dir RUN --sheet review-rated.csv --output review-page.html
+  python -m scripts.human_review check --run-dir RUN --sheet review-rated.csv
+  python -m scripts.human_review import --run-dir RUN --sheet review-rated.csv --output ratings-initial.jsonl
+See docs/human-review.md for masking limits, second reviews and closure evidence.
+Do not edit the sheet in a spreadsheet application; use the page and its CSV export.
