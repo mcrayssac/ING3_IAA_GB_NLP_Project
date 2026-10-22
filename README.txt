@@ -168,14 +168,26 @@ adapter A or B instead, with its training prompt and decoding:
 
 The adapter comes from its local run folder or from the private Hub repo
 recorded in configs/adapter-a-selection.json or adapter-b-selection.json, and
-is refused if its hash differs. With -A or -B, the badge names the seed,
-epoch and hash of the adapter, and a line under the call gives the format
+is refused if its hash differs. With -A or -B, the badge names the seed and
+epoch of the adapter, and a line under the call gives the format
 check, the generation time, the tokens, why generation stopped and how much of
 the conversation was sent. A warning on the call says when the token or
-time limit may have cut the answer. On the Replay tab, boxbox.wav in the
-project folder plays on each new card whose policy 2.0 call is BOX. The
+time limit may have cut the answer. boxbox.wav in the project folder plays
+on each new BOX answer of the Card tab, and on the Replay tab on each new
+card whose policy 2.0 call is BOX. The
 notebook (see section 6 of this guide)
 launches the same screen with adapter A in its section 7, connected in task 2.8.
+
+-O answers with OpenJev Flash 9B, the zero-shot decision model of task 3.4,
+once it is installed as section 14 shows:
+
+    .venv/bin/python -m boxbox.app -O
+
+The app hashes the pinned files again, starts the pinned server on
+127.0.0.1:3000 from its own environment, offline, and stops it when the app
+closes. Each message sends the request of the study and answers at
+tau = 0.59. The badge reads "OpenJev Flash 9B · zero-shot". OpenJev writes no reason, so WHY gives its CALL probabilities and,
+on NO CALL, the card field it names. The weights are under CC BY-NC 4.0.
 
 The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
 4.0, see data/demo/NOTICE). They come from validation races and are rebuilt
@@ -186,8 +198,8 @@ with:
 The screen has two tabs. The Card tab is the
 screen above. The Replay tab (task 4bis.3) plays a race back on a circle
 against a race clock, at x1, x2 or x4, and "Jump to lap" moves the clock. For
-the chosen driver it shows the policy 2.0 call on the 2.0 card next to the
-policy 1.1 call on the 1.0 card, and the pit window follows the track status
+the chosen driver it shows the policy 2.0 call on the 2.0 card, and the pit
+window follows the track status
 at the clock. The tab has no chat. The race list holds the races of the open
 splits of data/splits-v2.json, so final and test_2026 stay out. Choosing a
 race rebuilds its cards in memory in a few seconds. The tab needs:

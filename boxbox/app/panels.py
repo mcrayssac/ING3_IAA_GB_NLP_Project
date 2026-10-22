@@ -420,23 +420,30 @@ CUT = (
 )
 
 
-def banner(answer: str | None, cut: bool = False) -> str:
+def banner(answer: str | None, cut: bool = False, sound: str | None = None) -> str:
     """The latest call in large text, or what stops it from being read.
 
     `cut` is the engine's `possibly_truncated`: the token or time limit ended the answer.
+    With a `sound` key (the Card tab), a BOX call carries it in `data-box`, and the page
+    plays the sound once for each new key (`replay.sound_head`).
     """
+    tag = ' data-sound="card"' if sound is not None else ""
     if answer is None:
         return (
-            '<div class="banner idle"><div class="call">No call yet</div>'
+            f'<div class="banner idle"{tag}><div class="call">No call yet</div>'
             '<div class="why">Ask a question or pick one below.</div></div>'
         )
     warning = CUT if cut else ""
     parsed = parse_answer(answer)
     if parsed is None:
-        return f'<div class="banner bad">Answer not in CALL/WHY format{warning}</div>'
+        return (
+            f'<div class="banner bad"{tag}>Answer not in CALL/WHY format{warning}</div>'
+        )
     call, why = parsed
+    if call == "BOX" and sound:
+        tag += f' data-box="{html.escape(sound)}"'
     return (
-        f'<div class="banner" style="--call:{CALL_COLOURS[call]}">'
+        f'<div class="banner"{tag} style="--call:{CALL_COLOURS[call]}">'
         f'<div class="call">{call}</div><div class="why">{html.escape(why)}</div>'
         f"{warning}</div>"
     )

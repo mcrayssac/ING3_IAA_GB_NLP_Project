@@ -77,9 +77,7 @@ CSS = """
 .chart .band { fill: none; stroke: var(--bx-ink); stroke-width: 14; stroke-dasharray: 2 3; }
 .chart.replay .band { stroke: var(--bx-window); stroke-dasharray: none; }
 .chart.replay .readout { text-align: center; color: var(--bx-muted); }
-.calls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .calls .label { font-size: 0.85em; color: var(--bx-muted); margin-bottom: 4px; }
-@media (max-width: 720px) { .calls { grid-template-columns: 1fr; } }
 .track { font-weight: 700; }
 .chart .rejoin { fill: var(--bx-ink); }
 .chart .car { stroke: var(--bx-ink); stroke-width: 2.5; }
@@ -151,7 +149,8 @@ def _call_view(
     cut: bool = False,
 ) -> tuple:
     answer = latest_answer(history)
-    return P.banner(answer, cut), gr.update(
+    # the exchange count names the answer: an error shows it again without a new sound
+    return P.banner(answer, cut, str(len(history) // 2)), gr.update(
         value=P.policy_panel(card, answer), visible=rule_on
     )
 

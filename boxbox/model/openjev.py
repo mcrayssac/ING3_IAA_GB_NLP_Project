@@ -12,6 +12,7 @@ import json
 import tomllib
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ from boxbox.rules import decide
 from .conversation import _prompt
 
 CONFIG = Path("configs/openjev.toml")
+# The tau that the rule of #35 chose on validation (docs/openjev.md); the demo uses it.
+TAU = 0.59
 # The helper asks for one letter, so the policy's two-line answer format is left out.
 FORMAT_START = "\n\nReturn exactly two lines"
 # The first clause of each NO CALL reason that decide() gives for a card field.
@@ -165,3 +168,50 @@ def ask(base: str, request: dict[str, Any], timeout: float) -> dict[str, Any]:
         ):
             raise OpenJevError("incomplete_answer", f"no usable answer to {name}")
     return reply
+
+
+def chat_answer(call: str, answers: dict[str, Any], tau: float = TAU) -> str:
+    """The demo's two lines from one reply and its call at tau.
+
+    OpenJev picks an option and writes no text, so WHY gives its CALL probabilities and,
+    on NO CALL, the field its diagnostic names. It never borrows the rule's reason.
+    """
+    probabilities = [
+        f"{label} {float(p):.2f}"
+        for label, p in answers["call"]["probabilities"].items()
+    ]
+    shares = ", ".join(probabilities[:-1]) + f" and {probabilities[-1]}"
+    field = (answers.get("missing_field") or {}).get("choice", "none")
+    named = (
+        f", and names {field} as the field that stops the policy"
+        if call == "NO CALL" and field != "none"
+        else ""
+    )
+    return (
+        f"CALL: {call}\nWHY: OpenJev Flash 9B picks a call without writing a reason: "
+        f"it gives {shares} against a threshold of {tau:.2f}{named}."
+    )
+
+
+def responder(
+    settings: dict[str, Any],
+    policy: str,
+    decided: Callable[[dict[str, Any], float], str],
+    tau: float = TAU,
+) -> Callable[[dict[str, Any], list[dict[str, str]], str], str]:
+    """The demo's engine on a running server: one request per message, as in the study.
+
+    The request keeps the diagnostic questions so that the shared state is the one scored
+    in task 3.4; `decided` is the threshold rule of the runner.
+    """
+    base = endpoint(settings)
+    timeout = settings["server"]["request_timeout_seconds"]
+
+    def respond(
+        card: dict[str, Any], history: list[dict[str, str]], message: str
+    ) -> str:
+        inputs = {"card": card, "history": history, "message": message}
+        answers = ask(base, build_request(settings, policy, inputs), timeout)["answers"]
+        return chat_answer(decided(answers["call"], tau), answers, tau)
+
+    return respond

@@ -228,9 +228,10 @@ def test_a_policy_2_box_marks_the_card_for_the_sound(monkeypatch, tmp_path) -> N
     monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
     box = {"answer": "CALL: BOX\nWHY: The window is open."}
     stay = {"answer": "CALL: STAY OUT\nWHY: Young tyres."}
-    assert 'data-box="r|1|12"' in R.calls(stay, box, 12, "1", "r|1|12")
-    assert "data-box" not in R.calls(box, stay, 12, "1", "r|1|12")  # 1.1 does not ring
-    assert "data-box" not in R.calls(None, None, None, "1", "r|1|None")
+    assert 'data-box="r|1|12"' in R.calls(box, 12, "1", "r|1|12")
+    assert "data-box" not in R.calls(stay, 12, "1", "r|1|12")
+    assert "data-box" not in R.calls(None, None, "1", "r|1|None")
+    assert "Policy 1.1" not in R.calls(stay, 12, "1", "r|1|12")
     assert R.sound_head(tmp_path / "missing.wav") == ""
     sound = tmp_path / "box.wav"
     sound.write_bytes(b"RIFF")

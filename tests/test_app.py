@@ -355,3 +355,28 @@ def test_a_cut_answer_warns_on_the_banner_until_the_next_answer() -> None:
     after = L.ask(whole_engine, 3, card(), out[0], "Why?", False, True)
     assert "may be cut" not in after[4] and after[-1] is False
     assert L.toggle(card(), out[0], True)[1] == gr.skip()  # the banner is left alone
+
+
+def test_a_box_answer_on_the_card_banner_carries_its_sound_key() -> None:
+    box, stay = (
+        "CALL: BOX\nWHY: The window is open.",
+        "CALL: STAY OUT\nWHY: Young tyres.",
+    )
+    assert 'data-box="2"' in P.banner(box, sound="2")
+    assert "data-box" not in P.banner(stay, sound="2")
+    assert 'data-sound="card"' in P.banner(None, sound="0")  # a reset clears the key
+    assert "data-sound" not in P.banner(box)  # the replay call has its own panel
+
+    def boxing(current, history, message):
+        return box
+
+    first = L.ask(boxing, 3, card(), [], "Box?", False)
+    second = L.ask(boxing, 3, card(), first[0], "Again?", False)
+    assert 'data-box="1"' in first[4] and 'data-box="2"' in second[4]
+
+    def broken(current, history, message):
+        raise RuntimeError("timeout")
+
+    with pytest.warns(UserWarning, match="timeout"):
+        kept = L.ask(broken, 3, card(), first[0], "Why?", False)
+    assert 'data-box="1"' in kept[4]  # the same answer again: no second sound

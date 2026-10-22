@@ -1,7 +1,7 @@
-"""The replay tab: a race played back on the circle, with the calls of both cards.
+"""The replay tab: a race played back on the circle, with the policy 2.0 call.
 
-The pit window follows the track status at the clock, and the policy 2.0 call sits
-next to the policy 1.1 call on the 1.0 card, which is what the trained model reads.
+The pit window follows the track status at the clock, and the call is policy 2.0 on
+the 2.0 card.
 """
 
 from __future__ import annotations
@@ -156,26 +156,24 @@ def circle(line: Timeline, driver: str, now: dict[str, Any], window: tuple) -> s
     return f'<div class="chart replay">{svg}<div class="readout">{text}</div></div>'
 
 
-def _banner(card: dict | None, lap: int | None, driver: str, version: str) -> str:
+def _banner(card: dict | None, lap: int | None, driver: str) -> str:
     if card is not None:
         return P.banner(format_answer(card))
     if lap is None:
         why = f"Car {driver} is no longer running."
     else:
-        why = f"No {version} card for car {driver} at lap {lap}: pit lane, final lap or no timing"
-        why += ", or wet running for a 1.0 card." if version == "1.0" else "."
+        why = f"No 2.0 card for car {driver} at lap {lap}: pit lane, final lap or no timing."
     return f'<div class="banner idle"><div class="call">No card</div><div class="why">{why}</div></div>'
 
 
 def calls(
-    card: dict | None,
     card_v2: dict | None,
     lap: int | None,
     driver: str,
     key: str = "",
 ) -> str:
-    """Policy 2.0 on the 2.0 card next to policy 1.1 on the 1.0 card, both read when
-    the car started its lap: a safety car out since then reaches them at the line.
+    """Policy 2.0 on the 2.0 card, read when the car started its lap: a safety car out
+    since then reaches it at the line.
 
     When policy 2.0 says BOX, `data-box` carries the card's `key`, and the page plays
     the sound once for each new key (`sound_head`).
@@ -185,31 +183,30 @@ def calls(
     box = parsed is not None and parsed[0] == "BOX"
     marker = f' data-box="{html.escape(key)}"' if box and key else ""
     return (
-        f'<div class="calls"{marker}>'
+        f'<div class="calls" data-sound="replay"{marker}>'
         f'<div><div class="label">Policy 2.0, card 2.0{when}</div>'
-        f"{_banner(card_v2, lap, driver, '2.0')}</div>"
-        f'<div><div class="label">Policy 1.1, card 1.0 (what the model reads){when}</div>'
-        f"{_banner(card, lap, driver, '1.0')}</div></div>"
+        f"{_banner(card_v2, lap, driver)}</div></div>"
     )
 
 
 def view(state: dict[str, Any], t: float) -> tuple[str, str, str]:
-    """The clock, the circle and the two calls at race time t."""
+    """The clock, the circle and the call at race time t."""
     line, driver = timeline(state["race"]), state["driver"]
     now = frame(line, driver, t)
-    card, card_v2, lap = cards_at(line, driver, t)
+    _, card_v2, lap = cards_at(line, driver, t)
     return (
         clock_text(line, now["lap"], t),
         circle(line, driver, now, pit_window(line, driver, t)),
-        calls(card, card_v2, lap, driver, f"{state['race']}|{driver}|{lap}"),
+        calls(card_v2, lap, driver, f"{state['race']}|{driver}|{lap}"),
     )
 
 
 def sound_head(sound: Path = SOUND) -> str:
-    """A page script that plays `sound` once for each new BOX card of the replay.
+    """A page script that plays `sound` once for each new BOX key of a `data-sound` panel.
 
-    The sound is inlined, so no file route is needed; without the file, nothing plays.
-    Browsers allow the sound after the first click on the page, such as picking a race.
+    The panels are the replay call (one key per 2.0 card) and the Card tab's banner (one
+    key per answer). The sound is inlined, so no file route is needed; without the file,
+    nothing plays. Browsers allow the sound after the first click on the page.
     """
     if not sound.is_file():
         return ""
@@ -217,16 +214,16 @@ def sound_head(sound: Path = SOUND) -> str:
     return f"""<script>
 (() => {{
   const sound = new Audio("data:audio/wav;base64,{data}");
-  let last = null;
+  const last = {{}};  // per panel; a panel out of the page keeps its last key
   new MutationObserver(() => {{
-    const panel = document.querySelector(".calls");
-    if (!panel) return;  // another tab: the last card is kept
-    const key = panel.dataset.box || null;
-    if (key && key !== last) {{
-      sound.currentTime = 0;
-      sound.play().catch(() => {{}});
+    for (const panel of document.querySelectorAll("[data-sound]")) {{
+      const key = panel.dataset.box || null;
+      if (key && key !== last[panel.dataset.sound]) {{
+        sound.currentTime = 0;
+        sound.play().catch(() => {{}});
+      }}
+      last[panel.dataset.sound] = key;
     }}
-    last = key;
   }}).observe(document.documentElement, {{ childList: true, subtree: true }});
 }})();
 </script>"""

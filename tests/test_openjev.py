@@ -345,3 +345,48 @@ def test_loro_chooses_each_tau_without_its_own_race(monkeypatch):
     assert all(races == {"r2"} for races in seen[:101])
     assert all(races == {"r1"} for races in seen[101:202])
     assert seen[202] == {"r1", "r2"}
+
+
+def test_the_demo_answer_gives_the_call_at_tau_and_the_probabilities():
+    from boxbox.app.panels import parse_answer
+
+    box = {"BOX": 0.71, "STAY OUT": 0.2, "NO CALL": 0.09}
+    text = openjev.chat_answer("BOX", answered("BOX", box)["answers"])
+    assert parse_answer(text) == (
+        "BOX",
+        (
+            "OpenJev Flash 9B picks a call without writing a reason: it gives BOX"
+            " 0.71, STAY OUT 0.20 and NO CALL 0.09 against a threshold of 0.59."
+        ),
+    )
+    answers = answered("NO CALL", {"BOX": 0.2, "STAY OUT": 0.3, "NO CALL": 0.5})
+    answers = answers["answers"] | {"missing_field": {"choice": "gap_behind"}}
+    text = openjev.chat_answer("NO CALL", answers)
+    assert parse_answer(text)[0] == "NO CALL"
+    assert text.endswith(", and names gap_behind as the field that stops the policy.")
+    # a field named beside a BOX or STAY OUT call is not reported
+    assert "names" not in openjev.chat_answer("BOX", answers)
+
+
+def test_the_demo_responder_sends_the_study_request_and_applies_tau(monkeypatch):
+    sent = []
+
+    def fake_ask(base, request, timeout):
+        sent.append((base, request, timeout))
+        call = {"choice": "BOX", "probabilities": {"BOX": 0.5, "STAY OUT": 0.3}}
+        return {"answers": {"call": call, "missing_field": {"choice": "none"}}}
+
+    monkeypatch.setattr(openjev, "ask", fake_ask)
+    settings = load_settings()
+    history = [
+        {"role": "user", "content": "Call?"},
+        {"role": "assistant", "content": "CALL: STAY OUT"},
+    ]
+    respond = openjev.responder(settings, "Policy.", decided)
+    text = respond(CARD, history, "Why?")
+    base, request, timeout = sent[0]
+    inputs = {"card": CARD, "history": history, "message": "Why?"}
+    assert request == build_request(settings, "Policy.", inputs)
+    assert base == "http://127.0.0.1:3000/v1"
+    assert timeout == settings["server"]["request_timeout_seconds"]
+    assert text.startswith("CALL: NO CALL\n")  # BOX at 0.50 stays below tau 0.59
