@@ -240,12 +240,12 @@ def _car(degrees: float, label: str, filled: bool, inside: bool = False) -> str:
     )
 
 
-def _band(start: float, end: float) -> str:
+def _band(start: float, end: float, label_radius: float = RADIUS - 26) -> str:
     """The rejoin margin as an arc, drawn counter-clockwise from the rejoin point."""
     end = max(end, start - 359)
     (x1, y1), (x2, y2) = _xy(start, RADIUS), _xy(end, RADIUS)
     large = 1 if start - end > 180 else 0
-    rx, ry = _xy(start, RADIUS - 26)
+    rx, ry = _xy(start, label_radius)
     return (
         f'<path d="M{x1:.1f},{y1:.1f} A{RADIUS},{RADIUS} 0 {large} 0 {x2:.1f},{y2:.1f}" class="band"/>'
         f'<rect x="{x1 - 6:.1f}" y="{y1 - 6:.1f}" width="12" height="12" class="rejoin" '

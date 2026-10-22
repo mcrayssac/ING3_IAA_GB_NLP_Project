@@ -37,12 +37,14 @@ CSS = """
   --bx-box: #b45309; --bx-stay: #1d4ed8; --bx-nocall: #475569;
   --bx-zone1: #e2e8f0; --bx-zone2: #cbd5e1; --bx-zone3: #94a3b8; --bx-zone-ink: #0f172a;
   --bx-unknown: rgba(100, 116, 139, 0.16); --bx-window: #b08600;
+  --bx-pit: #6d28d9; --bx-on-call: #ffffff;
 }
 .dark {
   --bx-ink: #f1f5f9; --bx-muted: #94a3b8; --bx-ring: #64748b; --bx-bad: #f87171;
   --bx-box: #f28c28; --bx-stay: #60a5fa; --bx-nocall: #9aa0a6;
   --bx-zone1: #334155; --bx-zone2: #475569; --bx-zone3: #64748b; --bx-zone-ink: #ffffff;
   --bx-unknown: rgba(148, 163, 184, 0.16); --bx-window: #facc15;
+  --bx-pit: #a78bfa; --bx-on-call: #0f172a;
 }
 .brand { font-size: 1.4em; font-weight: 800; }
 .brand span { font-weight: 400; color: var(--bx-muted); }
@@ -89,6 +91,62 @@ CSS = """
 .chart .tick { fill: var(--bx-muted); font-size: 12px; }
 .chart .age { stroke: var(--bx-ink); stroke-width: 3; }
 .chart .age-label { font-weight: 700; }
+.bx-bar { border: 1px solid var(--bx-ring) !important; border-radius: 12px !important;
+          padding: 6px 10px !important; background: var(--block-background-fill) !important; }
+/* Gradio repeats the class on the inner group: one border, one background */
+.bx-bar .bx-bar { border: none !important; padding: 0 !important; }
+.bx-bar .styler { background: transparent !important; }
+.bx-bar .block, .bx-bar .form { border: none !important; box-shadow: none !important;
+                                background: transparent !important; }
+.bx-bar .row { align-items: center; gap: 12px; }
+.bx-speed .wrap { flex-wrap: nowrap; }
+.clock { text-align: right; line-height: 1.3; padding: 4px 6px; }
+.clock .lap { font-size: 1.5em; font-weight: 600; white-space: nowrap; }
+.clock .lap b { font-weight: 800; }
+.clock .mono { color: var(--bx-muted); font-size: 0.85em; white-space: nowrap; }
+.icon { display: inline-block; height: 1.7em; width: auto; vertical-align: middle; margin-right: 6px;
+        flex: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden;
+           clip: rect(0 0 0 0); white-space: nowrap; }
+.strip { display: flex; flex-wrap: wrap; gap: 12px; }
+.tile { flex: 1 1 200px; border: 1px solid var(--bx-ring); border-radius: 8px;
+        padding: 8px 12px; }
+.tile .head { font-size: 0.8em; color: var(--bx-muted); text-transform: uppercase;
+              letter-spacing: 0.04em; }
+.tile .main { display: flex; align-items: center; font-weight: 700; font-size: 1.15em;
+              margin: 2px 0; }
+.tile .sub { color: var(--bx-muted); font-size: 0.85em; }
+.tile.forecast { flex: 2 1 320px; }
+.forecast .step { display: inline-flex; align-items: center; gap: 10px; margin: 2px 16px 2px 0; }
+.driver { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 8px; }
+.driver .num { display: inline-block; min-width: 2.2em; text-align: center; font-weight: 800;
+               border-radius: 6px; padding: 2px 6px; border: 1px solid var(--bx-ring); }
+.driver .team { color: var(--bx-muted); }
+.driver .tyre { display: inline-flex; align-items: center; }
+.calls .banner.box { --call: var(--bx-box); background: var(--bx-box); color: var(--bx-on-call);
+                     animation: bx-blink 1s step-end 3; }
+.calls .banner.box.odd { animation-name: bx-blink-b; }
+.calls .banner.box .call, .calls .banner.box .why { color: inherit; }
+.calls .banner.stay { --call: var(--bx-stay); }
+.calls .banner.nocall { --call: var(--bx-nocall); }
+.calls .banner.pit { --call: var(--bx-pit); }
+.calls .banner.out { border-left-style: dashed; }
+@keyframes bx-blink { 50% { background: var(--block-background-fill); color: var(--bx-box); } }
+@keyframes bx-blink-b { 50% { background: var(--block-background-fill); color: var(--bx-box); } }
+@media (prefers-reduced-motion: reduce) { .calls .banner.box { animation: none; } }
+.chart text.num { font-size: 10px; font-weight: 800; }
+.chart .car.pit { stroke-dasharray: 3 2; }
+.chart .tick-mark { stroke: var(--bx-ring); stroke-width: 1.5; }
+.standings { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+.standings th { text-align: left; color: var(--bx-muted); font-weight: 600; }
+.standings td, .standings th { padding: 3px 6px; border-bottom: 1px solid var(--bx-zone1); }
+.standings td.car { border-left: 4px solid var(--team); white-space: nowrap; }
+.standings tr.me td { font-weight: 800; background: var(--bx-unknown); }
+.standings tr.out td { color: var(--bx-muted); }
+.standings .pit { color: var(--bx-pit); border: 1px solid var(--bx-pit); border-radius: 4px;
+                  padding: 0 4px; font-size: 0.8em; font-weight: 700; }
+.standings td:last-child { white-space: nowrap; }
+.standings .icon { height: 1.6em; margin-right: 4px; }
 """
 WAITING = (
     '<div class="banner idle"><div class="call">Waiting for the engine</div></div>'
@@ -307,7 +365,7 @@ def build_app(
             with gr.Accordion("Role and limits", open=False):
                 gr.Markdown(role_text(respond is stub_respond))
         with gr.Tab("Replay"):
-            replay_tab()
+            opening = replay_tab()
         everything = [card, history, chat, message, error, situation, circle, tyres]
         everything += [inputs, raw, call, policy, details, was_cut]
         answered = [history, chat, message, error, call, policy, details, was_cut]
@@ -357,6 +415,8 @@ def build_app(
             toggle, [card, history, rule_on], [inputs, call, policy], **hidden
         )
         app.load(show_card, [card, rule_on], everything, **hidden)
+        # the Replay tab opens on its default race
+        app.load(opening[0], None, opening[1], show_progress="hidden", **hidden)
     return app
 
 

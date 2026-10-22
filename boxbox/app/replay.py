@@ -1,7 +1,8 @@
 """The replay tab: a race played back on the circle, with the policy 2.0 call.
 
 The pit window follows the track status at the clock, and the call is policy 2.0 on
-the 2.0 card.
+the 2.0 card. Around them: the flag, the weather and its archived forecast, the
+driver's tyre, the pit lane and the running order, each read at the clock.
 """
 
 from __future__ import annotations
@@ -21,21 +22,64 @@ import pandas as pd
 from boxbox.data import (
     Timeline,
     cards_at,
+    flags_at,
     frame,
     load_splits,
     load_timeline,
+    pit_state,
     pit_window,
-    status_now,
+    standings,
+    tyre_at,
 )
+from boxbox.data.cards_v2 import weather_at
+from boxbox.data.openmeteo import forecast_at
+from boxbox.data.replay import race_lap
 from boxbox.data.splits import CLOSED_SPLITS, SPLITS_V2_FILE
 from boxbox.rules import format_answer
+from boxbox.rules.decision import laps
 
+from . import icons as I
 from . import panels as P
 
 TICK = 0.5  # seconds between timer ticks
 SOUND = Path("boxbox.wav")  # played on each new 2.0 card whose policy 2.0 call is BOX
 SPEEDS = ("x1", "x2", "x4")
 HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
+ZOOM = 2.2  # one turn covers twice the farthest reach, plus 10% room
+DEFAULT = ("2024-22", "63")  # Las Vegas 2024 on Russell: the tab opens on it
+FLAG_WORDS = {
+    "GREEN": "Green flag",
+    "YELLOW": "Yellow flag",
+    "DOUBLE YELLOW": "Double yellow",
+    "RED": "Red flag",
+    "SC": "Safety car",
+    "VSC": "Virtual safety car",
+    "CHEQUERED": "Chequered flag",
+}
+SKY_WORDS = {
+    "sun": "Clear",
+    "moon": "Clear night",
+    "partly": "Partly cloudy",
+    "cloud": "Cloudy",
+    "fog": "Fog",
+    "drizzle": "Drizzle",
+    "rain": "Rain",
+    "storm": "Storm",
+    "unknown": "Sky unknown",
+}
+STATE_CLASSES = {
+    "BOX": "box",
+    "STAY OUT": "stay",
+    "NO CALL": "nocall",
+    "IN PIT": "pit",
+    "OUT LAP": "pit out",
+    "RETIRED": "idle",
+    "NO CARD": "idle",
+}
+ATTRIBUTION = (
+    '<a href="https://open-meteo.com/" target="_blank" rel="noopener">'
+    "Weather data by Open-Meteo.com</a>"
+)
 
 
 def race_choices() -> list[tuple[str, str]]:
@@ -63,17 +107,103 @@ def clock_text(line: Timeline, lap: int, t: float) -> str:
     local = line.start + pd.Timedelta(seconds=t) + line.utc_offset
     # a lap-1 red flag dates the start from the restart, so the clock can be negative
     elapsed = ("-" if t < 0 else "") + str(timedelta(seconds=int(abs(t))))
-    status = status_now(line, t)
     return (
-        f'<div class="situation"><div class="race">{html.escape(line.event)}</div>'
-        f'<div class="mono">{local:%H:%M:%S} local &nbsp; {elapsed} elapsed &nbsp; '
-        f'Lap {lap}/{line.total_laps} &nbsp; <span class="track">Track {status}'
-        f"</span></div></div>"
+        f'<div class="clock"><div class="lap">Lap <b>{lap}</b> / {line.total_laps}</div>'
+        f'<div class="mono">{elapsed} elapsed</div>'
+        f'<div class="mono">{local:%H:%M:%S} local</div></div>'
+    )
+
+
+def _flag_tile(line: Timeline, driver: str, t: float) -> str:
+    kind, sectors, blue = flags_at(line, driver, t)
+    yellow = sorted(s for s in sectors if s is not None)
+    where = ""
+    if yellow:
+        plural = "s" if len(yellow) > 1 else ""
+        where = f"Yellow in sector{plural} {', '.join(map(str, yellow))}"
+    if blue:
+        where += f"{'. ' if where else ''}Blue flag for {_name(line, driver)}"
+    return (
+        f'<div class="tile"><div class="head">Track</div>'
+        f'<div class="main">{I.flag(kind)}{FLAG_WORDS[kind]}</div>'
+        f'<div class="sub">{where}</div></div>'
+    )
+
+
+def _weather_tile(line: Timeline, t: float) -> str:
+    at = line.start + pd.Timedelta(seconds=t)
+    weather = getattr(line.context, "weather", None)
+    reading = weather_at(weather, at) if weather is not None else None
+    now, _ = forecast_at(line.forecast, at)
+    if reading and reading["rainfall"]:
+        kind = "rain"
+    else:
+        kind = I.sky(now["weather_code"], now["is_day"]) if now else "unknown"
+    if reading is None:
+        return f'<div class="tile"><div class="head">Weather</div><div class="main">{I.weather(kind)}{SKY_WORDS[kind]}</div></div>'
+    values = [
+        ("Air", reading["air_temperature"], "°C"),
+        ("Track", reading["track_temperature"], "°C"),
+        ("Humidity", reading["humidity"], "%"),
+        ("Wind", reading["wind_speed"], " m/s"),
+    ]
+    sub = " · ".join(
+        f"{name} {v:.0f}{unit}" for name, v, unit in values if v is not None
+    )
+    return (
+        f'<div class="tile"><div class="head">Weather now</div>'
+        f'<div class="main">{I.weather(kind)}{SKY_WORDS[kind]}</div>'
+        f'<div class="sub mono">{sub}</div></div>'
+    )
+
+
+def _forecast_tile(line: Timeline, t: float) -> str:
+    at = line.start + pd.Timedelta(seconds=t)
+    _, ahead = forecast_at(line.forecast, at)
+    steps = []
+    for step in ahead:
+        kind = I.sky(step["weather_code"], step["is_day"])
+        minutes = round((step["at"] - at).total_seconds() / 60)
+        local = step["at"] + line.utc_offset
+        steps.append(
+            f'<div class="step">{I.weather(kind)}<span class="sr-only">{SKY_WORDS[kind]}</span>'
+            f'<span class="mono">{local:%H:%M}, in {minutes} min</span>'
+            f'<span class="mono">{step["temperature_2m"]:.0f}°C, '
+            f"{step['precipitation']:.1f} mm</span></div>"
+        )
+    if line.forecast is None:
+        body = '<div class="sub">Forecast unavailable</div>'
+    else:
+        body = "".join(steps) or '<div class="sub">No forecast past the race</div>'
+    return (
+        f'<div class="tile forecast"><div class="head">Archived forecast</div>{body}'
+        f'<div class="sub">{ATTRIBUTION}</div></div>'
+    )
+
+
+def status_strip(line: Timeline, driver: str, t: float) -> str:
+    """The flag, the weather now and the archived forecast at clock t."""
+    return (
+        f'<div class="strip">{_flag_tile(line, driver, t)}{_weather_tile(line, t)}'
+        f"{_forecast_tile(line, t)}</div>"
     )
 
 
 def _name(line: Timeline, driver: str) -> str:
     return line.drivers.get(driver, {}).get("acronym") or f"car {driver}"
+
+
+def _ink(colour: str) -> str:
+    """Black or white, whichever reads better on a #rrggbb colour."""
+    try:
+        channels = [int(colour[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+    except ValueError:  # the ink fallback for a car without a team colour
+        return "var(--block-background-fill)"
+    linear = [
+        c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels
+    ]
+    luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    return "#000" if luminance > 0.179 else "#fff"  # equal contrast at 0.179
 
 
 def _team_car(
@@ -82,19 +212,29 @@ def _team_car(
     degrees: float,
     inside: bool = False,
     named: bool = True,
+    in_pit: bool = False,
 ) -> str:
-    """One car on the ring in its team colour, labelled with its acronym."""
+    """One car on the ring in its team colour with its number, labelled with its
+    acronym; a car in the pit lane has a dashed outline and says PIT."""
     x, y = P._xy(degrees, P.RADIUS)
-    lx, ly = P._xy(degrees, P.RADIUS - 26 if inside else P.RADIUS + 26)
+    lx, ly = P._xy(degrees, P.RADIUS - 28 if inside else P.RADIUS + 28)
     side = math.sin(math.radians(degrees))
     anchor = "middle" if inside or degrees == 0 else "start" if side > 0 else "end"
     colour = line.drivers.get(driver, {}).get("colour") or "var(--bx-ink)"
-    dot = f'<circle cx="{x:.1f}" cy="{y:.1f}" r="8" fill="{html.escape(colour)}" class="car"/>'
+    pit = " pit" if in_pit else ""
+    # the number's colour is a style: .chart text sets fill over an attribute
+    dot = (
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="11" fill="{html.escape(colour)}" '
+        f'class="car{pit}"/><text x="{x:.1f}" y="{y:.1f}" class="num" '
+        f'text-anchor="middle" dominant-baseline="central" '
+        f'style="fill:{_ink(colour)}">{html.escape(driver)}</text>'
+    )
     if not named:
         return dot
+    label = _name(line, driver) + (" PIT" if in_pit else "")
     return (
         f'{dot}<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="{anchor}" '
-        f'dominant-baseline="middle">{html.escape(_name(line, driver))}</text>'
+        f'dominant-baseline="middle">{html.escape(label)}</text>'
     )
 
 
@@ -126,44 +266,100 @@ def _neighbours(line: Timeline, angles: dict[str, float], scale: float | None) -
     return ", ".join(parts) + ". " if parts else ""
 
 
-def circle(line: Timeline, driver: str, now: dict[str, Any], window: tuple) -> str:
+def turn(scale: float | None, seconds: list[float], loss: float | None) -> float | None:
+    """Seconds one turn of the ring stands for: the real lap, zoomed in while the field
+    is close, so the farthest car and the rejoin point still fit; rounded up to 5 s so
+    the caption does not flicker."""
+    if not scale or not seconds:
+        return scale
+    reach = max(max(abs(s) for s in seconds), (loss or 0.0) + P.MARGIN)
+    return min(scale, math.ceil(ZOOM * reach / 5) * 5)
+
+
+def _ticks(one: float) -> tuple[str, int]:
+    """A tick every 5 s (10 s past a 60 s turn) each side of the car on top."""
+    step = 5 if one <= 60 else 10
+    marks = []
+    for k in range(1, int(one / 2 // step) + 1):
+        for degrees in (k * step / one * 360, -k * step / one * 360):
+            (x1, y1), (x2, y2) = (
+                P._xy(degrees, P.RADIUS - 6),
+                P._xy(degrees, P.RADIUS + 6),
+            )
+            marks.append(
+                f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
+                'class="tick-mark"/>'
+            )
+    return "".join(marks), step
+
+
+def circle(
+    line: Timeline,
+    driver: str,
+    now: dict[str, Any],
+    window: tuple,
+    in_pit: frozenset[str] = frozenset(),
+) -> str:
     """Every car by time gap from `driver`, on top, and the pit window in yellow for
-    the track status at the clock."""
-    scale, angles = now["scale"], now["angles"]
-    loss, condition = window
+    the track status at the clock, on a ring that zooms in when the field is close."""
+    scale, loss, condition = now["scale"], *window
+    seconds = {d: a / 360 * scale for d, a in now["angles"].items()} if scale else {}
+    one = turn(scale, list(seconds.values()), loss)
+    angles = {d: s / one * 360 for d, s in seconds.items()}
     shapes = [
         f'<circle cx="{P.CENTRE[0]}" cy="{P.CENTRE[1]}" r="{P.RADIUS}" class="ring"/>'
     ]
-    if loss is not None and scale:
-        shapes.append(P._band(-loss / scale * 360, -(loss + P.MARGIN) / scale * 360))
+    ticks, step = _ticks(one) if one else ("", 0)
+    shapes.append(ticks)
+    if loss is not None and one:
+        # the label sits further in than on the Card tab: the dots here are larger
+        band = (-loss / one * 360, -(loss + P.MARGIN) / one * 360, P.RADIUS - 40)
+        shapes.append(P._band(*band))
     named = _named(angles)
     shapes += [
-        _team_car(line, other, angle, named=other in named)
+        _team_car(line, other, angle, named=other in named, in_pit=other in in_pit)
         for other, angle in angles.items()
     ]
-    shapes.append(_team_car(line, driver, 0, inside=True))
+    shapes.append(_team_car(line, driver, 0, inside=True, in_pit=driver in in_pit))
     text = (
         f"{condition} pit window {loss:.1f} to {loss + P.MARGIN:.1f} s back"
         if loss is not None
         else "no pit window"
     )
-    text = _neighbours(line, angles, scale) + text
+    text = _neighbours(line, angles, one) + text
+    scale_text = f"1 turn = {one:.0f} s, ticks every {step} s" if one else ""
+    pits = ", ".join(_name(line, d) for d in sorted(in_pit))
     label = (
-        f"{_name(line, driver)} on top, {len(angles)} other cars by time gap. {text}."
+        f"{_name(line, driver)} on top, {len(angles)} other cars by time gap, "
+        f"{scale_text}. {text}." + (f" In the pit lane: {pits}." if pits else "")
     )
     box = f"0 0 {P.CIRCLE_WIDTH} {P.CIRCLE_HEIGHT}"
     svg = P._svg(box, label, "".join(shapes))
-    return f'<div class="chart replay">{svg}<div class="readout">{text}</div></div>'
+    return (
+        f'<div class="chart replay">{svg}<div class="readout">{text}<br>'
+        f"{scale_text}</div></div>"
+    )
 
 
-def _banner(card: dict | None, lap: int | None, driver: str) -> str:
-    if card is not None:
-        return P.banner(format_answer(card))
+def call_state(card_v2: dict | None, lap: int | None, pit: str | None) -> str:
+    """What the call panel shows: the pit lane and out-lap first, then a stopped car or
+    a lap with no 2.0 card, else policy 2.0's call."""
+    if pit:
+        return pit
     if lap is None:
-        why = f"Car {driver} is no longer running."
-    else:
-        why = f"No 2.0 card for car {driver} at lap {lap}: pit lane, final lap or no timing."
-    return f'<div class="banner idle"><div class="call">No card</div><div class="why">{why}</div></div>'
+        return "RETIRED"
+    parsed = P.parse_answer(format_answer(card_v2)) if card_v2 is not None else None
+    return parsed[0] if parsed else "NO CARD"
+
+
+def _why(state: str, card_v2: dict | None, lap: int | None, name: str) -> str:
+    if state in P.CALLS:
+        return P.parse_answer(format_answer(card_v2))[1]
+    return {
+        "IN PIT": f"{name} is in the pit lane.",
+        "OUT LAP": f"{name} is on the out-lap; the next card comes at the line.",
+        "RETIRED": f"{name} is no longer running.",
+    }.get(state, f"No 2.0 card for {name} at lap {lap}: final lap or no timing.")
 
 
 def calls(
@@ -171,33 +367,118 @@ def calls(
     lap: int | None,
     driver: str,
     key: str = "",
+    pit: str | None = None,
+    name: str = "",
 ) -> str:
     """Policy 2.0 on the 2.0 card, read when the car started its lap: a safety car out
-    since then reaches it at the line.
+    since then reaches it at the line. In the pit lane and on the out-lap the panel
+    says so instead of a call.
 
     When policy 2.0 says BOX, `data-box` carries the card's `key`, and the page plays
-    the sound once for each new key (`sound_head`).
+    the sound once for each new key (`sound_head`); the banner blinks three times, and
+    a new BOX card restarts it (the odd and even laps swap the animation).
     """
-    when = f", lap {lap} card, as of lap {lap - 1}" if lap else ""
-    parsed = P.parse_answer(format_answer(card_v2)) if card_v2 is not None else None
-    box = parsed is not None and parsed[0] == "BOX"
+    state = call_state(card_v2, lap, pit)
+    box = state == "BOX"
     marker = f' data-box="{html.escape(key)}"' if box and key else ""
+    when = f", lap {lap} card, as of lap {lap - 1}" if state in P.CALLS else ""
+    cls = STATE_CLASSES[state] + (
+        f" {'odd' if (lap or 0) % 2 else 'even'}" if box else ""
+    )
+    why = html.escape(_why(state, card_v2, lap, name or f"Car {driver}"))
     return (
         f'<div class="calls" data-sound="replay"{marker}>'
-        f'<div><div class="label">Policy 2.0, card 2.0{when}</div>'
-        f"{_banner(card_v2, lap, driver)}</div></div>"
+        f'<div class="label">Policy 2.0, card 2.0{when}</div>'
+        f'<div class="banner {cls}" role="status" aria-live="polite">'
+        f'<div class="call">{state}</div><div class="why">{why}</div></div></div>'
     )
 
 
-def view(state: dict[str, Any], t: float) -> tuple[str, str, str]:
-    """The clock, the circle and the call at race time t."""
+def driver_tile(line: Timeline, driver: str, t: float) -> str:
+    """The chosen car: number in its team colour, acronym, team and current tyre."""
+    info = line.drivers.get(driver, {})
+    colour = info.get("colour") or "var(--bx-ink)"
+    compound, age = tyre_at(line, driver, t)
+    tyre = (
+        f"{I.tyre(compound)}{compound.title()}, {laps(age)}"
+        if compound
+        else f"{I.tyre(None)}Tyre unknown"
+    )
+    return (
+        f'<div class="driver"><span class="num mono" style="background:'
+        f'{html.escape(colour)};color:{_ink(colour)}">{html.escape(driver)}</span>'
+        f"<span><b>{html.escape(_name(line, driver))}</b> "
+        f'<span class="team">{html.escape(info.get("team", ""))}</span></span>'
+        f'<span class="tyre">{tyre}</span></div>'
+    )
+
+
+def _gap(gap: tuple[float | None, int] | None) -> str:
+    if gap is None:
+        return "?"
+    seconds, down = gap
+    if seconds is None:
+        return f"+{down} LAP{'S' if down > 1 else ''}"
+    return f"+{seconds:.1f}"
+
+
+def standings_table(
+    line: Timeline, driver: str, t: float, in_pit: frozenset[str]
+) -> str:
+    """The running order at the clock, gaps taken at the line, the chosen car marked."""
+    rows = []
+    for pos, row in enumerate(standings(line, t), start=1):
+        d = row["driver"]
+        info = line.drivers.get(d, {})
+        gap = "Leader" if pos == 1 else _gap(row["gap"])
+        interval = "" if pos == 1 else _gap(row["interval"])
+        if row["out"]:
+            gap, interval = "OUT", ""
+        compound, age = tyre_at(line, d, t)
+        tyre = (
+            f'{I.tyre(compound)}<span class="mono">{age}</span>'
+            f'<span class="sr-only"> {compound.lower()}</span>'
+            if compound and age is not None
+            else "?"
+        )
+        badge = ' <span class="pit">PIT</span>' if d in in_pit else ""
+        classes = " ".join(
+            c for c in ("me" if d == driver else "", "out" if row["out"] else "") if c
+        )
+        attrs = f' class="{classes}"' if classes else ""
+        attrs += ' aria-current="true"' if d == driver else ""
+        rows.append(
+            f'<tr{attrs}><td class="mono">{pos}</td>'
+            f'<td class="car" style="--team:{html.escape(info.get("colour") or "var(--bx-ring)")}">'
+            f'<span class="mono">{html.escape(d)}</span> {html.escape(_name(line, d))}{badge}</td>'
+            f'<td class="mono">{gap}</td><td class="mono">{interval}</td><td>{tyre}</td></tr>'
+        )
+    return (
+        '<table class="standings"><caption class="sr-only">Running order at the clock, '
+        "gaps taken at the line</caption><thead><tr>"
+        + "".join(
+            f'<th scope="col">{h}</th>' for h in ("Pos", "Car", "Gap", "Int", "Tyre")
+        )
+        + f"</tr></thead><tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def view(state: dict[str, Any], t: float) -> tuple[str, str, str, str, str]:
+    """The clock, the status strip, the driver and call, the circle and the running
+    order at race time t."""
     line, driver = timeline(state["race"]), state["driver"]
     now = frame(line, driver, t)
     _, card_v2, lap = cards_at(line, driver, t)
+    in_pit = frozenset(d for d in line.cars if pit_state(line, d, t) == "IN PIT")
+    key = f"{state['race']}|{driver}|{lap}"
+    pit = pit_state(line, driver, t, lap)
     return (
         clock_text(line, now["lap"], t),
-        circle(line, driver, now, pit_window(line, driver, t)),
-        calls(card_v2, lap, driver, f"{state['race']}|{driver}|{lap}"),
+        status_strip(line, driver, t),
+        driver_tile(line, driver, t)
+        + calls(card_v2, lap, driver, key, pit, _name(line, driver)),
+        circle(line, driver, now, pit_window(line, driver, t), in_pit),
+        standings_table(line, driver, t, in_pit),
     )
 
 
@@ -214,7 +495,8 @@ def sound_head(sound: Path = SOUND) -> str:
     return f"""<script>
 (() => {{
   const sound = new Audio("data:audio/wav;base64,{data}");
-  const last = {{}};  // per panel; a panel out of the page keeps its last key
+  const last = {{}};  // per panel; a panel out of the page keeps its last key. Gradio edits the page in
+  // place, so a new BOX may only change the data-box attribute
   new MutationObserver(() => {{
     for (const panel of document.querySelectorAll("[data-sound]")) {{
       const key = panel.dataset.box || null;
@@ -224,31 +506,44 @@ def sound_head(sound: Path = SOUND) -> str:
       }}
       last[panel.dataset.sound] = key;
     }}
-  }}).observe(document.documentElement, {{ childList: true, subtree: true }});
+  }}).observe(document.documentElement, {{
+    childList: true, subtree: true, attributes: true, attributeFilter: ["data-box"]
+  }});
 }})();
 </script>"""
 
 
-def pick_race(race_id: str) -> tuple:
-    """A new race, paused at the end of lap 1 on its leader, and the controls on."""
+def pick_race(race_id: str, driver: str | None = None) -> tuple:
+    """A new race, paused at the end of lap 1 on `driver` if it raced, else on its
+    leader, and the controls on."""
     if not race_id:  # the dropdown was cleared
-        return (gr.skip(),) * 10
+        return (gr.skip(),) * 11
     line = timeline(race_id)
     order = running_order(line)
+    first = driver if driver in order else order[0]
+    lap = race_lap(line, line.first)
     state = {
         "race": race_id,
-        "driver": order[0],
+        "driver": first,
         "t": line.first,
         "end": line.end,
         "wall": None,
         "speed": "x1",
+        "lap": lap,
     }
     names = [(f"{_name(line, d)} ({d})", d) for d in order]
-    drivers = gr.update(choices=names, value=order[0], interactive=True)
-    on = gr.update(interactive=True)
-    laps = gr.update(maximum=line.total_laps - 1, value=2, interactive=True)
-    controls = (on, on, gr.update(interactive=True, value="x1"), laps)
+    drivers = gr.update(choices=names, value=first, interactive=True)
+    button = gr.update(interactive=True, value="Play")
+    laps = gr.update(maximum=line.total_laps, value=lap, interactive=True)
+    controls = (button, gr.update(interactive=True, value="x1"), laps)
     return state, drivers, gr.update(active=False), *controls, *view(state, line.first)
+
+
+def open_default() -> tuple:
+    """The tab opens on the default race and driver, when that race is open."""
+    race_id, driver = DEFAULT
+    opened = any(race_id == r for _, r in race_choices())
+    return pick_race(race_id if opened else "", driver)
 
 
 def running_order(line: Timeline) -> list[str]:
@@ -275,14 +570,23 @@ def lap_start(line: Timeline, lap: int) -> float:
     return max(min(ends, default=line.first), line.first)
 
 
+def _follow(state: dict[str, Any], lap: int) -> tuple[dict[str, Any], Any]:
+    """The lap slider follows the race lap; an unchanged lap sends nothing, so a drag
+    under way is not pulled back on every tick."""
+    if lap == state.get("lap"):
+        return state, gr.skip()
+    return {**state, "lap": lap}, gr.update(value=lap)
+
+
 def jump(state: dict[str, Any], lap: int) -> tuple:
-    """Move the clock to the start of a lap; a running replay keeps running from it."""
+    """Move the clock to the start of a lap; a running replay keeps running from it.
+    The slider keeps what was typed, so typing 12 does not stop at 2."""
     line = timeline(state["race"])
     # a lap typed digit by digit passes through 1, below the slider's real range
-    lap = min(max(int(lap or 2), 2), line.total_laps - 1)
+    lap = min(max(int(lap or 2), 2), line.total_laps)
     t = min(lap_start(line, lap), state["end"])
     wall = None if state["wall"] is None else time.monotonic()
-    state = {**state, "t": t, "wall": wall}
+    state = {**state, "t": t, "wall": wall, "lap": race_lap(line, t)}
     return state, *view(state, t)
 
 
@@ -291,14 +595,21 @@ def pick_driver(state: dict[str, Any], driver: str) -> tuple:
     return state, *view(state, clock(state, time.monotonic()))
 
 
-def play(state: dict[str, Any]) -> tuple:
-    now = time.monotonic()  # re-anchored, so a second Play does not rewind
-    return {**state, "t": clock(state, now), "wall": now}, gr.update(active=True)
-
-
 def pause(state: dict[str, Any]) -> tuple:
-    state = {**state, "t": clock(state, time.monotonic()), "wall": None}
-    return state, gr.update(active=False), *view(state, state["t"])
+    t = clock(state, time.monotonic())
+    state, bar = _follow(
+        {**state, "t": t, "wall": None}, race_lap(timeline(state["race"]), t)
+    )
+    return state, gr.update(active=False), gr.update(value="Play"), bar, *view(state, t)
+
+
+def toggle(state: dict[str, Any]) -> tuple:
+    """One button: Play from the clock, or Pause; its label says what a click does."""
+    if state.get("wall") is not None:
+        return pause(state)
+    now = time.monotonic()  # re-anchored, so the clock does not jump
+    state = {**state, "t": clock(state, now), "wall": now}
+    return state, gr.update(active=True), gr.update(value="Pause"), *(gr.skip(),) * 6
 
 
 def set_speed(state: dict[str, Any], speed: str) -> dict[str, Any]:
@@ -309,36 +620,72 @@ def set_speed(state: dict[str, Any], speed: str) -> dict[str, Any]:
 
 
 def tick(state: dict[str, Any]) -> tuple:
-    """One timer tick: the clock from wall time; at the flag the replay pauses."""
+    """One timer tick: the clock from wall time and the slider on the race lap; at the
+    flag the replay pauses."""
     t = clock(state, time.monotonic())
-    if t < state["end"]:
-        return gr.skip(), gr.skip(), *view(state, t)
-    return pause(state)
+    if t >= state["end"]:
+        return pause(state)
+    state, bar = _follow(state, race_lap(timeline(state["race"]), t))
+    return state, gr.skip(), gr.skip(), bar, *view(state, t)
 
 
-def replay_tab() -> None:
-    """The replay controls and panels, wired inside the current Blocks."""
+def replay_tab() -> tuple:
+    """The replay controls in one block, then the status strip, then the driver, call
+    and circle beside the running order, wired inside the current Blocks.
+
+    Returns the opening load, (function, outputs), for the Blocks to run on page load.
+    """
     state = gr.State({})
     timer = gr.Timer(TICK, active=False)
+    choices = race_choices()
+    default = DEFAULT[0] if any(DEFAULT[0] == r for _, r in choices) else None
+    with gr.Group(elem_classes="bx-bar"), gr.Row(equal_height=True):
+        race = gr.Dropdown(choices, value=default, label="Race", scale=3, min_width=200)
+        driver = gr.Dropdown(
+            [], label="Driver", interactive=False, scale=2, min_width=140
+        )
+        with gr.Column(scale=3, min_width=280):
+            with gr.Row(equal_height=True):
+                play_button = gr.Button(
+                    "Play",
+                    variant="primary",
+                    interactive=False,
+                    scale=0,
+                    min_width=96,
+                )
+                speed = gr.Radio(
+                    list(SPEEDS),
+                    value="x1",
+                    label="Speed",
+                    show_label=False,
+                    interactive=False,
+                    scale=1,
+                    min_width=150,
+                    elem_classes="bx-speed",
+                )
+            lap = gr.Slider(
+                1, 3, value=2, step=1, label="Jump to lap", interactive=False
+            )
+        clock_html = gr.HTML(scale=1, min_width=150, elem_classes="bx-clock")
+    status_html = gr.HTML()
     with gr.Row():
-        race = gr.Dropdown(race_choices(), value=None, label="Race", scale=2)
-        driver = gr.Dropdown([], label="Driver", interactive=False, scale=1)
-        off = {"interactive": False, "scale": 0, "min_width": 90}
-        play_button = gr.Button("Play", variant="primary", **off)
-        pause_button = gr.Button("Pause", **off)
-        speed = gr.Radio(list(SPEEDS), value="x1", label="Speed", interactive=False)
-    lap = gr.Slider(1, 3, value=2, step=1, label="Jump to lap", interactive=False)
-    clock_html, circle_html, call_html = gr.HTML(), gr.HTML(), gr.HTML()
-    panels = [clock_html, circle_html, call_html]
-    controls = [play_button, pause_button, speed, lap]
+        with gr.Column(scale=5, min_width=360):
+            call_html = gr.HTML()
+            circle_html = gr.HTML()
+        with gr.Column(scale=4, min_width=320):
+            standings_html = gr.HTML()
+    # one output per panel: Gradio edits each in place, and an unchanged one costs nothing
+    panels = [clock_html, status_html, call_html, circle_html, standings_html]
+    picked = [state, driver, timer, play_button, speed, lap, *panels]
     # .change: .select misses a choice made with the keyboard, and nothing else writes
     # the race, so .change fires only on a real new choice
-    race.change(pick_race, race, [state, driver, timer, *controls, *panels], **HIDDEN)
+    race.change(pick_race, race, picked, **HIDDEN)
     driver.input(pick_driver, [state, driver], [state, *panels], **HIDDEN)
-    play_button.click(play, state, [state, timer], **HIDDEN)
-    pause_button.click(pause, state, [state, timer, *panels], **HIDDEN)
+    running = [state, timer, play_button, lap, *panels]
+    play_button.click(toggle, state, running, **HIDDEN)
     speed.input(set_speed, [state, speed], state, **HIDDEN)
-    # .change for typed laps and arrow keys, .release to replay the same lap again
-    lap.change(jump, [state, lap], [state, *panels], **HIDDEN)
+    # .input: the slider following the race lap must not jump; .release replays a lap
+    lap.input(jump, [state, lap], [state, *panels], **HIDDEN)
     lap.release(jump, [state, lap], [state, *panels], **HIDDEN)
-    timer.tick(tick, state, [state, timer, *panels], **HIDDEN)
+    timer.tick(tick, state, running, **HIDDEN)
+    return open_default, picked

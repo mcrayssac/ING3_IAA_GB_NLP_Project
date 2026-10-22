@@ -5,18 +5,21 @@ from __future__ import annotations
 import dataclasses
 import itertools
 
+import gradio as gr
 import numpy as np
 import pandas as pd
 import pytest
 
+from boxbox.app import icons as I
 from boxbox.app import replay as R
 from boxbox.app.replay import _named, circle, clock, lap_start
-from boxbox.data import card_at, frame
+from boxbox.data import card_at, flags_at, frame, pit_state, standings, tyre_at
 from boxbox.data.cards_v2 import RaceContext
 from boxbox.data.replay import (
     SECTORS,
     Car,
     Timeline,
+    _pits,
     build_timeline,
     cards_at,
     pace,
@@ -76,6 +79,7 @@ def test_nothing_timed_after_the_clock_is_read() -> None:
     line = race({"1": (0.0, laps), "2": (1.5, laps), "3": (4.0, laps[::-1])})
     for t in (95.0, 180.0, 250.7, 333.3):
         other = scrambled(line, t)
+        assert standings(other, t) == standings(line, t)
         for driver in line.cars:
             assert frame(other, driver, t) == frame(line, driver, t)
             assert card_at(other, driver, t)[1] == card_at(line, driver, t)[1]
@@ -166,6 +170,50 @@ def test_cars_wear_their_team_colour_and_acronym() -> None:
     svg = circle(line, "1", frame(line, "1", 150.0), (20.0, "GREEN"))
     assert "HAM" in svg and 'fill="#e8002d"' in svg and "car 1" in svg
     assert "GREEN pit window 20.0 to 22.0 s back" in svg
+    assert ">44<" in svg and 'style="fill:#fff"' in svg  # the number, white on red
+    assert "1 turn = 50 s" in svg  # 20 s apart: the ring zooms in
+
+
+def test_the_circle_zooms_to_the_field_and_keeps_the_pit_window() -> None:
+    assert R.turn(90.0, [3.0, -12.0], 20.0) == 50  # the rejoin point reaches farthest
+    assert R.turn(90.0, [40.0], 20.0) == 90.0  # a spread field keeps the real lap
+    assert R.turn(90.0, [], 20.0) == 90.0
+    assert R.turn(None, [3.0], 20.0) is None
+    assert R._ink("#ffffff") == "#000" and R._ink("#1d4ed8") == "#fff"
+    assert R._ink("var(--bx-ink)") == "var(--block-background-fill)"
+
+
+def test_the_call_panel_shows_pit_states_instead_of_a_call(monkeypatch) -> None:
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    box = {"answer": "CALL: BOX\nWHY: The window is open."}
+    assert R.call_state(box, 12, None) == "BOX"
+    assert R.call_state(box, 12, "IN PIT") == "IN PIT"  # the in-lap's BOX card is done
+    assert R.call_state(None, 13, "OUT LAP") == "OUT LAP"
+    assert R.call_state(None, None, None) == "RETIRED"
+    assert R.call_state(None, 13, None) == "NO CARD"
+    in_pit = R.calls(box, 12, "1", "r|1|12", "IN PIT")
+    assert "IN PIT" in in_pit and "data-box" not in in_pit and "NO CALL" not in in_pit
+    assert 'class="banner box even"' in R.calls(box, 12, "1", "r|1|12")
+    assert 'class="banner box odd"' in R.calls(box, 13, "1", "r|1|13")
+
+
+@pytest.mark.parametrize(
+    ("code", "day", "kind"),
+    [
+        (0, 1, "sun"),
+        (0, 0, "moon"),
+        (2, 1, "partly"),
+        (3, 1, "cloud"),
+        (45, 1, "fog"),
+        (53, 1, "drizzle"),
+        (63, 1, "rain"),
+        (81, 0, "rain"),
+        (95, 1, "storm"),
+        (float("nan"), 1, "unknown"),
+    ],
+)
+def test_weather_codes_pick_their_icon(code, day, kind) -> None:
+    assert I.sky(code, day) == kind
 
 
 def test_jump_goes_to_the_leader_starting_the_lap() -> None:
@@ -222,6 +270,128 @@ def test_the_replay_starts_once_every_car_has_crossed() -> None:
         columns=["driver_number", "lap_number", "date_start", *SECTORS],
     )
     assert build_timeline(table, raw, {}).first == 273.0  # car 2's first crossing
+
+
+def test_flags_follow_sector_yellows_until_cleared_or_stale() -> None:
+    line = race({"1": (0.0, [EVEN] * 12)})
+    sc = START + pd.Timedelta(seconds=700)
+    flags = [
+        (10.0, "YELLOW", 4, None),
+        (20.0, "DOUBLE YELLOW", 5, None),
+        (30.0, "CLEAR", 4, None),
+        (40.0, "CLEAR", None, None),  # TRACK CLEAR
+        (50.0, "YELLOW", 7, None),
+        (100.0, "BLUE", None, "1"),
+    ]
+    line = dataclasses.replace(
+        line, flags=flags, windows=[("SC", sc, sc + pd.Timedelta(seconds=60))]
+    )
+    assert flags_at(line, "1", 15.0) == ("YELLOW", {4: "YELLOW"}, False)
+    assert flags_at(line, "1", 25.0)[:2] == (
+        "DOUBLE YELLOW",
+        {4: "YELLOW", 5: "DOUBLE YELLOW"},
+    )
+    assert flags_at(line, "1", 35.0)[:2] == ("DOUBLE YELLOW", {5: "DOUBLE YELLOW"})
+    assert flags_at(line, "1", 45.0)[:2] == ("GREEN", {})
+    assert flags_at(line, "1", 105.0) == ("YELLOW", {7: "YELLOW"}, True)
+    assert flags_at(line, "2", 105.0)[2] is False  # waved at car 1 only
+    assert flags_at(line, "1", 115.0)[2] is False  # 15 s later
+    assert flags_at(line, "1", 651.0)[:2] == ("GREEN", {})  # never cleared, stale
+    assert flags_at(line, "1", 730.0)[0] == "SC"
+    assert flags_at(line, "1", line.end)[0] == "CHEQUERED"
+
+
+def test_pit_state_shows_the_pit_lane_then_the_out_lap() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})  # crossings at 90, 180, 270...
+    line = dataclasses.replace(
+        line,
+        pits={"1": [(2, 175.0, 200.0)]},
+        tyres={("1", 2): ("MEDIUM", 20), ("1", 3): ("HARD", 1)},
+    )
+    assert pit_state(line, "1", 170.0, 2) is None
+    assert pit_state(line, "1", 190.0, 2) == "IN PIT"
+    assert pit_state(line, "1", 210.0, 3) == "OUT LAP"  # no card for the out-lap
+    assert pit_state(line, "1", 280.0, 4) is None
+    assert pit_state(line, "1", 210.0) is None  # without a card lap: the lane only
+    assert tyre_at(line, "1", 170.0) == ("MEDIUM", 19)
+    assert tyre_at(line, "1", 190.0) == ("HARD", 0)  # crossed in the lane: new set
+
+
+def test_pit_windows_come_from_pit_data_or_the_in_lap_crossing() -> None:
+    table = pd.DataFrame(
+        {
+            "driver_number": ["1", "2", "3"],
+            "lap": [5, 7, 8],
+            "pit_in": [True, True, False],
+            "at_line": [START + pd.Timedelta(seconds=s) for s in (300, 400, 500)],
+        }
+    )
+    date = (START + pd.Timedelta(seconds=320)).isoformat()
+    rows = [{"driver_number": 1, "lap_number": 5, "date": date, "lane_duration": 23.0}]
+    # car 2 has no pit row, as in 2023 rounds 1 to 6: lane from the crossing, 20 s
+    assert _pits(table, rows, START) == {
+        "1": [(5, 297.0, 320.0)],
+        "2": [(7, 400.0, 420.0)],
+    }
+
+
+def test_standings_order_lapped_and_stopped_cars() -> None:
+    line = race(
+        {
+            "1": (0.0, [EVEN] * 5),
+            "2": (5.0, [EVEN] * 5),
+            "3": (100.0, [EVEN] * 4),  # more than a lap down
+            "4": (2.0, [EVEN] * 2),  # stops after lap 2
+        }
+    )
+    rows = standings(line, 400.0)
+    assert [r["driver"] for r in rows] == ["1", "2", "3", "4"]
+    assert rows[1]["gap"] == rows[1]["interval"] == pytest.approx((5.0, 0))
+    assert rows[2]["gap"] == rows[2]["interval"] == (None, 1)  # +1 LAP
+    assert rows[0]["gap"] is None and rows[3]["gap"] is None
+    assert [r["out"] for r in rows] == [False, False, False, True]
+
+
+def test_a_slow_lap_without_pit_data_holds_the_car_at_the_line() -> None:
+    slow = (60.0, 30.0, 30.0)  # 30 s slower, with no pit data to say why
+    line = race({"1": (0.0, [EVEN] * 5), "2": (5.0, [EVEN] * 3 + [slow, EVEN])})
+    # car 2 crossed lap 3 at 275 s and is predicted on the line from 365 s
+    assert standings(line, 300.0)[1]["gap"] == pytest.approx((5.0, 0))
+    assert standings(line, 380.0)[1]["gap"] == pytest.approx((20.0, 0))
+
+
+def test_a_car_in_the_pit_lane_waits_at_the_line() -> None:
+    in_lap, out_lap = (30.0, 30.0, 35.0), (45.0, 30.0, 30.0)  # 5 s, then 15 s lost
+    line = race(
+        {"1": (0.0, [EVEN] * 5), "2": (5.0, [EVEN, EVEN, in_lap, out_lap, EVEN])}
+    )
+    card = {
+        "surface": "DRY",
+        "compound": "MEDIUM",
+        "pit_loss_seconds": 20.0,
+        "pit_loss_condition": "GREEN",
+    }
+    line = dataclasses.replace(
+        line, pits={"2": [(3, 277.0, 300.0)]}, cards_v2={("2", 3): card}
+    )
+    # car 2 crosses lap 3 at 280 s and lap 4 at 385 s, 25 s after car 1's 360 s
+    assert standings(line, 300.0)[1]["gap"] == pytest.approx((25.0, 0))  # not 10
+    assert frame(line, "1", 300.0)["angles"]["2"] == pytest.approx(-25 / 90 * 360)
+    assert progress(line.cars["2"], 384.0, 1.0, 15.0) == pytest.approx(3 + 89 / 90)
+
+
+def test_the_lap_slider_follows_the_race_and_jumps_to_the_last_lap(monkeypatch) -> None:
+    state = {"lap": 7}
+    assert R._follow(state, 7) == (state, gr.skip())  # same lap: nothing sent
+    moved, bar = R._follow(state, 8)
+    assert moved["lap"] == 8 and bar["value"] == 8
+    line = race({"1": (0.0, [EVEN] * 5), "44": (2.0, [EVEN] * 5)})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    state = {"race": "r", "driver": "1", "t": 100.0, "end": line.end, "wall": None}
+    assert R.jump(state, 5)[0]["t"] == 360.0  # lap 5 of 5, the last one, from 360 s
+    assert R.jump(state, 1)[0]["t"] == line.first  # typed 1 on the way to 12
+    assert R.pick_race("r", "44")[0]["driver"] == "44"
+    assert R.pick_race("r", "99")[0]["driver"] == "1"  # not in the race: the leader
 
 
 def test_a_policy_2_box_marks_the_card_for_the_sound(monkeypatch, tmp_path) -> None:
