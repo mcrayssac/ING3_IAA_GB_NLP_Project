@@ -30,7 +30,7 @@ Numbers in parentheses are roadmap task IDs. A folder is created with its first 
 
 A feature is a subfolder of `boxbox`. Its `__init__.py` exports only the functions that other code or the notebook use, for example `from boxbox.rules import decide`.
 
-Imports go one way. `rules` imports no other feature. `data` and `corpus` may use `rules`. `evaluation` and `app` may use `model` and `rules`. No feature imports `app` or the notebook.
+Imports go one way. `rules` imports no other feature. `data` and `corpus` may use `rules`. `evaluation` and `app` may use `model` and `rules`, and read `data` (the replay tab and the evaluation command load race data). No feature imports `app` or the notebook.
 
 Each data source has its own loader in `data/`, and every loader returns the same per-lap table. The rest of the code reads only that table.
 
