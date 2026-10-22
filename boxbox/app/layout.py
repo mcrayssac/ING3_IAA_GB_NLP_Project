@@ -12,13 +12,13 @@ from boxbox.config import RunConfig
 from boxbox.rules import POLICY_VERSION, TYRE_LIMITS
 
 from . import panels as P
-from .replay import replay_tab
+from .replay import replay_tab, sound_head
 from .session import (
     Respond,
+    exchange,
     latest_answer,
     load_upload,
     sample_cards,
-    send,
     stub_respond,
 )
 
@@ -62,6 +62,7 @@ CSS = """
 .banner .call { font-size: 2em; font-weight: 800; color: var(--call, var(--bx-ink)); }
 .banner.idle .call { font-size: 1.4em; color: var(--bx-muted); }
 .banner.bad { border-left-color: var(--bx-bad); font-size: 1.2em; }
+.banner .cut { color: var(--bx-bad); font-weight: 700; font-size: 0.9rem; margin-top: 6px; }
 .inputs { width: 100%; border-collapse: collapse; }
 .inputs td, .inputs th { padding: 4px 8px; border-bottom: 1px solid var(--bx-ring);
                          text-align: left; }
@@ -144,17 +145,21 @@ def _card_view(card: dict[str, Any], rule_on: bool) -> tuple:
 
 
 def _call_view(
-    card: dict[str, Any], history: list[dict[str, str]], rule_on: bool
+    card: dict[str, Any],
+    history: list[dict[str, str]],
+    rule_on: bool,
+    cut: bool = False,
 ) -> tuple:
     answer = latest_answer(history)
-    return P.banner(answer), gr.update(
+    return P.banner(answer, cut), gr.update(
         value=P.policy_panel(card, answer), visible=rule_on
     )
 
 
 def show_card(card: dict[str, Any], on: bool) -> tuple:
     """A card change: the new card, an empty conversation and redrawn panels."""
-    return card, [], [], "", "", *_card_view(card, on), *_call_view(card, [], on)
+    view = *_card_view(card, on), *_call_view(card, [], on)
+    return card, [], [], "", "", *view, "", False
 
 
 def pick_card(cards: dict[str, dict[str, Any]], name: str, on: bool) -> tuple:
@@ -167,7 +172,9 @@ def upload_card(path: str, on: bool) -> tuple:
     card, problem = load_upload(path)
     if problem:
         gr.Warning(problem)
-        return (gr.skip(),) * 4 + (problem,) + (gr.skip(),) * 8  # keep the current card
+        return (
+            (gr.skip(),) * 4 + (problem,) + (gr.skip(),) * 10
+        )  # keep the current card
     return *show_card(card, on), gr.update(
         value=None, label=f"{PICKER} (uploaded file on screen)"
     )
@@ -180,22 +187,35 @@ def ask(
     history: list,
     text: str,
     on: bool,
+    was_cut: bool = False,
 ) -> tuple:
-    """One exchange; on an engine error the message stays in the box to retry."""
-    new, problem = send(card, history, text, respond, turns)
+    """One exchange; on an engine error the message stays in the box to retry.
+
+    The details line describes the new answer. After an error it stays as it was, and
+    the banner shows the last answer again, with its cut warning if it had one.
+    """
+    new, problem, trace = exchange(card, history, text, respond, turns)
     if problem:
         gr.Warning(problem)
-    return new, new, text if problem else "", problem or "", *_call_view(card, new, on)
+    earlier = len(history) // 2
+    details = (
+        P.answer_details(latest_answer(new), earlier, min(earlier, turns), trace)
+        if new is not history
+        else gr.skip()
+    )
+    cut = was_cut if new is history else bool(trace and trace.get("possibly_truncated"))
+    view = _call_view(card, new, on, cut)
+    return new, new, text if problem else "", problem or "", *view, details, cut
 
 
 def clear(card: dict[str, Any], on: bool) -> tuple:
     """Reset: an empty conversation on the same card."""
-    return [], [], "", *_call_view(card, [], on)
+    return [], [], "", *_call_view(card, [], on), "", False
 
 
 def toggle(card: dict[str, Any], history: list, on: bool) -> tuple:
-    """The policy check turned on or off."""
-    return P.inputs_table(card, on), *_call_view(card, history, on)
+    """The policy check turned on or off; the banner, and any cut warning, stay."""
+    return P.inputs_table(card, on), gr.skip(), _call_view(card, history, on)[1]
 
 
 def busy(count: int) -> tuple:
@@ -235,6 +255,7 @@ def build_app(
     badge = "stub" if respond is stub_respond else "engine"
     with gr.Blocks(title="BoxBox", analytics_enabled=False) as app:  # no telemetry
         card, history = gr.State(cards[first]), gr.State([])
+        was_cut = gr.State(False)  # whether the answer on the banner may be cut
         with gr.Tab("Card"):
             with gr.Row():
                 gr.HTML(
@@ -262,6 +283,7 @@ def build_app(
                         raw = gr.Code(language="json")
                 with gr.Column(scale=3):
                     call = gr.HTML(P.banner(None))
+                    details = gr.HTML()
                     rule_on = gr.Checkbox(
                         False, label="Policy check: show the rule's call"
                     )
@@ -288,8 +310,8 @@ def build_app(
         with gr.Tab("Replay"):
             replay_tab()
         everything = [card, history, chat, message, error, situation, circle, tyres]
-        everything += [inputs, raw, call, policy]
-        exchange = [history, chat, message, error, call, policy]
+        everything += [inputs, raw, call, policy, details, was_cut]
+        answered = [history, chat, message, error, call, policy, details, was_cut]
         controls = [send_button, message, *quick, picker, upload, reset]
         asking = partial(ask, respond, turns)
         hidden = {
@@ -304,7 +326,8 @@ def build_app(
                 trigger_mode="once",
                 **hidden,
             )
-            locked.then(fn, inputs, exchange, **hidden).then(
+            # one progress indicator, on the conversation; the banner says it waits
+            locked.then(fn, inputs, answered, show_progress_on=chat, **hidden).then(
                 partial(ready, len(controls)), None, controls, **hidden
             )
 
@@ -316,17 +339,20 @@ def build_app(
             **hidden,
         )
         upload.upload(upload_card, [upload, rule_on], [*everything, picker], **hidden)
-        sending(send_button.click, asking, [card, history, message, rule_on])
-        sending(message.submit, asking, [card, history, message, rule_on])
+        sending(send_button.click, asking, [card, history, message, rule_on, was_cut])
+        sending(message.submit, asking, [card, history, message, rule_on, was_cut])
         for button, text in zip(quick, QUICK):
-            question = partial(lambda t, c, h, on: asking(c, h, t, on), text)
-            sending(button.click, question, [card, history, rule_on])
+            question = partial(lambda t, c, h, on, w: asking(c, h, t, on, w), text)
+            sending(button.click, question, [card, history, rule_on, was_cut])
         for trigger in (
             reset.click,
             chat.clear,
         ):  # chat.clear is the conversation's bin icon
             trigger(
-                clear, [card, rule_on], [history, chat, error, call, policy], **hidden
+                clear,
+                [card, rule_on],
+                [history, chat, error, call, policy, details, was_cut],
+                **hidden,
             )
         rule_on.change(
             toggle, [card, history, rule_on], [inputs, call, policy], **hidden
@@ -352,7 +378,11 @@ def launch(
             "monospace",
         ],
     )
-    settings = {"footer_links": ["gradio"], "run_history": False} | options
+    settings = {
+        "footer_links": ["gradio"],
+        "run_history": False,
+        "head": sound_head(),
+    } | options
     return build_app(respond, engine, turns=turns).launch(
         theme=theme, css=CSS, **settings
     )

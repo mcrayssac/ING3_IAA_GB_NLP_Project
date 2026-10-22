@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from boxbox.app import replay as R
 from boxbox.app.replay import _named, circle, clock, lap_start
 from boxbox.data import card_at, frame
 from boxbox.data.cards_v2 import RaceContext
@@ -221,3 +222,17 @@ def test_the_replay_starts_once_every_car_has_crossed() -> None:
         columns=["driver_number", "lap_number", "date_start", *SECTORS],
     )
     assert build_timeline(table, raw, {}).first == 273.0  # car 2's first crossing
+
+
+def test_a_policy_2_box_marks_the_card_for_the_sound(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    box = {"answer": "CALL: BOX\nWHY: The window is open."}
+    stay = {"answer": "CALL: STAY OUT\nWHY: Young tyres."}
+    assert 'data-box="r|1|12"' in R.calls(stay, box, 12, "1", "r|1|12")
+    assert "data-box" not in R.calls(box, stay, 12, "1", "r|1|12")  # 1.1 does not ring
+    assert "data-box" not in R.calls(None, None, None, "1", "r|1|None")
+    assert R.sound_head(tmp_path / "missing.wav") == ""
+    sound = tmp_path / "box.wav"
+    sound.write_bytes(b"RIFF")
+    head = R.sound_head(sound)
+    assert head.startswith("<script>") and "data:audio/wav;base64,UklGRg==" in head

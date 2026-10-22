@@ -368,20 +368,77 @@ def parse_answer(text: Any) -> tuple[str, str] | None:
     return (call, why) if known and why and clean else None
 
 
-def banner(answer: str | None) -> str:
-    """The latest call in large text, or what stops it from being read."""
+STOPS = {
+    "eos_token": "end of answer",
+    "max_new_tokens": "token limit",
+    "cooperative_max_time": "time limit",
+    "model_stop": "model stop",
+}
+
+
+def _plural(count: int, word: str) -> str:
+    return f"{count} {word}" + ("" if count == 1 else "s")
+
+
+def answer_details(
+    answer: str | None, earlier: int, sent: int, trace: dict[str, Any] | None
+) -> str:
+    """One line on the last answer: strict format, generation and the history sent.
+
+    `earlier` exchanges came before the question and `sent` of them reached the engine.
+    The generation part needs the engine's trace, so the stub shows the rest only.
+    """
+    if answer is None:
+        return ""
+    parts = [
+        "Strict CALL/WHY format: yes"
+        if parse_answer(answer)
+        else "Strict CALL/WHY format: no"
+    ]
+    if trace and "duration_seconds" in trace:
+        limit = trace["generation_settings"]["explicit_overrides"]["max_new_tokens"]
+        stop = STOPS.get(trace["stop_condition"], trace["stop_condition"])
+        parts += [
+            f"{trace['duration_seconds']:.1f} s",
+            f"{trace['input_tokens']} input tokens",
+            f"{trace['generated_tokens']} of {limit} new tokens",
+            f"stop: {stop}",
+        ]
+        sent = trace["history"]["retained_turns"]
+    if earlier == 0:
+        parts.append("no earlier exchange")
+    elif sent == earlier:
+        parts.append(f"history sent: {_plural(earlier, 'earlier exchange')}")
+    else:
+        parts.append(f"history sent: {sent} of {_plural(earlier, 'earlier exchange')}")
+    return f'<p class="note details mono">{html.escape(" · ".join(parts))}</p>'
+
+
+CUT = (
+    '<div class="cut">&#9888; The answer may be cut: generation reached its limit '
+    "before the model ended it.</div>"
+)
+
+
+def banner(answer: str | None, cut: bool = False) -> str:
+    """The latest call in large text, or what stops it from being read.
+
+    `cut` is the engine's `possibly_truncated`: the token or time limit ended the answer.
+    """
     if answer is None:
         return (
             '<div class="banner idle"><div class="call">No call yet</div>'
             '<div class="why">Ask a question or pick one below.</div></div>'
         )
+    warning = CUT if cut else ""
     parsed = parse_answer(answer)
     if parsed is None:
-        return '<div class="banner bad">Answer not in CALL/WHY format</div>'
+        return f'<div class="banner bad">Answer not in CALL/WHY format{warning}</div>'
     call, why = parsed
     return (
         f'<div class="banner" style="--call:{CALL_COLOURS[call]}">'
-        f'<div class="call">{call}</div><div class="why">{html.escape(why)}</div></div>'
+        f'<div class="call">{call}</div><div class="why">{html.escape(why)}</div>'
+        f"{warning}</div>"
     )
 
 
