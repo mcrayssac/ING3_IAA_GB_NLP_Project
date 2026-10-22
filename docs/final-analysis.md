@@ -9,16 +9,17 @@ This page gives the paired automatic gains on the frozen final outputs and their
   - the run's `complete.json` to have the hash 4.2 published (`d1726c36…`)
   - every file of the run to match that completion record
   - the run's cases to equal `data/final/cases.jsonl` (`49b4aea3…`)
-- **Pairing:** the shared evaluator pairs the three versions on the same `(case_id, input_sha256)`. The per-version measures it computes equal the `evaluator_summaries` 4.2 recorded, and the script stops if they differ.
-- **Reproducibility:** results are tied to the 600 frozen response IDs, which are listed in `analysis.json`.
+- **Pairing:** the shared evaluator pairs the three versions on the same `(case_id, input_sha256)`. All three `evaluator_summaries` from 4.2 are required. The script stops if they are missing or differ from the recomputed measures.
+- **Reproducibility:** both `analysis.json` and the committed `docs/final-analysis-evidence.json` list the 600 frozen response IDs. Their provenance records the full completion, output, attempt, case, freeze, protocol, fixture and 4.2 results-document hashes. Published input hashes must match the checked files. `analysis_script_sha256` identifies the analysis code, and the run manifest hashes both generated JSON files.
 
 ## Settings
 
-- **Contrasts:** A − baseline and B − A are the principal contrasts. B − baseline is exploratory (protocol section 6).
+- **Contrasts:** A − baseline and B − A are the principal contrasts. B − baseline is exploratory (protocol section 7).
 - **Units:** every difference is new − old, in fraction points. For unjustified decisions, excessive refusals and invalid labels, a negative difference is favourable. Coverage has no favourable direction.
 - **Resampling:** a whole-race bootstrap with seed 2026 and 10,000 draws, with a 95% percentile interval using type-7 quantiles. The 7 final races are drawn with replacement, and every variant and turn of a race stays with it. Each contrast uses the same draws (`draws_sha256` `4a08ea14…`).
 - **Interval rule:** an interval needs at least 9,500 valid draws, and 2 to 4 contributing races are flagged `few_races`.
-- **Status:** every interval below has status `ok`: 7 contributing races and 10,000 valid draws, except macro-label agreement with 9,999. The BOX label has targets in 5 races only.
+- **Status:** the overall and family CALL-agreement intervals in the tables below have status `ok`. Most have 7 contributing races and 10,000 valid draws. Macro-label agreement has 9,999 valid draws and 1 invalid draw, so its interval conditions on the valid draws. Its BOX component has only 5 contributing races; its STAY OUT and NO CALL components each have 7. The evidence retains these component counts and race IDs.
+- **Other subgroups:** each contrast in the evidence contains 92 measures with status `ok`, 2 with `few_races` and 18 with `empty_population`. The two `few_races` measures are justified abstention and unjustified decisions within follow-ups: only 4 races contribute Z targets, with 9,985 valid draws and 15 invalid draws. Defined BOX-label rates also have 5 contributing races and 9,999 valid draws. Undefined rates retain null values and their reasons. No invalid draw is replaced.
 - **No threshold:** the protocol sets no threshold for calling a gain and makes no significance claim.
 
 ## Measures by version
@@ -89,7 +90,7 @@ Each cell gives the difference and its 95% race interval.
 | Follow-up | +0.824 (+0.667 to +0.973) | 0.000 (0.000 to 0.000) | +0.824 (+0.667 to +0.973) |
 | Out of scope | +0.964 (+0.864 to +1.000) | 0.000 (-0.095 to +0.120) | +0.964 (+0.889 to +1.000) |
 
-A zero-width interval means both versions gave the same outcome on every drawn target. It does not prove equivalence. `docs/final-analysis-evidence.json` holds every measure overall, by family, by expected label and on Z and D, with its interval, status, contributing races and valid draws.
+A zero-width interval means the reported percentile bounds coincide for that aggregate measure on the retained draws. Different paired outcomes can cancel within a race; it does not establish identical target-level answers or equivalence. `docs/final-analysis-evidence.json` holds every measure overall, by family, by expected label and on Z and D, with its interval, status, contributing and component races, valid/invalid draw counts and conditional-interval flag. Scenario sizes retain the concentration of related variants.
 
 Paired outcomes per target:
 
@@ -122,7 +123,7 @@ Paired outcomes per target:
 
 ## Truncation
 
-Answers stopped at the 64-token limit: 53 for the baseline, 2 for A and 2 for B, none at the 30 s time limit. Of these, 44, 2 and 2 still pass the strict format, so their WHY sentence is cut. Every answer is kept and scored as it is, as the freeze records.
+Answers stopped at the 64-token limit: 53 for the baseline, 2 for A and 2 for B, none at the 30 s time limit. Of these, 44, 2 and 2 still pass the strict format. Reaching the limit flags a possibly truncated continuation; it does not by itself establish that the WHY sentence is incomplete. The `cut_but_strict_format` diagnostic counts this flag alongside structural validity. Semantic completeness remains for human review. Every answer is kept and scored as it is, as the freeze records.
 
 ## Limits
 
@@ -132,10 +133,13 @@ Answers stopped at the 64-token limit: 53 for the baseline, 2 for A and 2 for B,
 - **Shared wordings:** the final questions reuse wordings that also appear in validation (4.1).
 - **Automatic measures only:** they check the CALL line and the format, not whether the WHY sentence is supported. Human ratings of 40 targets per version come in 4.3.
 - **Policy agreement only:** agreement with the policy reference does not show that a call is strategically optimal in a real race.
+- **Source availability:** the upstream reconstruction and observation-cutoff limitations recorded in 4.1/4.2 remain. Pairing and hash checks establish the identity of the supplied cards and outputs, not causal availability of every source observation.
 
 ## For 4.5
 
 4.4 hands over this page, `docs/final-analysis-evidence.json` and the run folder `runs/2026-10-22_4-4-final-analysis/` (outside Git, with `analysis.json` and its manifest).
+
+The review correction enriches the committed evidence and tightens input checks; it preserves the original estimates, intervals, transitions and truncation counts. The original analysis was run from `e82a42e`. The corrected run records the current HEAD and uncommitted local corrections with `git_dirty=true`; its script and artifact hashes identify what was executed. The original committed evidence and the immutable 4.2 run are retained separately. No final response was regenerated.
 
 When the 4.3 ratings are complete, the human measures use the same pairing on the 40 selected targets (`human=True`). They become final paired human gains only once every applicable pair is rated.
 

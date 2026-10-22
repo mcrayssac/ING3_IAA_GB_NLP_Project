@@ -29,6 +29,7 @@ from boxbox.evaluation._io import dumps, loads, read_jsonl, sha256, write_json
 from boxbox.runs import source_sha256
 from scripts.final_cases import gate
 from scripts.final_scoring import inventory
+from scripts.freeze import FREEZE
 from scripts.interim_analysis import transitions
 from scripts.mini_test import git
 
@@ -37,7 +38,7 @@ RUNS = Path("runs")
 FINAL_CASES = Path("data/final/cases.jsonl")
 RESULTS_4_2 = Path("docs/final-scoring-results.json")
 VERSIONS = ["baseline", "A", "B"]
-# Protocol 1.1.0, section 6: principal contrasts first, the third is exploratory.
+# Protocol 1.1.0, section 7: principal contrasts first, the third is exploratory.
 CONTRASTS = {
     "A_minus_baseline": ("baseline", "A", "principal"),
     "B_minus_A": ("A", "B", "principal"),
@@ -47,8 +48,12 @@ CONTRASTS = {
 
 def check_run(run: Path, results: Path | None = None) -> dict:
     """The sealed 4.2 run, refused unless it is byte for byte the one 4.2 published."""
-    gate()  # the freeze must hold before any final file is read
-    recorded = loads((results or RESULTS_4_2).read_text(encoding="utf-8"))
+    frozen = gate()  # the freeze must hold before any final file is read
+    recorded_bytes = (results or RESULTS_4_2).read_bytes()
+    recorded = loads(recorded_bytes.decode("utf-8"))
+    summaries = recorded.get("evaluator_summaries")
+    if not isinstance(summaries, dict) or set(summaries) != set(VERSIONS):
+        raise ValueError("4.2 must record evaluator_summaries for baseline, A and B")
     complete = run / "complete.json"
     if sha256(complete.read_bytes()) != recorded["complete_sha256"]:
         raise ValueError("complete.json is not the record 4.2 published")
@@ -59,12 +64,32 @@ def check_run(run: Path, results: Path | None = None) -> dict:
     cases, cases_hash = read_jsonl(run / "cases.jsonl")
     if cases_hash != sha256(FINAL_CASES.read_bytes()):
         raise ValueError("the run's cases are not data/final/cases.jsonl")
+    # Keep the exact input identities with the statistics, including in the
+    # committed evidence; a case hash alone does not identify the scored answers.
+    outputs, outputs_hash = read_jsonl(run / "outputs.jsonl")
+    attempts, attempts_hash = read_jsonl(run / "attempts.jsonl")
+    hashes = {
+        "cases_sha256": cases_hash,
+        "outputs_sha256": outputs_hash,
+        "attempts_sha256": attempts_hash,
+        "freeze_sha256": sha256(FREEZE.read_bytes()),
+    }
+    if any(recorded.get(k) != value for k, value in hashes.items()):
+        raise ValueError("input hashes differ from those 4.2 published")
     return {
         "recorded": recorded,
         "cases": cases,
         "cases_sha256": cases_hash,
-        "outputs": read_jsonl(run / "outputs.jsonl")[0],
-        "attempts": read_jsonl(run / "attempts.jsonl")[0],
+        "outputs": outputs,
+        "attempts": attempts,
+        "provenance": {
+            "input_run": recorded["run_directory"],
+            "complete_sha256": recorded["complete_sha256"],
+            "results_4_2_sha256": sha256(recorded_bytes),
+            **hashes,
+            "protocol_sha256": frozen["files"]["docs/evaluation-protocol.md"],
+            "fixtures_sha256": frozen["files"]["reference/evaluation-fixtures.json"],
+        },
     }
 
 
@@ -116,7 +141,7 @@ def analyse(checked: dict, replications: int = 10000) -> dict:
     rows = observations(cases, paired)
     summaries = {v: summarize(rows[v]) for v in VERSIONS}
     recorded = checked["recorded"].get("evaluator_summaries")
-    if recorded is not None and loads(dumps(summaries)) != recorded:
+    if loads(dumps(summaries)) != recorded:
         raise ValueError("the summaries differ from those 4.2 recorded")
     contrasts = {}
     for name, (old, new, role) in CONTRASTS.items():
@@ -127,6 +152,8 @@ def analyse(checked: dict, replications: int = 10000) -> dict:
         }
     return {
         "task": "4.4",
+        "provenance": checked["provenance"],
+        "analysis_script_sha256": sha256(Path(__file__).read_bytes()),
         "cases_sha256": cases_hash,
         "versions": VERSIONS,
         "response_ids": {
@@ -147,17 +174,24 @@ def compact(analysis: dict) -> dict:
         "difference_interval",
         "interval_status",
         "contributing_races",
+        "component_races",
+        "invalid_replications",
+        "conditional_on_valid_replications",
+        "direction",
+        "gain",
+        "gain_interval",
     )
     return {
+        "task": analysis["task"],
+        "provenance": analysis["provenance"],
+        "analysis_script_sha256": analysis["analysis_script_sha256"],
         "cases_sha256": analysis["cases_sha256"],
+        "versions": analysis["versions"],
+        "response_ids": analysis["response_ids"],
         "summaries": {
             v: {
                 "metrics": {
-                    k: {
-                        f: m[f] for f in ("numerator", "denominator", "value", "status")
-                    }
-                    for k, m in s["metrics"].items()
-                    if k.startswith(keep)
+                    k: m for k, m in s["metrics"].items() if k.startswith(keep)
                 },
                 "confusion": s["confusion"],
             }
@@ -171,8 +205,11 @@ def compact(analysis: dict) -> dict:
                 "contrast_role": c["contrast_role"],
                 "settings": c["settings"],
                 "draws_sha256": c["draws_sha256"],
+                "race_order": c["race_order"],
                 "race_case_counts": c["race_case_counts"],
                 "largest_race_case_share": c["largest_race_case_share"],
+                "scenario_sizes": c["scenario_sizes"],
+                "limitations": c["limitations"],
                 "transitions": c["transitions"]["counts"],
                 "metrics": {
                     k: {f: m[f] for f in fields}
@@ -207,6 +244,10 @@ def run(run_dir: Path, replications: int = 10000, runs_dir: Path = RUNS) -> Path
             "complete_sha256": checked["recorded"]["complete_sha256"],
             "outputs_sha256": sha256((run_dir / "outputs.jsonl").read_bytes()),
             "cases_sha256": checked["cases_sha256"],
+            "provenance": analysis["provenance"],
+            "analysis_script_sha256": analysis["analysis_script_sha256"],
+            "analysis_sha256": sha256((folder / "analysis.json").read_bytes()),
+            "evidence_sha256": sha256((folder / "evidence.json").read_bytes()),
             "replications": replications,
             "protocol_settings": all(
                 c["settings"]["protocol_settings"]
