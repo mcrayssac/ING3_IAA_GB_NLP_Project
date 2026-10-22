@@ -11,7 +11,10 @@ from boxbox.rules import format_answer
 
 FIXTURES = Path("reference/fixtures.json")
 DEMO_CARDS = Path("data/demo/cards.json")
-Respond = Callable[[dict[str, Any], list[dict[str, str]], str], str]
+# an engine returns its answer, or its answer and the trace of the generation
+Respond = Callable[
+    [dict[str, Any], list[dict[str, str]], str], str | tuple[str, dict[str, Any]]
+]
 
 
 def stub_respond(
@@ -40,6 +43,41 @@ def sample_cards(
     return cards
 
 
+def exchange(
+    card: dict[str, Any],
+    history: list[dict[str, str]],
+    message: str,
+    respond: Respond,
+    turns: int,
+) -> tuple[list[dict[str, str]], str | None, dict[str, Any] | None]:
+    """The history after one exchange, an error to show, and the engine's trace if any."""
+    message = message.strip()
+    if not message:
+        return history, None, None
+    try:  # the contract's bounded history; any engine failure is shown, never stored
+        answer = respond(card, history[-2 * turns :] if turns else [], message)
+    except Exception as error:  # noqa: BLE001
+        return (
+            history,
+            f"The engine failed: {error}. The conversation is unchanged.",
+            None,
+        )
+    trace = None
+    if isinstance(answer, tuple) and len(answer) == 2 and isinstance(answer[1], dict):
+        answer, trace = answer
+    if not isinstance(answer, str):
+        return (
+            history,
+            "The engine returned no text. The conversation is unchanged.",
+            None,
+        )
+    turn = [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": answer},
+    ]
+    return history + turn, None, trace
+
+
 def send(
     card: dict[str, Any],
     history: list[dict[str, str]],
@@ -48,20 +86,7 @@ def send(
     turns: int,
 ) -> tuple[list[dict[str, str]], str | None]:
     """The history after one exchange, or the same history and an error to show."""
-    message = message.strip()
-    if not message:
-        return history, None
-    try:  # the contract's bounded history; any engine failure is shown, never stored
-        answer = respond(card, history[-2 * turns :] if turns else [], message)
-    except Exception as error:  # noqa: BLE001
-        return history, f"The engine failed: {error}. The conversation is unchanged."
-    if not isinstance(answer, str):
-        return history, "The engine returned no text. The conversation is unchanged."
-    turn = [
-        {"role": "user", "content": message},
-        {"role": "assistant", "content": answer},
-    ]
-    return history + turn, None
+    return exchange(card, history, message, respond, turns)[:2]
 
 
 def load_upload(path: str | None) -> tuple[dict[str, Any] | None, str | None]:

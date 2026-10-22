@@ -6,11 +6,13 @@ next to the policy 1.1 call on the 1.0 card, which is what the trained model rea
 
 from __future__ import annotations
 
+import base64
 import html
 import math
 import time
 from datetime import timedelta
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 import gradio as gr
@@ -31,6 +33,7 @@ from boxbox.rules import format_answer
 from . import panels as P
 
 TICK = 0.5  # seconds between timer ticks
+SOUND = Path("boxbox.wav")  # played on each new 2.0 card whose policy 2.0 call is BOX
 SPEEDS = ("x1", "x2", "x4")
 HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
 
@@ -164,12 +167,25 @@ def _banner(card: dict | None, lap: int | None, driver: str, version: str) -> st
     return f'<div class="banner idle"><div class="call">No card</div><div class="why">{why}</div></div>'
 
 
-def calls(card: dict | None, card_v2: dict | None, lap: int | None, driver: str) -> str:
+def calls(
+    card: dict | None,
+    card_v2: dict | None,
+    lap: int | None,
+    driver: str,
+    key: str = "",
+) -> str:
     """Policy 2.0 on the 2.0 card next to policy 1.1 on the 1.0 card, both read when
-    the car started its lap: a safety car out since then reaches them at the line."""
+    the car started its lap: a safety car out since then reaches them at the line.
+
+    When policy 2.0 says BOX, `data-box` carries the card's `key`, and the page plays
+    the sound once for each new key (`sound_head`).
+    """
     when = f", lap {lap} card, as of lap {lap - 1}" if lap else ""
+    parsed = P.parse_answer(format_answer(card_v2)) if card_v2 is not None else None
+    box = parsed is not None and parsed[0] == "BOX"
+    marker = f' data-box="{html.escape(key)}"' if box and key else ""
     return (
-        '<div class="calls">'
+        f'<div class="calls"{marker}>'
         f'<div><div class="label">Policy 2.0, card 2.0{when}</div>'
         f"{_banner(card_v2, lap, driver, '2.0')}</div>"
         f'<div><div class="label">Policy 1.1, card 1.0 (what the model reads){when}</div>'
@@ -185,8 +201,35 @@ def view(state: dict[str, Any], t: float) -> tuple[str, str, str]:
     return (
         clock_text(line, now["lap"], t),
         circle(line, driver, now, pit_window(line, driver, t)),
-        calls(card, card_v2, lap, driver),
+        calls(card, card_v2, lap, driver, f"{state['race']}|{driver}|{lap}"),
     )
+
+
+def sound_head(sound: Path = SOUND) -> str:
+    """A page script that plays `sound` once for each new BOX card of the replay.
+
+    The sound is inlined, so no file route is needed; without the file, nothing plays.
+    Browsers allow the sound after the first click on the page, such as picking a race.
+    """
+    if not sound.is_file():
+        return ""
+    data = base64.b64encode(sound.read_bytes()).decode("ascii")
+    return f"""<script>
+(() => {{
+  const sound = new Audio("data:audio/wav;base64,{data}");
+  let last = null;
+  new MutationObserver(() => {{
+    const panel = document.querySelector(".calls");
+    if (!panel) return;  // another tab: the last card is kept
+    const key = panel.dataset.box || null;
+    if (key && key !== last) {{
+      sound.currentTime = 0;
+      sound.play().catch(() => {{}});
+    }}
+    last = key;
+  }}).observe(document.documentElement, {{ childList: true, subtree: true }});
+}})();
+</script>"""
 
 
 def pick_race(race_id: str) -> tuple:

@@ -1,6 +1,6 @@
 """Model loading and observation helpers."""
 
-from .adapter import selected_adapter
+from .adapter import ADAPTER_A, ADAPTER_B, selected_adapter
 from .conversation import (
     ConversationEngine,
     ConversationEngineError,
@@ -18,6 +18,8 @@ from .loading import (
 from .observe import label_probability, next_token_probs, top_tokens
 
 __all__ = [
+    "ADAPTER_A",
+    "ADAPTER_B",
     "ConversationEngine",
     "ConversationEngineError",
     "baseline_instructions",

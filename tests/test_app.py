@@ -6,12 +6,13 @@ import copy
 import json
 from pathlib import Path
 
+import gradio as gr
 import pytest
 
 from boxbox.app import build_app, stub_respond
 from boxbox.app import layout as L
 from boxbox.app import panels as P
-from boxbox.app.session import load_upload, sample_cards, send
+from boxbox.app.session import exchange, load_upload, sample_cards, send
 from boxbox.evaluation.parsing import parse_response
 from boxbox.rules import format_answer
 
@@ -194,13 +195,17 @@ def test_upload_refuses_anything_but_one_json_object(tmp_path) -> None:
 
 def test_handlers_reset_on_card_change_reset_and_error(tmp_path) -> None:
     shown = L.show_card(card(), False)
-    assert shown[:5] == (card(), [], [], "", "") and len(shown) == 12
-    history, chat, box, problem, banner, policy = L.ask(
+    assert shown[:5] == (card(), [], [], "", "") and len(shown) == 14
+    history, chat, box, problem, banner, policy, details, cut = L.ask(
         stub_respond, 3, card(), [], "Box?", True
     )
     assert history == chat and box == "" and problem == "" and "BOX" in banner
+    assert "format: yes" in details and "no earlier exchange" in details
+    assert cut is False and "may be cut" not in banner
     assert policy["visible"] is True and "Matches the rule" in policy["value"]
-    assert L.clear(card(), False)[:3] == ([], [], "")
+    assert L.clear(card(), False)[:3] == ([], [], "") and L.clear(card(), False)[
+        -2:
+    ] == ("", False)
 
     def broken(current, history, message):
         raise RuntimeError("timeout")
@@ -212,7 +217,7 @@ def test_handlers_reset_on_card_change_reset_and_error(tmp_path) -> None:
     wrong.write_text("[]")
     with pytest.warns(UserWarning, match="one JSON object"):
         refused = L.upload_card(str(wrong), False)
-    assert len(refused) == 13 and "one JSON object" in refused[4]
+    assert len(refused) == 15 and "one JSON object" in refused[4]
 
 
 def test_picker_and_app_build() -> None:
@@ -278,3 +283,75 @@ def test_picking_and_uploading_keep_the_picker_honest(tmp_path) -> None:
     uploaded = L.upload_card(str(good), False)
     assert uploaded[0] == card() and uploaded[-1]["value"] is None
     assert "uploaded file on screen" in uploaded[-1]["label"]
+
+
+def trace(**fields) -> dict:
+    """The fields of a ConversationEngine trace that the details line reads."""
+    return {
+        "duration_seconds": 9.43,
+        "input_tokens": 812,
+        "generated_tokens": 64,
+        "stop_condition": "max_new_tokens",
+        "generation_settings": {"explicit_overrides": {"max_new_tokens": 64}},
+        "history": {"retained_turns": 3},
+    } | fields
+
+
+def test_an_engine_trace_reaches_the_details_line() -> None:
+    answer = format_answer(card())
+
+    def traced(current, history, message):
+        return answer, trace()
+
+    history, problem, seen = exchange(card(), [], "Box?", traced, turns=3)
+    assert problem is None and history[-1]["content"] == answer and seen == trace()
+    assert send(card(), [], "Box?", traced, turns=3)[0] == history
+    assert exchange(card(), [], "Box?", stub_respond, turns=3)[2] is None
+    line = P.answer_details(answer, 5, 3, trace())
+    assert "Strict CALL/WHY format: yes" in line and "9.4 s" in line
+    assert "812 input tokens" in line and "64 of 64 new tokens" in line
+    assert "stop: token limit" in line and "history sent: 3 of 5 earlier" in line
+    assert "stop: end of answer" in P.answer_details(
+        answer, 0, 0, trace(stop_condition="eos_token")
+    )
+
+
+def test_details_line_without_a_trace_and_after_an_error() -> None:
+    assert P.answer_details(None, 0, 0, None) == ""
+    line = P.answer_details("Sure, box now.", 1, 1, None)
+    assert "format: no" in line and "history sent: 1 earlier exchange" in line
+    assert " s ·" not in line  # the stub has no generation to describe
+
+    def broken(current, history, message):
+        raise RuntimeError("timeout")
+
+    with pytest.warns(UserWarning, match="timeout"):
+        kept = L.ask(broken, 3, card(), [], "Why?", False)
+    assert kept[-2] == gr.skip()  # the line keeps describing the last good answer
+
+
+def test_a_cut_answer_warns_on_the_banner_until_the_next_answer() -> None:
+    answer = format_answer(card())
+    assert "may be cut" in P.banner(answer, cut=True)
+    assert "may be cut" in P.banner("CALL: BOX", cut=True)  # also on a format failure
+    assert "may be cut" not in P.banner(answer)
+
+    def cut_engine(current, history, message):
+        return answer, trace(possibly_truncated=True)
+
+    out = L.ask(cut_engine, 3, card(), [], "Box?", False)
+    assert "may be cut" in out[4] and out[-1] is True
+
+    def broken(current, history, message):
+        raise RuntimeError("timeout")
+
+    with pytest.warns(UserWarning, match="timeout"):
+        kept = L.ask(broken, 3, card(), out[0], "Why?", False, True)
+    assert "may be cut" in kept[4] and kept[-1] is True  # the last answer is still cut
+
+    def whole_engine(current, history, message):
+        return answer, trace(possibly_truncated=False, stop_condition="eos_token")
+
+    after = L.ask(whole_engine, 3, card(), out[0], "Why?", False, True)
+    assert "may be cut" not in after[4] and after[-1] is False
+    assert L.toggle(card(), out[0], True)[1] == gr.skip()  # the banner is left alone

@@ -161,8 +161,21 @@ The Gradio pit-wall screen opens in the browser:
     .venv/bin/python -m boxbox.app
 
 Started this way, the screen answers with a stub that returns the rule's
-answer, and it says so. The notebook (see section 6 of this guide) launches the
-same screen with adapter A in its section 7, connected in task 2.8.
+answer, and it says so. -A or -B answers with SmolLM3-3B and the selected
+adapter A or B instead, with its training prompt and decoding:
+
+    .venv/bin/python -m boxbox.app -B
+
+The adapter comes from its local run folder or from the private Hub repo
+recorded in configs/adapter-a-selection.json or adapter-b-selection.json, and
+is refused if its hash differs. With -A or -B, the badge names the seed,
+epoch and hash of the adapter, and a line under the call gives the format
+check, the generation time, the tokens, why generation stopped and how much of
+the conversation was sent. A warning on the call says when the token or
+time limit may have cut the answer. On the Replay tab, boxbox.wav in the
+project folder plays on each new card whose policy 2.0 call is BOX. The
+notebook (see section 6 of this guide)
+launches the same screen with adapter A in its section 7, connected in task 2.8.
 
 The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
 4.0, see data/demo/NOTICE). They come from validation races and are rebuilt
