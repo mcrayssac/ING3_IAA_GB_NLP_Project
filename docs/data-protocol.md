@@ -1,6 +1,6 @@
 # Data protocol (task 2.1)
 
-The rebuild turns historical race timing into race cards in the 1.0 shape of `docs/race-card-contract.md`, and freezes the race-level splits before any dialogue is generated. The sections up to the rebuild of 18 October 2026 cover the v1 data behind the frozen study, 1.0 cards and `data/splits.json`. The card table gives the current rules and notes the earlier ones under it. The Experimental milestone added a second version on `main-experimental`, described in "Data v2 (Experimental milestone)" at the end.
+The rebuild turns historical race timing into race cards in the 1.0 shape of `docs/race-card-contract.md`, and freezes the race-level splits before any dialogue is generated. The sections up to the rebuild of 18 October 2026 cover the v1 data behind the frozen study, 1.0 cards and `data/splits.json`. The card table gives the current rules and notes the earlier ones under it. The Experimental milestone added a second version, described in "Data v2 (Experimental milestone)" at the end.
 
 ## Source
 
@@ -21,7 +21,7 @@ python -m scripts.rebuild_data cards
 python -m pytest tests/test_data.py
 ```
 
-`splits` writes `data/splits.json` once and refuses to overwrite it. `card` prints one card and its SHA-256 for the double-rebuild check. `cards` writes one JSONL file per race and `data/cards/manifest.json`. A failed request raises `DataUnavailableError`, whatever the network error. `cards` records the race under `failures`, and every command exits with code 2. On `main-experimental`, `cards` builds with the corrected track status and no longer gives the frozen cards (see Data v2).
+`splits` writes `data/splits.json` once and refuses to overwrite it. `card` prints one card and its SHA-256 for the double-rebuild check. `cards` writes one JSONL file per race and `data/cards/manifest.json`. A failed request raises `DataUnavailableError`, whatever the network error. `cards` records the race under `failures`, and every command exits with code 2. Since the Experimental milestone, `cards` builds with the corrected track status and no longer gives the frozen cards (see Data v2).
 
 ## Splits
 
@@ -33,7 +33,7 @@ Later tasks read cards only through `boxbox.data.load_cards(split, config)`. It 
 
 A card is a snapshot at the start of lap L, so every value comes from laps up to L - 1, the cutoff.
 
-The table describes the code on `main-experimental`, which includes the track-status rewrite of the Experimental milestone (`docs/4bis-decisions.md`, D3). The frozen cards were built on `main` with the earlier rules: `total_laps` was the race's last lap in OpenF1, the status was read at the end of the leader's lap L - 1, a SC or VSC ran from the lap it was deployed to the lap it came in, and pit loss and reference lap used the green stops and clean green laps completed by L - 1.
+The table describes the current code, which includes the track-status rewrite of the Experimental milestone (`docs/4bis-decisions.md`, D3). The frozen cards were built with the earlier rules, at commit `631b783` and before: `total_laps` was the race's last lap in OpenF1, the status was read at the end of the leader's lap L - 1, a SC or VSC ran from the lap it was deployed to the lap it came in, and pit loss and reference lap used the green stops and clean green laps completed by L - 1.
 
 | Field | How it is computed |
 |---|---|
@@ -117,7 +117,7 @@ The calls are counted with policy 1.1 (per-compound tyre ages). In `train`, NO C
 
 ## Data v2 (Experimental milestone)
 
-The Experimental milestone (4 bis, 22 October 2026) rebuilt the race data on `main-experimental`, outside the submitted study. `docs/4bis-decisions.md` gives the reason for each choice below.
+The Experimental milestone (4 bis, 22 October 2026) rebuilt the race data, outside the freeze of the A/B study. `docs/4bis-decisions.md` gives the reason for each choice below.
 
 ### Sources
 
@@ -154,7 +154,7 @@ Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D
 
 ### Current rebuild
 
-On `main-experimental`, `rebuild_data cards` gives 65,656 1.0 cards instead of the 65,904 of 18 October. With the corrected track status, 16 races get their real distance back and lose their last-lap cards, and in `train` 875 NO CALL cards become STAY OUT (D3). `rebuild_data cards-v2` gives 90,868 2.0 cards for the 87 races, none of them malformed, and 6,098 of them are WET.
+`rebuild_data cards` gives 65,656 1.0 cards instead of the 65,904 of 18 October. With the corrected track status, 16 races get their real distance back and lose their last-lap cards, and in `train` 875 NO CALL cards become STAY OUT (D3). `rebuild_data cards-v2` gives 90,868 2.0 cards for the 87 races, none of them malformed, and 6,098 of them are WET.
 
 ### Gap check
 
@@ -162,4 +162,4 @@ On `main-experimental`, `rebuild_data cards` gives 65,656 1.0 cards instead of t
 
 ### Frozen 1.0 cards
 
-The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from `main`. On `main-experimental`, `rebuild_data cards` overwrites `data/cards/` with the corrected cards, so do not run it there when you need the frozen ones.
+The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the Experimental milestone was merged. From a later commit, `rebuild_data cards` overwrites `data/cards/` with the corrected cards, so do not run it there when you need the frozen ones.

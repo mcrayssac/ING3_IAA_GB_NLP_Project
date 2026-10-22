@@ -101,7 +101,7 @@ We test deterministic code: rules, data, splits and the evaluator. Tests use sma
 
 ## Git
 
-- `main` holds the submitted study. `main-experimental` is the integration branch of the Experimental milestone.
+- `main` holds the whole project. `main-experimental` was the integration branch of the Experimental milestone, merged into `main` in PR #69.
 - one branch per issue, named after its task ID, for example `2.1-race-cards`
 - each Experimental task has its own branch, for example `4bis.1-data-v2`, merged through `4bis-experimental` into `main-experimental`
 - a pull request reviewed by another member before any merge into `main`

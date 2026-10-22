@@ -34,11 +34,11 @@ rebuild makes 286 requests, one every 2.1 s at OpenF1's free rate, so at least
     .venv/bin/python -m scripts.rebuild_data cards
     .venv/bin/python -m scripts.rebuild_data card --race 2024-01 --driver 1 --lap 20
 
-On branch main-experimental, the cards command rebuilds the 1.0 cards with the
-corrected track status of the Experimental milestone (last section): 65,656
-cards instead of the 65,904 of 18 October, and 16 races get their real
-distance back. The frozen corpus and results were built from the cards of 18
-October, so those can be rebuilt exactly from main only. Do not run this
+The cards command rebuilds the 1.0 cards with the corrected track status of
+the Experimental milestone (last section): 65,656 cards instead of the 65,904
+of 18 October, and 16 races get their real distance back. The frozen corpus and
+results were built from the cards of 18 October, which only commit 631b783 (the
+last commit before the milestone was merged) rebuilds exactly. Do not run this
 command over a data/cards/ folder you still need.
 
 The splits were made once with the command below, which refuses to overwrite
@@ -168,7 +168,7 @@ with:
 
     .venv/bin/python -m scripts.demo_cards
 
-On branch main-experimental the screen has two tabs. The Card tab is the
+The screen has two tabs. The Card tab is the
 screen above. The Replay tab (task 4bis.3) plays a race back on a circle
 against a race clock, at x1, x2 or x4, and "Jump to lap" moves the clock. For
 the chosen driver it shows the policy 2.0 call on the 2.0 card next to the
@@ -465,11 +465,11 @@ Do not edit the sheet in a spreadsheet application; use the page and its CSV exp
 Experimental milestone (4 bis)
 ------------------------------
 
-Branch main-experimental adds the 2026 season, track status read from
+The Experimental milestone adds the 2026 season, track status read from
 race-control timestamps, 2.0 race cards, policy 2.0 (calls under a safety car,
-a virtual safety car and rain) and the Replay tab (section 8). The submitted
-study stays on main: its frozen versions and results are not re-run, and the
-freeze check still passes:
+a virtual safety car and rain) and the Replay tab (section 8). The frozen
+versions and results of the study are not re-run, and the freeze check still
+passes:
 
     .venv/bin/python -m scripts.freeze check
 

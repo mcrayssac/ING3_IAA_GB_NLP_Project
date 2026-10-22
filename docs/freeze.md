@@ -37,12 +37,12 @@ The record also keeps the time (Europe/Paris), the commit, the decision and acce
 
 ## Experimental milestone
 
-The freeze covers the submitted study. The Experimental milestone, on `main-experimental`, edits none of the sealed files:
+The freeze covers the A/B study. The Experimental milestone, merged into `main` in PR #69, edits none of the sealed files:
 
 - `boxbox.rules.decide` now goes through `policy2.decide`. It sends 2.0 cards to policy 2.0 and leaves every 1.0 card to the sealed policy 1.1 in `boxbox/rules/decision.py`, which gives the same calls as before.
 - The 2.0 files (cards, priors, policy 2.0, replay) and `data/splits-v2.json` sit outside the freeze.
 - `python -m scripts.freeze check` still reports "freeze intact".
-- On `main-experimental`, `python -m scripts.rebuild_data cards` rebuilds the 1.0 cards with the corrected track status: 65,656 cards instead of 65,904. The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from `main`.
+- `python -m scripts.rebuild_data cards` now rebuilds the 1.0 cards with the corrected track status: 65,656 cards instead of 65,904. The 1.0 cards behind the frozen corpus and results can be rebuilt exactly only from commit `631b783`, the last commit before the merge.
 
 ## Known limits carried into the final evaluation
 

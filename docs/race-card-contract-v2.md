@@ -1,6 +1,6 @@
 # Race-card contract 2.0 and decision policy 2.0 for the Experimental milestone (4 bis)
 
-Card 2.0 keeps every field of card 1.0 (`docs/race-card-contract.md`) and adds track conditions, tyre wear and the neighbours' tyres. Policy 2.0 gives calls under a safety car, a virtual safety car and rain, and it adds the undercut. `decide(card)` reads `schema_version`: a 1.0 card still gets policy 1.1, and a 2.0 card gets policy 2.0 (`boxbox/rules/policy2.py`). Card 2.0 and policy 2.0 live on branch `main-experimental`, and the frozen 1.0 contract stays unchanged. The policy is still a stated rule set. Agreeing with it shows consistency, not the best real strategy, and `scripts/reality_check.py` measures how often it matches what teams did.
+Card 2.0 keeps every field of card 1.0 (`docs/race-card-contract.md`) and adds track conditions, tyre wear and the neighbours' tyres. Policy 2.0 gives calls under a safety car, a virtual safety car and rain, and it adds the undercut. `decide(card)` reads `schema_version`: a 1.0 card still gets policy 1.1, and a 2.0 card gets policy 2.0 (`boxbox/rules/policy2.py`). The frozen 1.0 contract stays unchanged. The policy is still a stated rule set. Agreeing with it shows consistency, not the best real strategy, and `scripts/reality_check.py` measures how often it matches what teams did.
 
 ## New and changed fields
 

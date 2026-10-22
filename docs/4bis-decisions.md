@@ -1,6 +1,6 @@
 # Experimental milestone (4 bis) decisions
 
-The Experimental milestone (4 bis) widens the race data and makes it match what happened on track. It sits outside the submitted study, on branch `main-experimental`, cut from `main` after task 4.4. The work was done on branch `4bis-experimental` with the task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2`, then merged into `main-experimental`. The submitted results stay reproducible from `main`. Each decision below says what we chose, why, and how we check it.
+The Experimental milestone (4 bis) widens the race data and makes it match what happened on track. It sits outside the freeze of the A/B study. It was built on branch `main-experimental`, cut from `main` after task 4.4. The work was done on branch `4bis-experimental` with the task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2`, then merged into `main-experimental` and from there into `main` ([PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69)). The results of the study do not depend on it, and the 1.0 cards of the study rebuild exactly only from commit `631b783`. Each decision below says what we chose, why, and how we check it.
 
 ## D1. The 2026 season is included
 
