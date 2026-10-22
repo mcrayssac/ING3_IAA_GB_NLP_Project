@@ -413,6 +413,16 @@ task 4.4. The complete 1,940-file handover archive is 4.2-final-delivery.zip
 The archive contains the run, code, tests and audit evidence; it is stored
 outside Git and should be copied intact.
 
+Paired gains and uncertainty (4.4)
+----------------------------------
+With the 4.2 run folder copied intact into runs/, compute the paired contrasts
+of protocol 1.1.0 (A minus baseline and B minus A, plus B minus baseline as
+exploratory) with the whole-race bootstrap (seed 2026, 10,000 draws):
+  .venv/bin/python -m scripts.final_analysis run --run-dir runs/4-2-final-50067b54741c-49b4aea370af
+The script checks the freeze, the run's completion record and its cases before
+reading any output, and writes a new runs/<date>_4-4-final-analysis folder.
+docs/final-analysis.md gives the tables and the reading, and
+docs/final-analysis-evidence.json every measure with its interval.
 Human review (4.3)
 ------------------
 Copy review/review.csv from the 4.2 run to a folder outside the repository, then
