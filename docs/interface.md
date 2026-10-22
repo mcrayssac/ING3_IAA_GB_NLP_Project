@@ -6,7 +6,7 @@ The Gradio app in `boxbox/app/` is a pit-wall screen. It shows one race card bes
 
 BoxBox is for pit strategists and paddock team members who debrief or train on completed races. The team agreed this audience on 19 October (#10). It replaces the earlier content creators and analysts.
 
-The Card tab keeps the scope of `docs/race-card-contract.md`: one car, one lap of a completed dry race, policy 1.1. The Replay tab adds policy 2.0 from `docs/race-card-contract-v2.md`, which also gives calls under a safety car, a virtual safety car and rain. Live races, forecasts, multi-stop plans, betting and team radio stay out, because the cards and the model only know historical laps.
+The Card tab keeps the scope of `docs/race-card-contract.md`: one car, one lap of a completed dry race, policy 1.1. The Replay tab adds policy 2.0 from `docs/race-card-contract-v2.md`, which also gives calls under a safety car, a virtual safety car and rain. Live races, forecasts, multi-stop plans, betting and team radio stay out, because the cards and the model only know historical laps. The assistant still answers NO CALL to a forecast question. The Replay tab shows an archived weather forecast as context for the person watching, and no card or call reads it.
 
 The screen shows only what the model saw, with two exceptions: the policy check on the Card tab, which is off until the user turns it on, and the Replay tab, which shows the whole field and the policy 2.0 call on a 2.0 card, which the trained model has never read.
 
@@ -143,15 +143,49 @@ A toggle under the banner, off by default.
 
 ## Replay tab (Experimental milestone)
 
-A second tab plays a race back on the circle as if from the pit wall. It shows more than one card, so it is the second exception to "only what the model saw", and it never shows anything timed after its clock.
+A second tab plays a race back on the circle as if from the pit wall. It shows more than one card, so it is the second exception to "only what the model saw". The circle, the calls and the running order never read anything timed after the clock. The flags, the pit lane and the forecast follow the rules below.
 
-- Pickers: a race from the open splits of `data/splits-v2.json` (2023 to 2026, without `final` and `test_2026`), then a driver, listed by acronym and number.
-- Controls: Play, Pause, speeds x1, x2 and x4, and "Jump to lap", which moves the clock to the leader's start of that lap, never before the whole field has crossed the line once. The race can be picked with the mouse or the keyboard, and the same lap can be jumped to again.
-- Clock line: local time at the track, elapsed race time, the race lap (the lap after the latest one anyone completed, so it holds during a suspension) and the track status at the clock. A red flag lasts until the race resumes.
-- Circle: the selected car on top, every other car placed by time gap from its line crossings and the sector times of the faster of its last two laps, so an out-lap does not slow the next prediction. Under a SC or VSC the prediction is scaled by the field's latest pace, so a safety car does not pile cars on the line; under green it is not. Cars wear their team colour from OpenF1 and their acronym; when cars bunch up, only labels far enough apart are drawn and the others keep their dot. The readout and the screen-reader label name the nearest car ahead and behind, in seconds.
-- Pit window: a yellow arc from one pit loss to one pit loss plus 2.0 s behind the car, for the track status at the clock. While that condition is the card's own, the arc uses the card's pit loss, the one its call uses. It moves the moment a safety car comes out, before the next card, and it disappears under a red flag. Without a card for the lap, the surface comes from the driver's latest card. A readout under the circle names the condition and the seconds.
-- Call: policy 2.0 on the 2.0 card. The label gives the card's lap. Policy 1.1 on the 1.0 card, which is what the trained model reads, stays on the Card tab. A lap's card appears once the car behind and the cars it counts in its pit window have crossed the line, as on a timing screen; until then the previous card stays up. A safety car that came out during the lap reaches the calls at the next card. A car that has stopped running shows no card.
-- Sound: when the policy 2.0 call is BOX, the calls panel (`data-sound="replay"`) carries `data-box` with the race, driver and lap of the card. On the Card tab, the banner (`data-sound="card"`) carries `data-box` with the number of exchanges when the latest answer's CALL is BOX, so an engine error that shows the same answer again does not replay it. A page script from `sound_head`, added by `launch`, plays `boxbox.wav` from the working directory once for each new key of each panel: the same card shown again, a tab change or a pause does not play it twice, and a STAY OUT or NO CALL in between lets the next BOX card play it again. The sound is inlined in the page, so no file route is opened. Without the file, nothing plays. Browsers allow it after the first click on the page, such as picking a race.
+```text
++----------------------------------------------------------------------------+
+| Race                Driver      [ Play ] (x1)(x2)(x4)          Lap 7 / 50 |
+| [2024 Las Vegas v]  [RUS (63) v] Jump to lap [===o--------] 7   0:09:34    |
+|                                                                 20:13:33   |
++-------------------+--------------------------+-----------------------------+
+| TRACK             | WEATHER NOW              | ARCHIVED FORECAST           |
+| [SC] Safety car   | (moon) Clear night       | 20:15, in 1 min  24°C 0.0mm |
+| Yellow in 14, 15  | Air 26°C Track 32°C ...  | 20:30, in 16 min ...        |
++-------------------+--------------------------+-----------------------------+
+| [1] VER  Red Bull Racing  (M) Medium, 6 laps | Pos  Car      Gap   Int Tyre |
+| STAY OUT                                     | 1    1 VER   Leader     (M) 6|
+| WHY ...                                      | 2   11 PER   +2.6  +2.6 (M) 6|
+|            ( circle of doom )                | 3   16 LEC   +4.1  +1.5 (M) 6|
+| PER 2.8 s behind. SC pit window 15.1 to ...  | ...                          |
+| 1 turn = 95 s, ticks every 10 s              |                              |
++----------------------------------------------+------------------------------+
+```
+
+- Control bar: one panel holds the race picker, the driver picker, one Play button, the speed (x1, x2 or x4), "Jump to lap" and the clock. Races come from the open splits of `data/splits-v2.json` (2023 to 2026, without `final` and `test_2026`), and drivers are listed by acronym and number. The tab opens on Las Vegas 2024 with RUS (63), paused at the end of lap 1, and loads that race when the page opens.
+- Play button: it says what a click does. Play starts the clock and the button then reads Pause; at the flag the replay pauses and it reads Play again.
+- "Jump to lap" runs from lap 1 to the last lap of the race and follows the race lap while the replay plays. It changes only when the lap changes, so a drag under way is not pulled back. Typing or dragging a lap moves the clock to the leader's start of that lap, never before the whole field has crossed the line once; a lap typed digit by digit keeps what was typed. The race can be picked with the mouse or the keyboard, and the same lap can be jumped to again.
+- Clock: the race lap in large type, which is the lap after the latest one anyone completed, so it holds during a suspension, then the elapsed race time and the local time at the track.
+- Track tile: the flag at the clock with its icon and its word. CHEQUERED once the leader has crossed the line at the end, then RED, SC or VSC while one runs (a red flag lasts until the race resumes), then DOUBLE YELLOW or YELLOW while a sector is under yellow, else GREEN. The tile lists the yellow sectors, which are marshal sectors, not the three timing sectors. A blue flag waved at the chosen driver shows for 10 s.
+- Weather tile: the latest OpenF1 reading at the clock (air and track temperature, humidity, wind). The icon is rain when the reading says rain, else the sky of the archived forecast step under way, else unknown.
+- Forecast tile: for +5, +15 and +30 minutes, the nearest Open-Meteo step strictly after the clock, with its own time ("20:30, in 16 min"), its temperature and its rain in the 15 minutes before it. Steps are 15 minutes apart, so +5 is the next step. Two horizons that land on the same step show it once. The tile credits "Weather data by Open-Meteo.com" with a link, as its CC BY 4.0 licence asks. Without the data it says "Forecast unavailable" and the rest of the tab keeps working.
+- Driver tile: the chosen car's number in its team colour, its acronym and team, and the tyre of the lap it is driving, with the compound icon and the laps done on that set. Right after the car crosses the line in the pit lane, the tile shows the new set.
+- Call panel: policy 2.0 on the 2.0 card, with the card's lap in the label. Policy 1.1 on the 1.0 card, which is what the trained model reads, stays on the Card tab. A lap's card appears once the car behind and the cars it counts in its pit window have crossed the line, as on a timing screen; until then the previous card stays up. A safety car that came out during the lap reaches the calls at the next card. In order, the panel shows:
+  - IN PIT while the car is in the pit lane, which replaces a BOX card left over from the in-lap;
+  - OUT LAP from the lane exit until the card of the next lap shows, since no 2.0 card exists for a lap that starts in the pit lane;
+  - RETIRED once the car has stopped running;
+  - NO CARD on a lap without a 2.0 card (the final lap, missing timing);
+  - else BOX, STAY OUT or NO CALL, each in its own colour.
+- BOX: the banner fills with the BOX colour and blinks three times, once a second, then stays filled. A new BOX card blinks again, since odd and even laps swap the animation. With reduced motion set in the system, it does not blink, and the fill and the word BOX remain.
+- Circle: the selected car on top, every other car placed by time gap from its line crossings and the sector times of the faster of its last two laps, so an out-lap does not slow the next prediction. Under a SC or VSC the prediction is scaled by the field's latest pace, so a safety car does not pile cars on the line; under green it is not. Each dot wears its team colour from OpenF1 and the car number in black or white, whichever reads better on it, and the acronym beside it. When cars bunch up, only labels far enough apart are drawn and the others keep their dot. A car in the pit lane has a dashed outline and "PIT" after its acronym. On its out-lap the car waits at the line in the estimate for the pit loss at the clock, less what its in-lap already lost, since the pit lane runs beside the line; it then moves on at its race pace instead of running ahead and jumping back at its next crossing. The readout and the screen-reader label name the nearest car ahead and behind, in seconds, and the cars in the pit lane.
+- Circle scale: one turn is the field's median lap time, or less while the field is close. It is 2.2 times the larger of two reaches, the farthest car ahead or behind and the rejoin point (pit loss plus 2.0 s), rounded up to 5 s, and never more than the lap. The farthest car then sits at about 164 degrees at most, so no car falls off the ring. Ticks mark every 5 s up to a 60 s turn and every 10 s above, and the readout says "1 turn = 37 s, ticks every 5 s". One car far behind, such as a car stopped on track before it counts as stopped, keeps the ring at a full lap.
+- Pit window: a yellow arc from one pit loss to one pit loss plus 2.0 s behind the car, for the track status at the clock, on the same scale as the dots. Its "rejoin" label sits further inside the ring than on the Card tab, clear of the larger dots. While that condition is the card's own, the arc uses the card's pit loss, the one its call uses. It moves the moment a safety car comes out, before the next card, and it disappears under a red flag. Without a card for the lap, the surface comes from the driver's latest card. The readout names the condition and the seconds.
+- Running order: a table beside the circle, on the same estimate as the circle, so the two always agree on who is ahead. Cars are ordered by laps covered, updated every tick and set again at each line crossing. The gap to the leader and the interval to the car ahead are the circle's time gaps, or "+1 LAP" once a car has covered a lap more. The circle is a loop of one lap around the chosen car, so a car more than half a lap behind shows ahead on it while the table counts the lap. Each row has the team colour as a stripe, the number, the acronym, a PIT badge in the pit lane and the tyre icon with its age. Stopped cars come last and read OUT; under a red flag no car counts as stopped. The chosen car's row is marked and announced as current. A "?" marks a gap with a hole in the timing.
+- Sound: when the policy 2.0 call is BOX, the calls panel (`data-sound="replay"`) carries `data-box` with the race, driver and lap of the card. On the Card tab, the banner (`data-sound="card"`) carries `data-box` with the number of exchanges when the latest answer's CALL is BOX, so an engine error that shows the same answer again does not replay it. A page script from `sound_head`, added by `launch`, plays `boxbox.wav` from the working directory once for each new key of each panel: the same card shown again, a tab change or a pause does not play it twice, and a STAY OUT or NO CALL in between lets the next BOX card play it again. Gradio edits a panel in place, so the script also watches the `data-box` attribute: a call that turns to BOX may change nothing else on the page. The sound is inlined in the page, so no file route is opened. Without the file, nothing plays. Browsers allow it after the first click on the page, such as picking a race.
+- Icons: flags, tyres and the sky are drawn in SVG in `boxbox/app/icons.py`, so no image file or licence comes with them, and the tyres carry no maker's logo. Each icon is hidden from screen readers and sits next to its word, or next to text kept for screen readers in the forecast and the running order.
+- Speed: each panel is its own HTML output. Gradio edits each one in place and skips one that has not changed, so per tick the circle changes, the running order changes at crossings and the other panels rarely. The render takes about 3 ms per tick on the server.
 - The model's chat is not on this tab until adapters are trained on 2.0 cards.
 
 ## Appearance and colour
@@ -167,11 +201,13 @@ The screen follows the system light or dark setting, with no switch of its own. 
 | STAY OUT | `#1d4ed8` (6.7:1) | `#60a5fa` (5.8:1) | STAY OUT call |
 | NO CALL | `#475569` (7.6:1) | `#9aa0a6` (5.5:1) | NO CALL call |
 | window | `#b08600` (3.4:1) | `#facc15` (9.6:1) | replay pit window |
+| pit | `#6d28d9` (7.1:1) | `#a78bfa` (5.4:1) | replay IN PIT and OUT LAP, PIT badges |
+| on-call | `#ffffff` (5.0:1 on BOX) | `#0f172a` (7.3:1 on BOX) | text on the filled BOX banner |
 
 Each colour keeps one meaning:
 
 - The three call colours appear only for a call: the banner and the policy check.
-- Flag and Pirelli colours appear only in the chip dots.
+- Flag and Pirelli colours appear in the chip dots and in the replay's flag and tyre icons, each beside its word. INTERMEDIATE is `#43b02a` and WET `#0067ad`. A yellow flag or a white band has a ring outline, since yellow on white is 1.5:1.
 - Actions such as Send use neutral slate, white on slate at 4.8:1 in light and 7.6:1 in dark.
 - Charts and the unknown-row tint are neutral.
 - On the Replay tab, car dots take the team colour that OpenF1 gives, with no dark variant. Each dot keeps the ink outline and its acronym, so a colour close to a call colour or to the background is never the only cue.
@@ -210,8 +246,10 @@ A collapsed accordion at the bottom of the screen holds:
 | `boxbox/app/session.py` | `stub_respond`, `sample_cards`, `exchange` (one exchange with the bounded history, and the engine's trace when it returns one), `send` (the same without the trace), `load_upload` and `latest_answer`. |
 | `boxbox/app/layout.py` | The colour tokens, the event handlers (`show_card`, `pick_card`, `upload_card`, `ask`, `clear`, `toggle`, `busy`, `ready`), `history_line` for the status line, `build_app(respond, engine, cards, turns)` for the layout and wiring, and `launch`, which adds the theme. |
 | `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser with the rule stub; `-A` or `-B` loads SmolLM3-3B with that selected adapter, as in the notebook; `-O` starts the pinned OpenJev server of task 3.4 and stops it on exit. |
-| `boxbox/app/replay.py` | The Replay tab: `race_choices` (races of the open splits of `data/splits-v2.json`), `clock` and `clock_text`, `circle`, `calls` (the policy 2.0 call, with the `data-box` marker), `sound_head`, `view`, the handlers `pick_race`, `pick_driver`, `jump`, `play`, `pause`, `set_speed` and `tick`, and `replay_tab`, which builds the tab. |
-| `boxbox/data/replay.py` | `Timeline` and `load_timeline`, which rebuilds the race's 1.0 and 2.0 cards in memory from OpenF1 data in `data/cache/openf1`, then `progress`, `gap`, `pace`, `race_lap`, `frame`, `cards_at`, `status_now` and `pit_window`. Every value at clock t comes from data timed at or before t. |
+| `boxbox/app/replay.py` | The Replay tab: `race_choices` (races of the open splits of `data/splits-v2.json`), `DEFAULT` and `open_default` (the race and driver the tab opens on), `clock` and `clock_text`, `status_strip` (flag, weather and forecast tiles), `turn` (the ring scale) and `circle`, `call_state` and `calls` (the panel state and the policy 2.0 call, with the `data-box` marker), `driver_tile`, `standings_table`, `sound_head`, `view`, the handlers `pick_race`, `pick_driver`, `jump`, `toggle` (the Play button), `pause`, `set_speed` and `tick`, `_follow` (the lap slider on the race lap), and `replay_tab`, which builds the tab and returns the load that opens it. |
+| `boxbox/app/icons.py` | SVG icons: `flag`, `tyre`, `weather`, and `sky`, which turns a WMO weather code into an icon. |
+| `boxbox/data/replay.py` | `Timeline` and `load_timeline`, which rebuilds the race's 1.0 and 2.0 cards in memory from OpenF1 data in `data/cache/openf1`, then `progress`, `gap`, `pace`, `race_lap`, `frame`, `cards_at`, `status_now`, `pit_window`, `flags_at`, `pit_state`, `tyre_at` and `standings`. The circle, the cards and the running order read only data timed at or before the clock. |
+| `boxbox/data/openmeteo.py` | `circuit_location` from the Jolpica schedule, `load_forecast` (the archived 15-minute forecast through `data/cache/open-meteo`, or None) and `forecast_at`, which picks the steps after the clock. |
 | `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
 - The footer shows only "Built with Gradio". The API link, the run history and Gradio's telemetry are off, and every event is private to the screen.
@@ -256,6 +294,15 @@ Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the n
 - the clock from wall time, its stop at the flag, a start once every car has crossed, and a jump to the leader starting the lap
 - both cards of the lap, a card that waits for the car behind to cross, and no card for a stopped car
 - the pit window following the track status at the clock
-- team colours and acronyms, and bunched cars that keep their dots but not all their labels
+- team colours, numbers and acronyms, and bunched cars that keep their dots but not all their labels
+- the ring zoom (`turn`) and the black or white number on a team colour
+- sector yellows that clear or go stale, the SC over them, the chequered flag and a blue flag for one driver
+- the pit lane then the out-lap, the new tyre on the out-lap, and pit windows with and without pit data
+- the running order with a lapped car and a stopped car, which also reads nothing after the clock, a slow lap without pit data, and a car on its out-lap that waits at the line on the circle and in the table
+- the lap slider that follows the race lap, a jump to the last lap or from a typed 1, and the default driver when it raced
+- the call panel's IN PIT, OUT LAP, RETIRED and NO CARD states, and the odd and even BOX blink
+- the icon picked for each weather code
+
+`tests/test_openmeteo.py` checks that the forecast is read through the cache, returns None without cache or network, and that a forecast step always comes after the clock.
 
 The browser walkthrough runs on the synthetic and real cards, in light and dark, before review.

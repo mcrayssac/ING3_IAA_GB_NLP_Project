@@ -14,6 +14,7 @@ boxbox/                    Python package
     tyres.py               tyre degradation per compound (4bis.1)
     priors.py              priors from earlier train races (4bis.1)
     replay.py              where each car is at a clock time, for the replay (4bis.3)
+    openmeteo.py           archived weather forecast at the circuit, for the replay
   rules/                   card contract and rule engine (1.4)
     policy2.py             policy 2.0 for 2.0 cards, policy 1.1 for the rest (4bis.2)
   corpus/                  training dialogues, A and B variants (2.2, 3.1)
@@ -22,6 +23,7 @@ boxbox/                    Python package
   evaluation/              scores, rubric sheets, paired statistics (2.3b, 4.x)
   app/                     Gradio interface (2.4), specs in docs/interface.md
     replay.py              Replay tab (4bis.3)
+    icons.py               SVG flags, tyres and weather icons of the Replay tab
 configs/                   one TOML file per experiment
 scripts/rebuild_data.py    rebuilds the race data from the command line
 scripts/reality_check.py   agreement of a policy with the teams' real stops (4bis.2)

@@ -197,16 +197,23 @@ with:
 
 The screen has two tabs. The Card tab is the
 screen above. The Replay tab (task 4bis.3) plays a race back on a circle
-against a race clock, at x1, x2 or x4, and "Jump to lap" moves the clock. For
-the chosen driver it shows the policy 2.0 call on the 2.0 card, and the pit
-window follows the track status
-at the clock. The tab has no chat. The race list holds the races of the open
-splits of data/splits-v2.json, so final and test_2026 stay out. Choosing a
-race rebuilds its cards in memory in a few seconds. The tab needs:
+against a race clock, at x1, x2 or x4. It opens on Las Vegas 2024 with RUS (63).
+One bar holds the pickers, a Play/Pause button, the speed, "Jump to lap" (which
+follows the race lap) and the clock. For the chosen driver it shows the policy
+2.0 call on the 2.0 card, or IN PIT and OUT LAP around a stop, its tyre, and a
+pit window that follows the track status at the clock. Around the circle it
+shows the flag, the weather, an archived forecast and the running order. The
+tab has no chat. The race list holds the races of the open splits of
+data/splits-v2.json, so final and test_2026 stay out. Choosing a race rebuilds
+its cards in memory in a few seconds. The tab needs:
 
     the OpenF1 cache in data/cache/openf1/, or network access to download it
     data/splits-v2.json, data/reference/priors-v2.json and
     data/reference/pit-loss-reference.csv (all committed)
+
+and, optionally, network access to Open-Meteo for the forecast, cached in
+data/cache/open-meteo/ (weather data by Open-Meteo.com, CC BY 4.0). Without
+it the forecast panel says it is unavailable.
 
 9. Conversation engine (task 2.5a)
 ----------------------------------
