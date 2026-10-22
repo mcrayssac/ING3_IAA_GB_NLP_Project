@@ -149,6 +149,8 @@ def _when(message: dict[str, Any]) -> pd.Timestamp:
 def _event(message: dict[str, Any]) -> tuple[str | None, str | None]:
     """(kind, action) a race-control message carries for track status, if any."""
     text = (message.get("message") or "").upper()
+    if text.startswith("VSC "):  # 2026 writes "VSC DEPLOYED" and "VSC ENDING"
+        text = "VIRTUAL SAFETY CAR " + text[4:]
     # 2026 messages read "RED FLAG - RACE SUSPENDED" with no flag field
     if message.get("flag") == "RED" and message.get("scope") == "Track":
         return "RED", "open"

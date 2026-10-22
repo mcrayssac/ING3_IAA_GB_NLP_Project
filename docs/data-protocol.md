@@ -146,9 +146,9 @@ A 2.0 card keeps every 1.0 field and adds the card time `as_of`, the surface, ty
 
 ### Pit loss, degradation and priors
 
-Pit loss is measured per condition (GREEN, SC, VSC, WET) against the cars that did not stop on the same laps (D5). With too few stops of that condition, the card scales the race's green estimate by the condition's ratio to green, then falls back on a circuit prior, then on a published reference or the train median. Across the 60 train races the median green pit loss is 22.0 s, and a stop under SC, VSC or on a wet track costs 0.70, 0.78 and 1.36 times as much. The two references, Madring at 24.0 s and Kuala Lumpur at 22.5 s, sit in `data/reference/pit-loss-reference.csv` with their sources.
+Pit loss is measured per condition (GREEN, SC, VSC, WET) against the cars that did not stop on the same laps (D5). With too few stops of that condition, the card scales the race's green estimate by the condition's ratio to green, then falls back on a circuit prior, then on a published reference or the train median. Across the 60 train races the median green pit loss is 22.0 s, and a stop under SC, VSC or on a wet track costs 0.70, 0.80 and 1.36 times as much. The two references, Madring at 24.0 s and Kuala Lumpur at 22.5 s, sit in `data/reference/pit-loss-reference.csv` with their sources.
 
-Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D7). A card uses the race's own value once it is reliable, otherwise the circuit's value from earlier train races, then the compound's. The train medians are 0.058, 0.055 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.047, 0.043 and 0.038 in 2026.
+Tyre degradation is fitted on clean dry laps with lap and stint fixed effects (D7). A card uses the race's own value once it is reliable, otherwise the circuit's value from earlier train races, then the compound's. The train medians are 0.058, 0.055 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.045, 0.040 and 0.037 in 2026.
 
 `data/reference/priors-v2.json` holds the pit loss per condition and the degradation of each train race. Circuit priors come only from train races that ended before the card's race. The condition ratios and the wear limits are constants learned on all train races (D11).
 

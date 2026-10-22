@@ -241,6 +241,19 @@ def test_track_windows_follow_race_control_timestamps() -> None:
     assert not openf1.neutralised_between(windows, at(12), at(19))
 
 
+def test_the_2026_vsc_wording_opens_and_ends_a_vsc() -> None:
+    windows = openf1.track_windows(
+        [
+            rc(20, "VSC DEPLOYED"),
+            rc(21, "VSC ENDING"),
+            rc(22, "TRACK CLEAR", flag="CLEAR", scope="Track"),
+            rc(30, "INCIDENT INVOLVING CAR 5 (BOR) NOTED - VSC INFRINGEMENT"),
+        ]
+    )
+    states = [openf1.status_at(windows, at(m)) for m in (19, 20.5, 21.5, 22.5, 31)]
+    assert states == ["GREEN", "VSC", "VSC", "GREEN", "GREEN"]
+
+
 def test_a_safety_car_closes_an_open_virtual_safety_car() -> None:
     windows = openf1.track_windows(
         [

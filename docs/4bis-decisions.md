@@ -22,7 +22,7 @@ The old status kept a VSC open to the flag in three train races (2023-10, 2024-0
 
 A red flag lasts until the race resumes ("SESSION STARTED"): in 2026 its "TRACK CLEAR" comes two or three minutes after the flag, long before the restart. A restart behind the safety car has no deployment message. It runs from "SESSION STARTED" to the next line crossing after the safety car enters the pits. Messages after the chequered flag are ignored, so a race that ends under a safety car keeps that status on its last crossings. OpenF1 often keeps the leader's lap after the flag, so the last lap started before the leader's crossing at the flag sets the race distance. Pit-loss stops and reference laps now count only once the leader has crossed the line after them, because every card of that lap is built after that moment.
 
-Check: rebuilding the 70 races of 2023 to 2025 from the cache gives 65,674 cards instead of 65,904. Sixteen races get their real distance back, for example 50 laps instead of 51 for Saudi Arabia 2023, so their last-lap cards go. In `train`, 875 NO CALL cards become STAY OUT and 17 become BOX. 436 STAY OUT cards become NO CALL, mostly because a pit-loss estimate now waits for the out-laps to end (448 of the 604 such cards across all splits) and the rest because a one-lap VSC or a SC that starts before the driver crosses is now seen. `train` moves from 39,263 / 6,128 / 627 (STAY OUT / NO CALL / BOX) to 39,548 / 5,644 / 629. A three-lens review checked every window of the 70 races: no VSC longer than 8 minutes, and every ENDING or IN THIS LAP reaches its "TRACK CLEAR". It found no SC longer than 25 minutes and no overlap, except at Great Britain 2025 (see Known limits). 2026 races write a red flag as "RED FLAG - RACE SUSPENDED" without a flag field, which the parser accepts.
+Check: rebuilding the 70 races of 2023 to 2025 from the cache gives 65,674 cards instead of 65,904. Sixteen races get their real distance back, for example 50 laps instead of 51 for Saudi Arabia 2023, so their last-lap cards go. In `train`, 875 NO CALL cards become STAY OUT and 17 become BOX. 436 STAY OUT cards become NO CALL, mostly because a pit-loss estimate now waits for the out-laps to end (448 of the 604 such cards across all splits) and the rest because a one-lap VSC or a SC that starts before the driver crosses is now seen. `train` moves from 39,263 / 6,128 / 627 (STAY OUT / NO CALL / BOX) to 39,548 / 5,644 / 629. A three-lens review checked every window of the 70 races: no VSC longer than 8 minutes, and every ENDING or IN THIS LAP reaches its "TRACK CLEAR". It found no SC longer than 25 minutes and no overlap, except at Great Britain 2025 (see Known limits). 2026 races write a red flag as "RED FLAG - RACE SUSPENDED" without a flag field, which the parser accepts. They also write the virtual safety car as "VSC DEPLOYED" and "VSC ENDING", and until the fix of 22 October 2026 the parser missed that wording and read 22 VSCs in 12 races of 2026 as green.
 
 ## D4. Calls under SC and VSC
 
@@ -44,7 +44,7 @@ When the race has too few stops, the estimate falls back in this order:
 
 The card records the condition and the source of its pit loss.
 
-Check: across the 60 train races, the median green pit loss is 22.0 s. The SC loss is 0.70 times the green one (18 races), the VSC loss 0.78 times (8 races) and the wet loss 1.36 times (3 races). The SC ratio is above the half that strategists usually quote: under a safety car the cars far back close up while the leaders slow down, so a stop compared with the field on the same laps costs between 10 and 41 s at Silverstone 2023. On the 90,868 cards, the pit loss comes from the race itself on 67%, from the race scaled to the condition on 1.8%, from the circuit on 22%, from the published reference on 0.8% and from the overall train median on 8%. 389 cards have none. The two references are Madring at 24.0 s (Pirelli's chief engineer, quoted by The Race on 12 September 2026) and Kuala Lumpur at 22.5 s (Pirelli estimate, AutoHebdo, 4 October 2026).
+Check: across the 60 train races, the median green pit loss is 22.0 s. The SC loss is 0.70 times the green one (18 races), the VSC loss 0.80 times (14 races) and the wet loss 1.36 times (3 races). The SC ratio is above the half that strategists usually quote: under a safety car the cars far back close up while the leaders slow down, so a stop compared with the field on the same laps costs between 10 and 41 s at Silverstone 2023. On the 90,868 cards, the pit loss comes from the race itself on 66%, from the race scaled to the condition on 1.9%, from the circuit on 23%, from the published reference on 1.1% and from the overall train median on 8%. 389 cards have none. The two references are Madring at 24.0 s (Pirelli's chief engineer, quoted by The Race on 12 September 2026) and Kuala Lumpur at 22.5 s (Pirelli estimate, AutoHebdo, 4 October 2026).
 
 ## D6. Wet running is included
 
@@ -58,7 +58,7 @@ Degradation is estimated with lap fixed effects, which absorb fuel burn, and sti
 
 The tyre rule becomes a time rule: box when the time lost per lap against a new set reaches a limit, taken from the cards of real green stops in train races. The limits differ by compound: a stop opens from 0.34, 0.63 and 0.92 s per lap and always opens from 0.62, 1.08 and 1.38 s per lap for SOFT, MEDIUM and HARD. Teams stop a soft set at a lower time loss than a hard one, so a single limit would delay soft stops and bring hard ones forward. A negative slope is never used: it means fresh sets were still coming in, as at Madring 2026, where the race's own fit gave -0.026 s per lap on HARD.
 
-Check: the train medians are 0.058, 0.055 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.047, 0.043 and 0.038 in 2026. A race's own value fits in 0.01 s.
+Check: the train medians are 0.058, 0.055 and 0.039 s per lap for SOFT, MEDIUM and HARD before 2026, and 0.045, 0.040 and 0.037 in 2026. A race's own value fits in 0.01 s.
 
 ## D8. Neighbours' tyres and the undercut
 
@@ -88,7 +88,7 @@ Check: on 21,864 cards with a known gap ahead, the computed gap differs from Ope
 
 ## Agreement with the teams
 
-`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps. The table comes from the first run; D13 gives the adopted rule after the causality fixes of the replay review, on 667 stops.
+`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps. The table comes from the first run; D13 gives the adopted rule after the causality fixes of the replay review and the 2026 VSC fix (D3), on 664 stops.
 
 | Rule | Recall | Precision | BOX share of cards |
 |---|---:|---:|---:|
@@ -104,16 +104,16 @@ The rejoin test is what kept the policy away from the teams. It gives BOX only w
 
 Policy 2.0 keeps the rejoin test only inside the wear window, where a stop needs an undercut or a neutralisation. At or above the compound's upper wear limit (or the 1.1 upper age when wear is unknown) the call is BOX whatever sits behind. This is the variant with the best precision on the evaluation races, and it is how teams behave: they stop worn tyres and accept the places.
 
-Check: on the evaluation races the adopted policy gives a recall of 53.5% and a precision of 15.5%, against 8.1% for chance (the share of laps followed by a stop within two laps, which `scripts/reality_check.py` does not print). `test_2026` was then opened with the policy frozen. It was run a second time after the causality fixes of the replay review (stops known only once their comparison laps end, at least three cars to compare with, the red flag lasting until the restart), with no change to the policy; the figures below are from that run and moved by at most 0.1 point:
+Check: on the evaluation races the adopted policy gives a recall of 53.6% and a precision of 15.6%, against 8.0% for chance (the share of laps followed by a stop within two laps, which `scripts/reality_check.py` does not print). `test_2026` was then opened with the policy frozen. It was run a second time after the causality fixes of the replay review (stops known only once their comparison laps end, at least three cars to compare with, the red flag lasting until the restart), which moved its figures by at most 0.1 point. It was run a third time after the 2026 VSC fix (D3), again with no change to the policy. With that fix, 12 stops count as VSC stops, four stops whose out-lap ran into a VSC are left out, and recall or precision moves by up to 3.3 points per race. The figures below are from the third run:
 
 | Race | Stops | Recall | Precision | Chance precision |
 |---|---:|---:|---:|---:|
-| Azerbaijan 2026 | 36 | 55.6% | 16.7% | 11.9% |
-| Malaysia 2026 | 62 | 29.0% | 23.1% | 17.8% |
-| Singapore 2026 | 25 | 76.0% | 19.8% | 6.3% |
-| All three | 123 | 46.3% | 19.4% | 11.7% |
+| Azerbaijan 2026 | 36 | 52.8% | 17.0% | 11.9% |
+| Malaysia 2026 | 64 | 31.2% | 25.0% | 18.4% |
+| Singapore 2026 | 22 | 77.3% | 16.5% | 5.6% |
+| All three | 122 | 45.9% | 18.9% | 11.6% |
 
-On the same races the age-only rule gives 52.0% and 14.9%, and policy 1.1 gives 3.3% and 6.7%. The policy holds on races no version had seen, at 1.3 to 3.1 times the precision of chance. It misses most stops at Malaysia, a race of two and three stops on very abrasive asphalt, where cars stopped before their tyres reached the limits learned elsewhere. Three races are few, so each race is reported on its own.
+On the same races the age-only rule gives 51.6% and 14.8%, and policy 1.1 gives 3.4% and 5.8%. The policy holds on races no version had seen, at 1.4 to 2.9 times the precision of chance. It misses most stops at Malaysia, a race of two and three stops on very abrasive asphalt, where cars stopped before their tyres reached the limits learned elsewhere. Three races are few, so each race is reported on its own.
 
 ## Known limits at the merge
 
@@ -128,5 +128,6 @@ Found in the review of the merge into `main` (PR #69). The line numbers are thos
 - Replay, `boxbox/app/replay.py:196`: without the OpenF1 cache and without network, picking a race gives a generic Gradio error and not a clear message.
 - Policy 2.0, `boxbox/rules/policy2.py:139`: with a mandatory stop pending and the tyres outside the wear window, the BOX sentence repeats the tyre sentence and contradicts itself. Lines 60 to 62 raise `TypeError` on an unhashable compound or track status, where policy 1.1 answers NO CALL. Lines 152 and 167 read a null `mandatory_stop_pending` as false and a null penalty as zero. Line 168 rounds `loss + penalty` to 28 digits, so an exact threshold can flip.
 - D7, `scripts/rebuild_data.py:234`: the priors file keeps Qatar 2023 (`2023-17`, MEDIUM 0.0108 and HARD 0.0407 s per lap). Qatar 2024 and 2025 use these values as their circuit prior until their own fit is reliable. Only the thresholds of `reality_check` leave Qatar 2023 out.
-- D12 and D13: the policy variant was chosen on the evaluation races, so 53.5% and 15.5% are a selection result. Only `test_2026` was opened after the choice. The chance precision is computed outside `reality_check`, which does not print it. In `reality_check.py:110`, the blocks per condition repeat the precision and BOX share of all conditions, and only recall and the number of stops differ.
+- D7, wear limits: policy 2.0 keeps its frozen limits. On the train cards rebuilt after the 2026 VSC fix, `reality_check --splits train --thresholds` prints 0.37 and 0.64 s per lap for SOFT, 0.62 and 1.07 for MEDIUM and 0.94 and 1.42 for HARD, so the command no longer gives the limits it is cited for. The policy was not retuned.
+- D12 and D13: the policy variant was chosen on the evaluation races, so 53.6% and 15.6% are a selection result. Only `test_2026` was opened after the choice. The chance precision is computed outside `reality_check`, which does not print it. In `reality_check.py:110`, the blocks per condition repeat the precision and BOX share of all conditions, and only recall and the number of stops differ.
 - Tests: `test_neutralised_laps_stay_out_of_the_reference_lap` (`tests/test_data.py:168`) cannot fail, and no test checks that `test_2026` is closed.

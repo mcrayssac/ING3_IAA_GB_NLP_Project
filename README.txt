@@ -531,13 +531,14 @@ races:
     .venv/bin/python -m scripts.reality_check
     .venv/bin/python -m scripts.reality_check --splits train --thresholds
 
-On the evaluation races, policy 2.0 says BOX at the start of 53.5% of the
-real stop laps (recall), and 15.5% of its BOX cards are followed by a stop
-within two laps (precision), against 8.1% for a random BOX. Policy 1.1 reaches
-1.3% and 7.1%. On test_2026, opened with the policy frozen and run a second
-time after the replay's causality fixes with no policy change, policy 2.0
-gives 46.3% and 19.4% against 11.7%. docs/4bis-decisions.md gives the race
-by race figures and the limits of this comparison.
+On the evaluation races, policy 2.0 says BOX at the start of 53.6% of the
+real stop laps (recall), and 15.6% of its BOX cards are followed by a stop
+within two laps (precision), against 8.0% for a random BOX. Policy 1.1 reaches
+1.5% and 7.2%. On test_2026, opened with the policy frozen, run again after the
+replay's causality fixes and a third time after the 2026 VSC fix, each time
+with no policy change, policy 2.0 gives 45.9% and 18.9% against 11.6%.
+docs/4bis-decisions.md gives the race by race figures and the limits of this
+comparison.
 
 Any 1.0 or 2.0 card prints its CALL and WHY lines with the command below. A
 1.0 card gets policy 1.1, a 2.0 card policy 2.0:
