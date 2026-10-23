@@ -14,7 +14,7 @@ from boxbox.app import icons as I
 from boxbox.app import replay as R
 from boxbox.app.replay import _named, circle, clock, lap_start
 from boxbox.data import (
-    card_at,
+    cards_at,
     flags_at,
     frame,
     pit_state,
@@ -29,7 +29,7 @@ from boxbox.data.replay import (
     Timeline,
     _pits,
     build_timeline,
-    cards_at,
+    lap_on,
     pace,
     pit_window,
     progress,
@@ -56,7 +56,8 @@ def race(cars: dict[str, tuple[float, list]], cards: dict | None = None) -> Time
     raw = pd.DataFrame(
         raw, columns=["driver_number", "lap_number", "date_start", *SECTORS]
     )
-    return build_timeline(table, raw, cards or {}, "Test Grand Prix", "03:00:00")
+    line = build_timeline(table, raw, "Test Grand Prix", "03:00:00")
+    return dataclasses.replace(line, cards_v2=cards or {})
 
 
 def times(line: Timeline, step: float = 0.25) -> np.ndarray:
@@ -90,7 +91,7 @@ def test_nothing_timed_after_the_clock_is_read() -> None:
         assert standings(other, t) == standings(line, t)
         for driver in line.cars:
             assert frame(other, driver, t) == frame(line, driver, t)
-            assert card_at(other, driver, t)[1] == card_at(line, driver, t)[1]
+            assert lap_on(other, driver, t) == lap_on(line, driver, t)
 
 
 def test_the_card_shown_was_built_before_the_clock() -> None:
@@ -101,7 +102,7 @@ def test_the_card_shown_was_built_before_the_clock() -> None:
     line = race({"1": (0.0, laps), "2": (3.0, laps)}, cards)
     car = line.cars["1"]
     for t in [*times(line), *car.end[:-1]]:  # no card for the final lap
-        card, lap = card_at(line, "1", t)
+        card, lap = cards_at(line, "1", t)
         as_of = card["as_of_completed_lap"]
         assert as_of == lap - 1 and car.end[car.lap == as_of][0] <= t
 
@@ -123,13 +124,10 @@ def test_clock_runs_from_wall_time_and_stops_at_the_flag() -> None:
     assert clock({**state, "wall": None}, 60.0) == 100.0
 
 
-def test_both_cards_of_the_lap_are_shown() -> None:
-    laps = [EVEN, EVEN, EVEN]
-    one = {("1", 2): {"schema_version": "1.0", "lap": 2}}
-    line = race({"1": (0.0, laps)}, one)
-    line = dataclasses.replace(line, cards_v2={("1", 2): {"schema_version": "2.0"}})
-    card, card_v2, lap = cards_at(line, "1", 100.0)
-    assert (card["schema_version"], card_v2["schema_version"], lap) == ("1.0", "2.0", 2)
+def test_the_card_of_the_lap_is_the_2_0_card() -> None:
+    line = race({"1": (0.0, [EVEN] * 3)}, {("1", 2): {"schema_version": "2.0"}})
+    card, lap = cards_at(line, "1", 100.0)
+    assert (card["schema_version"], lap) == ("2.0", 2)
 
 
 def test_the_pit_window_follows_the_track_status_at_the_clock() -> None:
@@ -257,13 +255,13 @@ def test_a_card_waits_for_the_car_behind_to_cross() -> None:
         ("1", lap): {"lap": lap, "gap_behind": {"seconds": 3.0}} for lap in (2, 3, 4)
     }
     line = race({"1": (0.0, laps), "2": (3.0, laps)}, cards)
-    assert cards_at(line, "1", 181.0)[2] == 2  # car 1 crossed at 180 s, car 2 not yet
-    assert cards_at(line, "1", 183.5)[2] == 3
+    assert cards_at(line, "1", 181.0)[1] == 2  # car 1 crossed at 180 s, car 2 not yet
+    assert cards_at(line, "1", 183.5)[1] == 3
 
 
 def test_a_stopped_car_has_no_card() -> None:
     line = race({"1": (0.0, [EVEN] * 2), "2": (3.0, [EVEN] * 6)})
-    assert cards_at(line, "1", 500.0) == (None, None, None)
+    assert cards_at(line, "1", 500.0) == (None, None)
 
 
 def test_the_replay_starts_once_every_car_has_crossed() -> None:
@@ -277,7 +275,7 @@ def test_the_replay_starts_once_every_car_has_crossed() -> None:
         [[1, 1, START.isoformat(), *EVEN]],
         columns=["driver_number", "lap_number", "date_start", *SECTORS],
     )
-    assert build_timeline(table, raw, {}).first == 273.0  # car 2's first crossing
+    assert build_timeline(table, raw).first == 273.0  # car 2's first crossing
 
 
 def test_flags_follow_sector_yellows_until_cleared_or_stale() -> None:

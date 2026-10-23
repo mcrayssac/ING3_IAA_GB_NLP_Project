@@ -585,7 +585,7 @@ def view(state: dict[str, Any], t: float) -> tuple[str, str, str, str, str]:
     order at race time t."""
     line, driver = timeline(state["race"]), state["driver"]
     now = frame(line, driver, t)
-    _, card_v2, lap = cards_at(line, driver, t)
+    card_v2, lap = cards_at(line, driver, t)
     in_pit = frozenset(d for d in line.cars if pit_state(line, d, t) == "IN PIT")
     key = f"{state['race']}|{driver}|{lap}"
     pit = pit_state(line, driver, t, lap)

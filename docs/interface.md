@@ -250,7 +250,7 @@ A collapsed accordion at the bottom of the screen holds:
 | `boxbox/app/__main__.py` | `python -m boxbox.app` opens the app in the browser with the rule stub; `-A` or `-B` loads SmolLM3-3B with that selected adapter, as in the notebook; `-O` starts the pinned OpenJev server of task 3.4 and stops it on exit. |
 | `boxbox/app/replay.py` | The Replay tab: `race_choices` (races of the open splits of `data/splits-v2.json`), `DEFAULT` and `open_default` (the race and driver the tab opens on), `clock` and `clock_text`, `status_strip` (flag, weather and forecast tiles), `turn` (the ring scale) and `circle`, `call_state` and `calls` (the panel state and the policy 2.0 call, with the `data-box` marker), `driver_tile`, `standings_table`, `sound_head`, `view`, the handlers `pick_race`, `pick_driver`, `jump`, `toggle` (the Play button), `pause`, `set_speed` and `tick`, `_follow` (the lap slider on the race lap), and `replay_tab`, which builds the tab and returns the load that opens it. |
 | `boxbox/app/icons.py` | SVG icons: `flag`, `tyre`, `weather`, and `sky`, which turns a WMO weather code into an icon. |
-| `boxbox/data/replay.py` | `Timeline` and `load_timeline`, which rebuilds the race's 1.0 and 2.0 cards in memory from OpenF1 data in `data/cache/openf1`, then `progress`, `gap`, `pace`, `race_lap`, `frame`, `cards_at`, `status_now`, `pit_window`, `flags_at`, `pit_state`, `tyre_at` and `standings`. The circle, the cards and the running order read only data timed at or before the clock. |
+| `boxbox/data/replay.py` | `Timeline` and `load_timeline`, which rebuilds the race's 2.0 cards in memory from OpenF1 data in `data/cache/openf1`, then `progress`, `gap`, `pace`, `race_lap`, `frame`, `cards_at`, `status_now`, `pit_window`, `flags_at`, `pit_state`, `tyre_at` and `standings`. The circle, the cards and the running order read only data timed at or before the clock. |
 | `boxbox/data/openmeteo.py` | `circuit_location` from the Jolpica schedule, `load_forecast` (the archived 15-minute forecast through `data/cache/open-meteo`, or None) and `forecast_at`, which picks the steps after the clock. |
 | `scripts/demo_cards.py` | Writes `data/demo/cards.json` from the validation cards. |
 
@@ -294,7 +294,7 @@ Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the n
 - that nothing timed after the clock is read, and that the card shown was built before the clock
 - car progress through faster and slower laps, angles by time gap, and a slower lap that slows the cars still on it
 - the clock from wall time, its stop at the flag, a start once every car has crossed, and a jump to the leader starting the lap
-- both cards of the lap, a card that waits for the car behind to cross, and no card for a stopped car
+- the 2.0 card of the lap, a card that waits for the car behind to cross, and no card for a stopped car
 - the pit window following the track status at the clock
 - team colours, numbers and acronyms, and bunched cars that keep their dots but not all their labels
 - the ring zoom (`turn`) and the black or white number on a team colour
