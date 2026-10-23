@@ -10,6 +10,7 @@ from pathlib import Path
 from boxbox.config import RunConfig, load_config
 
 ADAPTER_A = Path("configs/adapter-a-selection.json")
+ADAPTER_B = Path("configs/adapter-b-selection.json")
 
 
 def _sha256(path: Path) -> str:

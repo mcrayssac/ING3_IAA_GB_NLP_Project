@@ -34,7 +34,7 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 | 2. First prototype | 18–19 Oct | done | Complete seven-step MVP by 19 Oct evening; both mini-test 2.7 and real notebook demo 2.8 accepted |
 | 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | done | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
 | 4. Evaluation | 20 Oct after freeze–21 Oct | done: 4.1 to 4.5 done ([#59](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/59), [#62](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/62), [#63](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/63), [#64](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/64), [#68](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/68)) | Closed final test, human review, paired gains, uncertainty and conclusions |
-| 4 bis. Experimental | 22 Oct | done | Data v2, policy 2.0 and replay, merged into `main` |
+| 4 bis. Experimental | 22–23 Oct | done | Data v2, policy 2.0, replay and the Replay's model tile, merged into `main` |
 | 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | planned: 5.1 ready | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
 
 | Window | Planned work | Target and hand-off |
@@ -71,7 +71,7 @@ These changes were recorded in the issues. The task tables below keep the planne
 - **MVP:** the gate passed with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). The 2.7 mini-test rated all 40 targets instead of an 8-per-family sample ([#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14#issuecomment-6289853131)). Task 2.8 left notebook steps 3 to 6 to the 5.x tasks ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15)).
 - **Schedule:** B trained overnight from 20 to 21 October, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 with baseline, A and B retained and boxbox-eval 1.1.0 accepted unchanged ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)).
 - **Optional 3.4:** OpenJev ran as an exploratory study outside the freeze and stays out of the final comparison ([#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35#issuecomment-6320237374)).
-- **Experimental milestone:** milestone 4 bis was added and done on 22 October, after 4.4 and outside the study. Its issues are [4bis.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65), [4bis.2](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66) and [4bis.3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67), and its choices and checks are in the [decision log](4bis-decisions.md).
+- **Experimental milestone:** milestone 4 bis was added and done on 22 October, after 4.4 and outside the study. Its issues are [4bis.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65), [4bis.2](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66), [4bis.3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67) and [4bis.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/70), and its choices and checks are in the [decision log](4bis-decisions.md).
 
 ## Shared pickup and parallel work
 
@@ -86,7 +86,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 6 unfinished tasks: 5.1 is ready, and 5.2 to 5.6 are planned. Tasks 1.1 to 4.5 and 4bis.1 to 4bis.3 are done.
+Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 6 unfinished tasks: 5.1 is ready, and 5.2 to 5.6 are planned. Tasks 1.1 to 4.5 and 4bis.1 to 4bis.4 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -155,13 +155,14 @@ Windows include implementation, checks and hand-off review; they are not effort 
 
 ### 4 bis. Experimental
 
-This milestone widens the race data, makes it match what happened on track and gives calls in more situations, for research and a product beyond the study. The study is not re-run, and the adapters stay trained on 1.0 cards: training on 2.0 cards is future work. The [decision log](4bis-decisions.md) records each choice and its check, and the [2.0 contract](race-card-contract-v2.md) defines card 2.0 and policy 2.0. The task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2` were merged into `4bis-experimental`, then into `main-experimental`, without pull requests. `main-experimental` was then merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69).
+This milestone widens the race data, makes it match what happened on track and gives calls in more situations, for research and a product beyond the study. The study is not re-run, and the adapters stay trained on 1.0 cards: training on 2.0 cards is future work. The [decision log](4bis-decisions.md) records each choice and its check, and the [2.0 contract](race-card-contract-v2.md) defines card 2.0 and policy 2.0. The task branches `4bis.1-data-v2`, `4bis.2-policy-2`, `4bis.3-replay-spike` and `4bis.3-replay-v2` were merged into `4bis-experimental`, then into `main-experimental`, without pull requests. `main-experimental` was then merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69), and again with its last features in [PR #72](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/72).
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
 | 4bis.1 | **Data v2.** Build track status from race-control timestamps, add the 2026 season with `data/splits-v2.json`, add weather, driver and interval extras with a gap check, then pit loss per condition, tyre degradation, priors from earlier train races and card 2.0. | D | 22 Oct | - | done (22 Oct) | [#65](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65) |
 | 4bis.2 | **Policy 2.0.** Give calls under SC, VSC and rain, with wear limits per compound, the undercut and the mandatory stop under a neutralisation; worn tyres box whatever the traffic. Measure agreement with real stops with `scripts/reality_check.py`. | D | 22 Oct | 4bis.1 | done (22 Oct) | [#66](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66) |
 | 4bis.3 | **Replay.** Replay a race in the app, first as a spike on 1.0 cards, then on 2.0 cards. | E | 22 Oct | 4bis.1, 4bis.2 | done (22 Oct) | [#67](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67) |
+| 4bis.4 | **Ask the model on the Replay.** A button sends the 2.0 card to OpenJev with a policy 2.0 prompt and shows its call and probabilities beside the rule's call; the Replay reads only 2.0 cards; measure the agreement with policy 2.0 on a sample of validation and mini-test cards. | E | 23 Oct | 4bis.2, 4bis.3, 3.4 | done (23 Oct, [PR #71](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/71)) | [#70](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/70) |
 
 ### 5. Delivery and presentation
 

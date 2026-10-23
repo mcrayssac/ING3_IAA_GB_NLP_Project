@@ -240,12 +240,12 @@ def _car(degrees: float, label: str, filled: bool, inside: bool = False) -> str:
     )
 
 
-def _band(start: float, end: float) -> str:
+def _band(start: float, end: float, label_radius: float = RADIUS - 26) -> str:
     """The rejoin margin as an arc, drawn counter-clockwise from the rejoin point."""
     end = max(end, start - 359)
     (x1, y1), (x2, y2) = _xy(start, RADIUS), _xy(end, RADIUS)
     large = 1 if start - end > 180 else 0
-    rx, ry = _xy(start, RADIUS - 26)
+    rx, ry = _xy(start, label_radius)
     return (
         f'<path d="M{x1:.1f},{y1:.1f} A{RADIUS},{RADIUS} 0 {large} 0 {x2:.1f},{y2:.1f}" class="band"/>'
         f'<rect x="{x1 - 6:.1f}" y="{y1 - 6:.1f}" width="12" height="12" class="rejoin" '
@@ -368,20 +368,84 @@ def parse_answer(text: Any) -> tuple[str, str] | None:
     return (call, why) if known and why and clean else None
 
 
-def banner(answer: str | None) -> str:
-    """The latest call in large text, or what stops it from being read."""
+STOPS = {
+    "eos_token": "end of answer",
+    "max_new_tokens": "token limit",
+    "cooperative_max_time": "time limit",
+    "model_stop": "model stop",
+}
+
+
+def _plural(count: int, word: str) -> str:
+    return f"{count} {word}" + ("" if count == 1 else "s")
+
+
+def answer_details(
+    answer: str | None, earlier: int, sent: int, trace: dict[str, Any] | None
+) -> str:
+    """One line on the last answer: strict format, generation and the history sent.
+
+    `earlier` exchanges came before the question and `sent` of them reached the engine.
+    The generation part needs the engine's trace, so the stub shows the rest only.
+    """
+    if answer is None:
+        return ""
+    parts = [
+        "Strict CALL/WHY format: yes"
+        if parse_answer(answer)
+        else "Strict CALL/WHY format: no"
+    ]
+    if trace and "duration_seconds" in trace:
+        limit = trace["generation_settings"]["explicit_overrides"]["max_new_tokens"]
+        stop = STOPS.get(trace["stop_condition"], trace["stop_condition"])
+        parts += [
+            f"{trace['duration_seconds']:.1f} s",
+            f"{trace['input_tokens']} input tokens",
+            f"{trace['generated_tokens']} of {limit} new tokens",
+            f"stop: {stop}",
+        ]
+        sent = trace["history"]["retained_turns"]
+    if earlier == 0:
+        parts.append("no earlier exchange")
+    elif sent == earlier:
+        parts.append(f"history sent: {_plural(earlier, 'earlier exchange')}")
+    else:
+        parts.append(f"history sent: {sent} of {_plural(earlier, 'earlier exchange')}")
+    return f'<p class="note details mono">{html.escape(" · ".join(parts))}</p>'
+
+
+CUT = (
+    '<div class="cut">&#9888; The answer may be cut: generation reached its limit '
+    "before the model ended it.</div>"
+)
+
+
+def banner(answer: str | None, cut: bool = False, sound: str | None = None) -> str:
+    """The latest call in large text, or what stops it from being read.
+
+    `cut` is the engine's `possibly_truncated`: the token or time limit ended the answer.
+    With a `sound` key (the Card tab), a BOX call carries it in `data-box`, and the page
+    plays the sound once for each new key (`replay.sound_head`).
+    """
+    tag = ' data-sound="card"' if sound is not None else ""
     if answer is None:
         return (
-            '<div class="banner idle"><div class="call">No call yet</div>'
+            f'<div class="banner idle"{tag}><div class="call">No call yet</div>'
             '<div class="why">Ask a question or pick one below.</div></div>'
         )
+    warning = CUT if cut else ""
     parsed = parse_answer(answer)
     if parsed is None:
-        return '<div class="banner bad">Answer not in CALL/WHY format</div>'
+        return (
+            f'<div class="banner bad"{tag}>Answer not in CALL/WHY format{warning}</div>'
+        )
     call, why = parsed
+    if call == "BOX" and sound:
+        tag += f' data-box="{html.escape(sound)}"'
     return (
-        f'<div class="banner" style="--call:{CALL_COLOURS[call]}">'
-        f'<div class="call">{call}</div><div class="why">{html.escape(why)}</div></div>'
+        f'<div class="banner"{tag} style="--call:{CALL_COLOURS[call]}">'
+        f'<div class="call">{call}</div><div class="why">{html.escape(why)}</div>'
+        f"{warning}</div>"
     )
 
 

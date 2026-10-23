@@ -161,8 +161,41 @@ The Gradio pit-wall screen opens in the browser:
     .venv/bin/python -m boxbox.app
 
 Started this way, the screen answers with a stub that returns the rule's
-answer, and it says so. The notebook (see section 6 of this guide) launches the
-same screen with adapter A in its section 7, connected in task 2.8.
+answer, and it says so. -A or -B answers with SmolLM3-3B and the selected
+adapter A or B instead, with its training prompt and decoding:
+
+    .venv/bin/python -m boxbox.app -B
+
+The adapter comes from its local run folder or from the private Hub repo
+recorded in configs/adapter-a-selection.json or adapter-b-selection.json, and
+is refused if its hash differs. With -A or -B, the badge names the seed and
+epoch of the adapter, and a line under the call gives the format
+check, the generation time, the tokens, why generation stopped and how much of
+the conversation was sent. A warning on the call says when the token or
+time limit may have cut the answer. boxbox.wav in the project folder plays
+on each new BOX answer of the Card tab, and on the Replay tab on each new
+card whose policy 2.0 call is BOX. The
+notebook (see section 6 of this guide)
+launches the same screen with adapter A in its section 7, connected in task 2.8.
+
+-O answers with OpenJev Flash 9B, the zero-shot decision model of task 3.4,
+once it is installed as section 14 shows:
+
+    .venv/bin/python -m boxbox.app -O
+
+The app hashes the pinned files again, starts the pinned server on
+127.0.0.1:3000 from its own environment, offline, and stops it when the app
+closes. Each message sends the request of the study and answers at
+tau = 0.59. The badge reads "OpenJev Flash 9B · zero-shot". OpenJev writes no reason, so WHY gives its CALL probabilities and,
+on NO CALL, the card field it names. The weights are under CC BY-NC 4.0.
+
+-R starts the same server for the Replay tab only (see below) and combines
+with -A or -B:
+
+    .venv/bin/python -m boxbox.app -B -R
+
+-O gives the Replay tab the same button. OpenJev peaks near 29.5 GB on the
+M3 Max (docs/openjev.md), so -R with -A or -B needs the memory of both models.
 
 The real race cards of the picker are committed in data/demo/ (CC BY-NC-SA
 4.0, see data/demo/NOTICE). They come from validation races and are rebuilt
@@ -172,16 +205,29 @@ with:
 
 The screen has two tabs. The Card tab is the
 screen above. The Replay tab (task 4bis.3) plays a race back on a circle
-against a race clock, at x1, x2 or x4, and "Jump to lap" moves the clock. For
-the chosen driver it shows the policy 2.0 call on the 2.0 card next to the
-policy 1.1 call on the 1.0 card, and the pit window follows the track status
-at the clock. The tab has no chat. The race list holds the races of the open
-splits of data/splits-v2.json, so final and test_2026 stay out. Choosing a
-race rebuilds its cards in memory in a few seconds. The tab needs:
+against a race clock, at x1, x2 or x4. It opens on Las Vegas 2024 with RUS (63).
+One bar holds the pickers, a Play/Pause button, the speed, "Jump to lap" (which
+follows the race lap) and the clock. For the chosen driver it shows the policy
+2.0 call on the 2.0 card, or IN PIT and OUT LAP around a stop, its tyre, and a
+pit window that follows the track status at the clock. Around the circle it
+shows the flag, the weather, an archived forecast and the running order. The
+tab has no chat. With -R or -O, a button "Ask the model" sends the 2.0 card on
+screen to OpenJev with a policy 2.0 prompt (boxbox/model/policy2_prompt.py) and
+shows, beside the rule's call, its call, its three probabilities and whether it
+agrees with the rule. It is zero-shot and writes no reason, an answer takes
+about four seconds (one order), and its agreement with policy 2.0 on a
+sample of validation and mini-test cards is measured by
+scripts/replay_model_check.py (docs/4bis-decisions.md, D15). The race list holds the races of the open splits of
+data/splits-v2.json, so final and test_2026 stay out. Choosing a race rebuilds
+its cards in memory in a few seconds. The tab needs:
 
     the OpenF1 cache in data/cache/openf1/, or network access to download it
     data/splits-v2.json, data/reference/priors-v2.json and
     data/reference/pit-loss-reference.csv (all committed)
+
+and, optionally, network access to Open-Meteo for the forecast, cached in
+data/cache/open-meteo/ (weather data by Open-Meteo.com, CC BY 4.0). Without
+it the forecast panel says it is unavailable.
 
 9. Conversation engine (task 2.5a)
 ----------------------------------
@@ -464,6 +510,18 @@ generate the offline rating page, check progress and import the completed sheet:
 See docs/human-review.md for masking limits, second reviews and closure evidence.
 Do not edit the sheet in a spreadsheet application; use the page and its CSV export.
 
+Findings and five cases (4.5)
+-----------------------------
+With the 4.2 run folder in runs/, the completed 4.3 sheet with its second reviews
+and the initial ratings of 4.3 (both kept outside the repository), join the human
+scores to the paired gains and pick the five cases:
+  .venv/bin/python -m scripts.final_findings run --run-dir runs/4-2-final-50067b54741c-49b4aea370af --sheet review-rated-second.csv --initial ratings-initial.jsonl
+The script runs the 4.4 checks, refuses a sheet whose primary scores differ from
+the initial ratings, and stops unless the automatic summaries equal those of 4.2
+and 4.4. It writes a new runs/<date>_4-5-final-findings folder. docs/final-findings.md
+gives the tables, the verdicts on H1 and H2 and the five cases, and
+docs/final-findings-evidence.json every number.
+
 Experimental milestone (4 bis)
 ------------------------------
 
@@ -506,13 +564,14 @@ races:
     .venv/bin/python -m scripts.reality_check
     .venv/bin/python -m scripts.reality_check --splits train --thresholds
 
-On the evaluation races, policy 2.0 says BOX at the start of 53.5% of the
-real stop laps (recall), and 15.5% of its BOX cards are followed by a stop
-within two laps (precision), against 8.1% for a random BOX. Policy 1.1 reaches
-1.3% and 7.1%. On test_2026, opened with the policy frozen and run a second
-time after the replay's causality fixes with no policy change, policy 2.0
-gives 46.3% and 19.4% against 11.7%. docs/4bis-decisions.md gives the race
-by race figures and the limits of this comparison.
+On the evaluation races, policy 2.0 says BOX at the start of 53.6% of the
+real stop laps (recall), and 15.6% of its BOX cards are followed by a stop
+within two laps (precision), against 8.0% for a random BOX. Policy 1.1 reaches
+1.5% and 7.2%. On test_2026, opened with the policy frozen, run again after the
+replay's causality fixes and a third time after the 2026 VSC fix, each time
+with no policy change, policy 2.0 gives 45.9% and 18.9% against 11.6%.
+docs/4bis-decisions.md gives the race by race figures and the limits of this
+comparison.
 
 Any 1.0 or 2.0 card prints its CALL and WHY lines with the command below. A
 1.0 card gets policy 1.1, a 2.0 card policy 2.0:
@@ -522,3 +581,18 @@ Any 1.0 or 2.0 card prints its CALL and WHY lines with the command below. A
 Targeted checks:
 
     .venv/bin/python -m pytest -q tests/test_cards_v2.py tests/test_policy2.py tests/test_priors.py tests/test_replay.py
+
+Ask the model on the Replay (4bis.4)
+------------------------------------
+The Replay tile asks OpenJev (section 14) about the 2.0 card on screen, with the policy 2.0
+prompt of boxbox/model/policy2_prompt.py and configs/openjev-replay.toml. Start it with -R
+(section 8). Its agreement with policy 2.0 is measured on a sample of validation and
+mini-test cards, by the call of policy 2.0 and the track condition, with the server started
+and stopped by the script; final and test_2026 stay closed:
+  .venv/bin/python -m scripts.replay_model_check sample
+  caffeinate -i .venv/bin/python -m scripts.replay_model_check run
+  .venv/bin/python -m scripts.replay_model_check score runs/<date>_replay-model-check --write
+score chooses tau on validation with the rule of #35, applies it once to mini-test, keeps
+three orders (the check always asks three) unless the first alone does as well, and writes
+data/reference/replay-model-check.json, which the tile reads. Targeted checks:
+  .venv/bin/python -m pytest -q tests/test_replay_model_check.py tests/test_policy2_prompt.py tests/test_openjev.py

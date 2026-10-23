@@ -2,22 +2,37 @@
 
 from __future__ import annotations
 
+import copy
 import dataclasses
+import hashlib
 import itertools
+import json
 
+import gradio as gr
 import numpy as np
 import pandas as pd
 import pytest
 
+from boxbox.app import icons as I
+from boxbox.app import replay as R
 from boxbox.app.replay import _named, circle, clock, lap_start
-from boxbox.data import card_at, frame
+from boxbox.data import (
+    cards_at,
+    flags_at,
+    frame,
+    pit_state,
+    standings,
+    tyre_at,
+    tyre_options,
+)
 from boxbox.data.cards_v2 import RaceContext
 from boxbox.data.replay import (
     SECTORS,
     Car,
     Timeline,
+    _pits,
     build_timeline,
-    cards_at,
+    lap_on,
     pace,
     pit_window,
     progress,
@@ -44,7 +59,8 @@ def race(cars: dict[str, tuple[float, list]], cards: dict | None = None) -> Time
     raw = pd.DataFrame(
         raw, columns=["driver_number", "lap_number", "date_start", *SECTORS]
     )
-    return build_timeline(table, raw, cards or {}, "Test Grand Prix", "03:00:00")
+    line = build_timeline(table, raw, "Test Grand Prix", "03:00:00")
+    return dataclasses.replace(line, cards_v2=cards or {})
 
 
 def times(line: Timeline, step: float = 0.25) -> np.ndarray:
@@ -75,9 +91,10 @@ def test_nothing_timed_after_the_clock_is_read() -> None:
     line = race({"1": (0.0, laps), "2": (1.5, laps), "3": (4.0, laps[::-1])})
     for t in (95.0, 180.0, 250.7, 333.3):
         other = scrambled(line, t)
+        assert standings(other, t) == standings(line, t)
         for driver in line.cars:
             assert frame(other, driver, t) == frame(line, driver, t)
-            assert card_at(other, driver, t)[1] == card_at(line, driver, t)[1]
+            assert lap_on(other, driver, t) == lap_on(line, driver, t)
 
 
 def test_the_card_shown_was_built_before_the_clock() -> None:
@@ -88,7 +105,7 @@ def test_the_card_shown_was_built_before_the_clock() -> None:
     line = race({"1": (0.0, laps), "2": (3.0, laps)}, cards)
     car = line.cars["1"]
     for t in [*times(line), *car.end[:-1]]:  # no card for the final lap
-        card, lap = card_at(line, "1", t)
+        card, lap = cards_at(line, "1", t)
         as_of = card["as_of_completed_lap"]
         assert as_of == lap - 1 and car.end[car.lap == as_of][0] <= t
 
@@ -110,13 +127,10 @@ def test_clock_runs_from_wall_time_and_stops_at_the_flag() -> None:
     assert clock({**state, "wall": None}, 60.0) == 100.0
 
 
-def test_both_cards_of_the_lap_are_shown() -> None:
-    laps = [EVEN, EVEN, EVEN]
-    one = {("1", 2): {"schema_version": "1.0", "lap": 2}}
-    line = race({"1": (0.0, laps)}, one)
-    line = dataclasses.replace(line, cards_v2={("1", 2): {"schema_version": "2.0"}})
-    card, card_v2, lap = cards_at(line, "1", 100.0)
-    assert (card["schema_version"], card_v2["schema_version"], lap) == ("1.0", "2.0", 2)
+def test_the_card_of_the_lap_is_the_2_0_card() -> None:
+    line = race({"1": (0.0, [EVEN] * 3)}, {("1", 2): {"schema_version": "2.0"}})
+    card, lap = cards_at(line, "1", 100.0)
+    assert (card["schema_version"], lap) == ("2.0", 2)
 
 
 def test_the_pit_window_follows_the_track_status_at_the_clock() -> None:
@@ -165,6 +179,50 @@ def test_cars_wear_their_team_colour_and_acronym() -> None:
     svg = circle(line, "1", frame(line, "1", 150.0), (20.0, "GREEN"))
     assert "HAM" in svg and 'fill="#e8002d"' in svg and "car 1" in svg
     assert "GREEN pit window 20.0 to 22.0 s back" in svg
+    assert ">44<" in svg and 'style="fill:#fff"' in svg  # the number, white on red
+    assert "1 turn = 50 s" in svg  # 20 s apart: the ring zooms in
+
+
+def test_the_circle_zooms_to_the_field_and_keeps_the_pit_window() -> None:
+    assert R.turn(90.0, [3.0, -12.0], 20.0) == 50  # the rejoin point reaches farthest
+    assert R.turn(90.0, [40.0], 20.0) == 90.0  # a spread field keeps the real lap
+    assert R.turn(90.0, [], 20.0) == 90.0
+    assert R.turn(None, [3.0], 20.0) is None
+    assert R._ink("#ffffff") == "#000" and R._ink("#1d4ed8") == "#fff"
+    assert R._ink("var(--bx-ink)") == "var(--block-background-fill)"
+
+
+def test_the_call_panel_shows_pit_states_instead_of_a_call(monkeypatch) -> None:
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    box = {"answer": "CALL: BOX\nWHY: The window is open."}
+    assert R.call_state(box, 12, None) == "BOX"
+    assert R.call_state(box, 12, "IN PIT") == "IN PIT"  # the in-lap's BOX card is done
+    assert R.call_state(None, 13, "OUT LAP") == "OUT LAP"
+    assert R.call_state(None, None, None) == "RETIRED"
+    assert R.call_state(None, 13, None) == "NO CARD"
+    in_pit = R.calls(box, 12, "1", "r|1|12", "IN PIT")
+    assert "IN PIT" in in_pit and "data-box" not in in_pit and "NO CALL" not in in_pit
+    assert 'class="banner box even"' in R.calls(box, 12, "1", "r|1|12")
+    assert 'class="banner box odd"' in R.calls(box, 13, "1", "r|1|13")
+
+
+@pytest.mark.parametrize(
+    ("code", "day", "kind"),
+    [
+        (0, 1, "sun"),
+        (0, 0, "moon"),
+        (2, 1, "partly"),
+        (3, 1, "cloud"),
+        (45, 1, "fog"),
+        (53, 1, "drizzle"),
+        (63, 1, "rain"),
+        (81, 0, "rain"),
+        (95, 1, "storm"),
+        (float("nan"), 1, "unknown"),
+    ],
+)
+def test_weather_codes_pick_their_icon(code, day, kind) -> None:
+    assert I.sky(code, day) == kind
 
 
 def test_jump_goes_to_the_leader_starting_the_lap() -> None:
@@ -200,13 +258,13 @@ def test_a_card_waits_for_the_car_behind_to_cross() -> None:
         ("1", lap): {"lap": lap, "gap_behind": {"seconds": 3.0}} for lap in (2, 3, 4)
     }
     line = race({"1": (0.0, laps), "2": (3.0, laps)}, cards)
-    assert cards_at(line, "1", 181.0)[2] == 2  # car 1 crossed at 180 s, car 2 not yet
-    assert cards_at(line, "1", 183.5)[2] == 3
+    assert cards_at(line, "1", 181.0)[1] == 2  # car 1 crossed at 180 s, car 2 not yet
+    assert cards_at(line, "1", 183.5)[1] == 3
 
 
 def test_a_stopped_car_has_no_card() -> None:
     line = race({"1": (0.0, [EVEN] * 2), "2": (3.0, [EVEN] * 6)})
-    assert cards_at(line, "1", 500.0) == (None, None, None)
+    assert cards_at(line, "1", 500.0) == (None, None)
 
 
 def test_the_replay_starts_once_every_car_has_crossed() -> None:
@@ -220,4 +278,394 @@ def test_the_replay_starts_once_every_car_has_crossed() -> None:
         [[1, 1, START.isoformat(), *EVEN]],
         columns=["driver_number", "lap_number", "date_start", *SECTORS],
     )
-    assert build_timeline(table, raw, {}).first == 273.0  # car 2's first crossing
+    assert build_timeline(table, raw).first == 273.0  # car 2's first crossing
+
+
+def test_flags_follow_sector_yellows_until_cleared_or_stale() -> None:
+    line = race({"1": (0.0, [EVEN] * 12)})
+    sc = START + pd.Timedelta(seconds=700)
+    flags = [
+        (10.0, "YELLOW", 4, None),
+        (20.0, "DOUBLE YELLOW", 5, None),
+        (30.0, "CLEAR", 4, None),
+        (40.0, "CLEAR", None, None),  # TRACK CLEAR
+        (50.0, "YELLOW", 7, None),
+        (100.0, "BLUE", None, "1"),
+    ]
+    line = dataclasses.replace(
+        line, flags=flags, windows=[("SC", sc, sc + pd.Timedelta(seconds=60))]
+    )
+    assert flags_at(line, "1", 15.0) == ("YELLOW", {4: "YELLOW"}, False)
+    assert flags_at(line, "1", 25.0)[:2] == (
+        "DOUBLE YELLOW",
+        {4: "YELLOW", 5: "DOUBLE YELLOW"},
+    )
+    assert flags_at(line, "1", 35.0)[:2] == ("DOUBLE YELLOW", {5: "DOUBLE YELLOW"})
+    assert flags_at(line, "1", 45.0)[:2] == ("GREEN", {})
+    assert flags_at(line, "1", 105.0) == ("YELLOW", {7: "YELLOW"}, True)
+    assert flags_at(line, "2", 105.0)[2] is False  # waved at car 1 only
+    assert flags_at(line, "1", 115.0)[2] is False  # 15 s later
+    assert flags_at(line, "1", 651.0)[:2] == ("GREEN", {})  # never cleared, stale
+    assert flags_at(line, "1", 730.0)[0] == "SC"
+    assert flags_at(line, "1", line.end)[0] == "CHEQUERED"
+
+
+def test_pit_state_shows_the_pit_lane_then_the_out_lap() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})  # crossings at 90, 180, 270...
+    line = dataclasses.replace(
+        line,
+        pits={"1": [(2, 175.0, 200.0)]},
+        tyres={("1", 2): ("MEDIUM", 20), ("1", 3): ("HARD", 1)},
+    )
+    assert pit_state(line, "1", 170.0, 2) is None
+    assert pit_state(line, "1", 190.0, 2) == "IN PIT"
+    assert pit_state(line, "1", 210.0, 3) == "OUT LAP"  # no card for the out-lap
+    assert pit_state(line, "1", 280.0, 4) is None
+    assert pit_state(line, "1", 210.0) is None  # without a card lap: the lane only
+    assert tyre_at(line, "1", 170.0) == ("MEDIUM", 19)
+    assert tyre_at(line, "1", 190.0) == ("HARD", 0)  # crossed in the lane: new set
+
+
+def test_pit_windows_come_from_pit_data_or_the_in_lap_crossing() -> None:
+    table = pd.DataFrame(
+        {
+            "driver_number": ["1", "2", "3"],
+            "lap": [5, 7, 8],
+            "pit_in": [True, True, False],
+            "at_line": [START + pd.Timedelta(seconds=s) for s in (300, 400, 500)],
+        }
+    )
+    date = (START + pd.Timedelta(seconds=320)).isoformat()
+    rows = [{"driver_number": 1, "lap_number": 5, "date": date, "lane_duration": 23.0}]
+    # car 2 has no pit row, as in 2023 rounds 1 to 6: lane from the crossing, 20 s
+    assert _pits(table, rows, START) == {
+        "1": [(5, 297.0, 320.0)],
+        "2": [(7, 400.0, 420.0)],
+    }
+
+
+def test_standings_order_lapped_and_stopped_cars() -> None:
+    line = race(
+        {
+            "1": (0.0, [EVEN] * 5),
+            "2": (5.0, [EVEN] * 5),
+            "3": (100.0, [EVEN] * 4),  # more than a lap down
+            "4": (2.0, [EVEN] * 2),  # stops after lap 2
+        }
+    )
+    rows = standings(line, 400.0)
+    assert [r["driver"] for r in rows] == ["1", "2", "3", "4"]
+    assert rows[1]["gap"] == rows[1]["interval"] == pytest.approx((5.0, 0))
+    assert rows[2]["gap"] == rows[2]["interval"] == (None, 1)  # +1 LAP
+    assert rows[0]["gap"] is None and rows[3]["gap"] is None
+    assert [r["out"] for r in rows] == [False, False, False, True]
+
+
+def test_a_slow_lap_without_pit_data_holds_the_car_at_the_line() -> None:
+    slow = (60.0, 30.0, 30.0)  # 30 s slower, with no pit data to say why
+    line = race({"1": (0.0, [EVEN] * 5), "2": (5.0, [EVEN] * 3 + [slow, EVEN])})
+    # car 2 crossed lap 3 at 275 s and is predicted on the line from 365 s
+    assert standings(line, 300.0)[1]["gap"] == pytest.approx((5.0, 0))
+    assert standings(line, 380.0)[1]["gap"] == pytest.approx((20.0, 0))
+
+
+def test_a_car_in_the_pit_lane_waits_at_the_line() -> None:
+    in_lap, out_lap = (30.0, 30.0, 35.0), (45.0, 30.0, 30.0)  # 5 s, then 15 s lost
+    line = race(
+        {"1": (0.0, [EVEN] * 5), "2": (5.0, [EVEN, EVEN, in_lap, out_lap, EVEN])}
+    )
+    card = {
+        "surface": "DRY",
+        "compound": "MEDIUM",
+        "pit_loss_seconds": 20.0,
+        "pit_loss_condition": "GREEN",
+    }
+    line = dataclasses.replace(
+        line, pits={"2": [(3, 277.0, 300.0)]}, cards_v2={("2", 3): card}
+    )
+    # car 2 crosses lap 3 at 280 s and lap 4 at 385 s, 25 s after car 1's 360 s
+    assert standings(line, 300.0)[1]["gap"] == pytest.approx((25.0, 0))  # not 10
+    assert frame(line, "1", 300.0)["angles"]["2"] == pytest.approx(-25 / 90 * 360)
+    assert progress(line.cars["2"], 384.0, 1.0, 15.0) == pytest.approx(3 + 89 / 90)
+
+
+def test_the_lap_slider_follows_the_race_and_jumps_to_the_last_lap(monkeypatch) -> None:
+    state = {"lap": 7}
+    assert R._follow(state, 7) == (state, gr.skip())  # same lap: nothing sent
+    moved, bar = R._follow(state, 8)
+    assert moved["lap"] == 8 and bar["value"] == 8
+    line = race({"1": (0.0, [EVEN] * 5), "44": (2.0, [EVEN] * 5)})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    state = {"race": "r", "driver": "1", "t": 100.0, "end": line.end, "wall": None}
+    assert R.jump(state, 5)[0]["t"] == 360.0  # lap 5 of 5, the last one, from 360 s
+    assert R.jump(state, 1)[0]["t"] == line.first  # typed 1 on the way to 12
+    assert R.pick_race("r", "44")[0]["driver"] == "44"
+    assert R.pick_race("r", "99")[0]["driver"] == "1"  # not in the race: the leader
+
+
+def test_a_policy_2_box_marks_the_card_for_the_sound(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    box = {"answer": "CALL: BOX\nWHY: The window is open."}
+    stay = {"answer": "CALL: STAY OUT\nWHY: Young tyres."}
+    assert 'data-box="r|1|12"' in R.calls(box, 12, "1", "r|1|12")
+    assert "data-box" not in R.calls(stay, 12, "1", "r|1|12")
+    assert "data-box" not in R.calls(None, None, "1", "r|1|None")
+    assert "Policy 1.1" not in R.calls(stay, 12, "1", "r|1|12")
+    assert R.sound_head(tmp_path / "missing.wav") == ""
+    sound = tmp_path / "box.wav"
+    sound.write_bytes(b"RIFF")
+    head = R.sound_head(sound)
+    assert head.startswith("<script>") and "data:audio/wav;base64,UklGRg==" in head
+
+
+def test_the_best_compound_is_the_softest_that_lasts_with_two_compounds() -> None:
+    slopes = {"SOFT": (0.05, "race"), "MEDIUM": (0.06, "race"), "HARD": (0.03, "race")}
+    options = {
+        "slopes": slopes,
+        "laps_left": 12,
+        "used": {"SOFT", "HARD"},
+        "wet": False,
+    }
+    # lives: SOFT 0.62 / 0.05 = 12, MEDIUM 1.08 / 0.06 = 18, HARD 1.38 / 0.03 = 46
+    assert R.tyre_life("SOFT", 0.05) == 12 and R.tyre_life("HARD", None) is None
+    assert R.best_compound(options) == "SOFT"
+    assert R.best_compound({**options, "laps_left": 15}) == "MEDIUM"
+    assert R.best_compound({**options, "laps_left": 60}) == "HARD"  # none lasts
+    assert R.best_compound({**options, "used": {"SOFT"}}) == "MEDIUM"  # a second one
+    assert R.best_compound({**options, "wet": True}) is None
+    assert R.best_compound({**options, "slopes": {}}) is None
+
+
+def test_tyre_options_read_the_card_lap_the_laps_left_and_the_sets_used() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})  # crossings at 90, 180, 270...
+    slopes = {"SOFT": (0.05, "global"), "MEDIUM": (0.08, "circuit"), "HARD": None}
+    line = dataclasses.replace(
+        line,
+        degradation={2: slopes, 3: {**slopes, "MEDIUM": (0.09, "race")}},
+        tyres={("1", lap): ("MEDIUM", lap) for lap in (1, 2, 3)}
+        | {("1", 4): ("HARD", 1)},
+    )
+    options = tyre_options(line, "1", 200.0)  # on lap 3, two laps done
+    assert options["lap"] == 3 and options["slopes"]["MEDIUM"] == (0.09, "race")
+    assert options["laps_left"] == 3 and options["used"] == {"MEDIUM"}
+    assert not options["wet"]
+    assert tyre_options(line, "1", 280.0)["used"] == {"MEDIUM", "HARD"}
+    assert tyre_options(line, "1", 280.0)["slopes"]["MEDIUM"] == (0.09, "race")
+
+
+def test_the_inner_arc_shows_the_way_to_the_rejoin_window() -> None:
+    line = race({"1": (0.0, [EVEN] * 3), "44": (20.0, [EVEN] * 3)})
+    svg = circle(line, "1", frame(line, "1", 150.0), (20.0, "GREEN"))
+    assert 'class="loss"' in svg and 'class="window"' in svg and ">rejoin<" in svg
+    assert 'class="band"' not in svg  # the ring itself carries no rejoin any more
+    readout = svg.split('class="readout">')[1]
+    assert "behind" not in readout and "44 20.0 s behind" not in readout
+    assert "car 44 20.0 s behind" in svg.split("</title>")[0]  # still read aloud
+    red = circle(line, "1", frame(line, "1", 150.0), (None, "RED"))
+    assert 'class="loss"' not in red and ">rejoin<" not in red
+    assert 'local</div><div class="mono">UTC+3<' in R.clock_text(line, 2, 150.0)
+    assert R._utc(pd.Timedelta(hours=-8)) == "UTC-8"
+    assert R._utc(pd.Timedelta(hours=5, minutes=30)) == "UTC+5:30"
+
+
+def test_the_tiles_show_each_reading_with_its_icon() -> None:
+    line = race({"1": (0.0, [EVEN] * 3)})
+    weather = pd.DataFrame(
+        {
+            "at": [START],
+            "air_temperature": [26.4],
+            "track_temperature": [31.2],
+            "humidity": [61.0],
+            "wind_speed": [1.6],
+            "rainfall": [0.0],
+        }
+    )
+    steps = pd.DataFrame(
+        {
+            "at": [START + pd.Timedelta(minutes=m) for m in (0, 15, 30)],
+            "weather_code": [0, 3, 61],
+            "is_day": [0, 0, 0],
+            "temperature_2m": [24.0, 23.6, 23.1],
+            "precipitation": [0.0, 0.0, 0.4],
+            "wind_speed_10m": [2.0, 2.4, 3.1],
+        }
+    )
+    context = RaceContext(pd.DataFrame(), [], {}, weather, [], {}, {})
+    line = dataclasses.replace(line, context=context, forecast=steps)
+    strip = R.status_strip(line, "1", 100.0)
+    assert strip.count('class="icon metric"') == 4
+    for value in ("26°C", "31°C", "61%", "1.6 m/s"):
+        assert value in strip
+    assert '<table class="steps">' in strip and '<th scope="col">Wind</th>' in strip
+    assert "0.4 mm" in strip and "Weather data by Open-Meteo.com" in strip
+    gone = R.status_strip(dataclasses.replace(line, forecast=None), "1", 100.0)
+    assert "Forecast unavailable" in gone
+    assert "tyre" not in R.driver_tile(line, "1")
+
+
+def _model_race(monkeypatch, answer: str = "CALL: BOX\nWHY: The window is open."):
+    """A two-car race whose lap-2 card carries a stub policy 2.0 answer."""
+    line = race({"1": (0.0, [EVEN] * 3), "2": (3.0, [EVEN] * 3)})
+    line = dataclasses.replace(line, cards_v2={("1", 2): {"answer": answer}})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    state = {"race": "r", "driver": "1", "t": 100.0, "end": 270.0, "wall": None}
+    return state | {"speed": "x1"}
+
+
+def _asked(call: str = "BOX"):
+    seen = []
+
+    def asker(card, lap, driver):
+        seen.append((card["answer"], lap, driver))
+        probabilities = {"BOX": 0.71, "STAY OUT": 0.2, "NO CALL": 0.09}
+        return {
+            "call": call,
+            "probabilities": probabilities,
+            "tau": None,
+            "seconds": 1.8,
+        }
+
+    return asker, seen
+
+
+def test_the_model_tile_shows_the_call_the_probabilities_and_the_agreement(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked("BOX")
+    tile = R.model_answer(state, asker, {}, "Foot note.")
+    assert seen == [("CALL: BOX\nWHY: The window is open.", 2, "1")]
+    assert (
+        'class="banner box"' in tile
+        and "Lap 2 card of car 1, most probable option" in tile
+    )
+    assert "0.71" in tile and "0.09" in tile and "Foot note." in tile
+    assert "Agrees with policy 2.0" in tile and "data-sound" not in tile
+    other, _ = _asked("STAY OUT")
+    tile = R.model_answer(state, other, {})
+    assert "Differs from policy 2.0, which says BOX" in tile
+
+
+def test_the_model_answer_is_kept_for_its_race_driver_and_lap(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked()
+    cache: dict = {}
+    first = R.model_answer(state, asker, cache)
+    assert R.model_answer(state, asker, cache) == first and len(seen) == 1
+    assert list(cache) == [("r", "1", 2)]
+
+
+def test_the_model_is_not_asked_without_a_card_to_read(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked()
+    monkeypatch.setattr(R, "pit_state", lambda *args: "IN PIT")
+    assert "pit lane" in R.model_answer(state, asker, {})
+    monkeypatch.undo()
+    state = _model_race(monkeypatch)
+    retired = R.model_answer({**state, "t": 500.0}, asker, {})
+    assert "no longer running" in retired
+    assert seen == []
+
+
+def test_a_failed_request_is_shown_and_asked_again_next_time(monkeypatch):
+    state = _model_race(monkeypatch)
+    calls = []
+
+    def broken(card, lap, driver):
+        calls.append(lap)
+        raise RuntimeError("server down")
+
+    cache: dict = {}
+    for _ in range(2):
+        with pytest.warns(UserWarning, match="OpenJev did not answer"):
+            tile = R.model_answer(state, broken, cache)
+        assert "No answer: server down" in tile and 'class="banner bad"' in tile
+    assert calls == [2, 2] and cache == {}  # a failure is never kept
+
+
+def test_the_ask_button_never_writes_the_state_and_shows_a_waiting_tile(monkeypatch):
+    state = _model_race(monkeypatch)
+    before = copy.deepcopy(state)
+    asker, _ = _asked()
+    waiting, answer = list(R.ask_model(state, asker, {}))
+    assert "Asking OpenJev" in waiting and "banner box" in answer
+    assert state == before
+    assert R.OFF_NOTE in R.model_answer(state, None, {})
+    assert R.READY_NOTE in R.model_answer({}, asker, {})
+
+
+def _prompt_hash() -> str:
+    return hashlib.sha256(R.policy2_instructions().encode()).hexdigest()
+
+
+def test_the_foot_of_the_tile_reports_the_measured_agreement(tmp_path):
+    file = tmp_path / "check.json"
+    agreement = {"validation": [60, 100], "mini_test": [45, 100]}
+    file.write_text(
+        json.dumps({"agreement": agreement, "prompt_sha256": _prompt_hash()})
+    )
+    note = R.check_note(file)
+    assert "60% of 100 validation cards, where tau was chosen" in note
+    assert (
+        "45% of 100 mini-test cards" in note
+        and "where tau" not in note.split("mini")[1]
+    )
+    assert "not measured" in R.check_note(tmp_path / "missing.json")
+
+
+def test_the_foot_hides_figures_measured_with_another_prompt(tmp_path):
+    file = tmp_path / "check.json"
+    file.write_text(
+        json.dumps({"agreement": {"validation": [60, 100]}, "prompt_sha256": "0" * 64})
+    )
+    note = R.check_note(file)
+    assert "earlier prompt" in note and "60%" not in note
+
+
+def test_the_committed_check_was_measured_with_the_current_prompt():
+    note = R.check_note()
+    assert "mini-test cards" in note and "earlier prompt" not in note
+    assert "not measured" not in note
+
+
+def test_a_tick_that_changes_nothing_writes_no_state(monkeypatch) -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    monkeypatch.setattr(R, "view", lambda state, t: ("c", "s", "d", "o", "r"))
+    base = {"race": "r", "driver": "1", "t": 100.0, "end": 400.0, "wall": None}
+    lap = R.race_lap(line, 100.0)
+    same = R.tick({**base, "speed": "x1", "lap": lap})
+    assert same[0] == gr.skip() and same[3] == gr.skip()  # state and slider untouched
+    moved = R.tick({**base, "speed": "x1", "lap": lap + 5})
+    assert moved[0]["lap"] == lap  # a changed lap does write the state
+
+
+def test_a_gap_with_a_hole_is_a_question_mark_not_a_lap_down() -> None:
+    assert R._gap((None, 0)) == "?" and R._gap(None) == "?"
+    assert R._gap((None, 1)) == "+1 LAP" and R._gap((None, 2)) == "+2 LAPS"
+    assert R._gap((5.04, 0)) == "+5.0"
+
+
+def test_the_tyre_age_after_a_lap_without_timing_is_the_laps_done() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    # the lap being driven at 300 s is 4, with no row; lap 3 ended on 20 laps of age
+    line = dataclasses.replace(line, tyres={("1", 3): ("MEDIUM", 20)})
+    assert tyre_at(line, "1", 300.0) == ("MEDIUM", 20)
+    line = dataclasses.replace(line, tyres={("1", 4): ("MEDIUM", 21)})
+    assert tyre_at(line, "1", 300.0) == ("MEDIUM", 20)  # age at the end, less the lap
+
+
+def test_a_negative_prior_slope_reads_as_unknown_in_the_tyre_tile(monkeypatch) -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    options = {
+        "slopes": {
+            "SOFT": (-0.006, "circuit"),
+            "MEDIUM": (0.05, "race"),
+            "HARD": (None, None),
+        },
+        "laps_left": 20,
+        "used": {"MEDIUM", "HARD"},
+        "wet": False,
+    }
+    monkeypatch.setattr(R, "tyre_options", lambda *args: options)
+    tile = R.tyre_tile(line, "1", 300.0)
+    assert "+-" not in tile and "+0.050 s" in tile

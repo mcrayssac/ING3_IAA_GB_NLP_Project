@@ -29,11 +29,11 @@ class DataUnavailableError(RuntimeError):
     """A source could not be reached or returned unusable data."""
 
 
-def _download(url: str, empty_on_404: bool) -> bytes:
+def _download(url: str, empty_on_404: bool, timeout: float = 60) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": "boxbox-rebuild"})
     for attempt in range(RETRIES):
         try:
-            with urllib.request.urlopen(request, timeout=60) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 return response.read()
         except urllib.error.HTTPError as error:
             if error.code == 404 and empty_on_404:  # OpenF1's answer for "no results"
@@ -49,10 +49,12 @@ def _download(url: str, empty_on_404: bool) -> bytes:
     raise DataUnavailableError(url)
 
 
-def fetch_json(url: str, cache_file: Path, empty_on_404: bool = False) -> Any:
+def fetch_json(
+    url: str, cache_file: Path, empty_on_404: bool = False, timeout: float = 60
+) -> Any:
     """Read `url` through the disk cache; a failure raises and caches nothing."""
     if not cache_file.exists():
-        body = _download(url, empty_on_404)
+        body = _download(url, empty_on_404, timeout)
         time.sleep(PAUSE_SECONDS)
         if body.strip() == b"[]" and not empty_on_404:  # a race not loaded yet
             raise DataUnavailableError(f"{url}: empty response")
@@ -149,6 +151,8 @@ def _when(message: dict[str, Any]) -> pd.Timestamp:
 def _event(message: dict[str, Any]) -> tuple[str | None, str | None]:
     """(kind, action) a race-control message carries for track status, if any."""
     text = (message.get("message") or "").upper()
+    if text.startswith("VSC "):  # 2026 writes "VSC DEPLOYED" and "VSC ENDING"
+        text = "VIRTUAL SAFETY CAR " + text[4:]
     # 2026 messages read "RED FLAG - RACE SUSPENDED" with no flag field
     if message.get("flag") == "RED" and message.get("scope") == "Track":
         return "RED", "open"

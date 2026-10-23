@@ -1,5 +1,5 @@
 {
- "created_utc": "2026-10-22T13:10:44+00:00",
+ "created_utc": "2026-10-22T20:17:45+00:00",
  "splits_sha256": "2ce4c00ca3885d0f40aa9ae1a13d736ba8bb65782595511380908894697b6c1d",
  "races": {
   "2023-02": {
@@ -629,9 +629,9 @@
    "date_end": "2026-03-08T06:00:00+00:00",
    "pit_loss": {},
    "degradation": {
-    "SOFT": 0.0662,
-    "MEDIUM": 0.0361,
-    "HARD": 0.0322
+    "SOFT": 0.0647,
+    "MEDIUM": 0.0305,
+    "HARD": 0.033
    }
   },
   "2026-02": {
@@ -678,10 +678,11 @@
    "circuit_key": 23,
    "date_end": "2026-05-24T22:00:00+00:00",
    "pit_loss": {
-    "GREEN": 27.36
+    "GREEN": 26.55,
+    "VSC": 40.08
    },
    "degradation": {
-    "SOFT": 0.0054
+    "SOFT": 0.0045
    }
   },
   "2026-06": {
@@ -702,12 +703,13 @@
    "circuit_key": 15,
    "date_end": "2026-06-14T15:00:00+00:00",
    "pit_loss": {
-    "GREEN": 24.19
+    "GREEN": 24.18,
+    "VSC": 32.58
    },
    "degradation": {
-    "SOFT": 0.0917,
-    "MEDIUM": 0.1481,
-    "HARD": 0.0911
+    "SOFT": 0.0887,
+    "MEDIUM": 0.1494,
+    "HARD": 0.1068
    }
   },
   "2026-08": {
@@ -715,12 +717,13 @@
    "circuit_key": 19,
    "date_end": "2026-06-28T15:00:00+00:00",
    "pit_loss": {
-    "GREEN": 21.49
+    "GREEN": 21.56,
+    "VSC": 19.13
    },
    "degradation": {
-    "SOFT": 0.0739,
-    "MEDIUM": 0.0782,
-    "HARD": 0.0705
+    "SOFT": 0.0499,
+    "MEDIUM": 0.0729,
+    "HARD": 0.0789
    }
   },
   "2026-09": {
@@ -728,12 +731,13 @@
    "circuit_key": 2,
    "date_end": "2026-07-05T16:00:00+00:00",
    "pit_loss": {
-    "GREEN": 23.48,
-    "SC": 31.01
+    "GREEN": 20.76,
+    "SC": 31.01,
+    "VSC": 12.66
    },
    "degradation": {
-    "MEDIUM": 0.0438,
-    "HARD": 0.0718
+    "MEDIUM": 0.0355,
+    "HARD": 0.0733
    }
   },
   "2026-10": {
@@ -741,12 +745,13 @@
    "circuit_key": 7,
    "date_end": "2026-07-19T15:00:00+00:00",
    "pit_loss": {
-    "GREEN": 19.88,
-    "SC": 15.71
+    "GREEN": 20.66,
+    "SC": 15.71,
+    "VSC": 9.62
    },
    "degradation": {
-    "MEDIUM": 0.1179,
-    "HARD": 0.0367
+    "MEDIUM": 0.1233,
+    "HARD": 0.0338
    }
   },
   "2026-11": {
@@ -754,12 +759,13 @@
    "circuit_key": 4,
    "date_end": "2026-07-26T15:00:00+00:00",
    "pit_loss": {
-    "GREEN": 20.96
+    "GREEN": 21.11,
+    "VSC": 19.99
    },
    "degradation": {
-    "SOFT": 0.0474,
-    "MEDIUM": 0.0405,
-    "HARD": 0.0788
+    "SOFT": 0.0449,
+    "MEDIUM": 0.0389,
+    "HARD": 0.083
    }
   }
  }

@@ -1,16 +1,22 @@
-"""The replay tab: a race played back on the circle, with the calls of both cards.
+"""The replay tab: a race played back on the circle, with the policy 2.0 call.
 
-The pit window follows the track status at the clock, and the policy 2.0 call sits
-next to the policy 1.1 call on the 1.0 card, which is what the trained model reads.
+The pit window follows the track status at the clock, and the call is policy 2.0 on
+the 2.0 card. Around them: the flag, the weather and its archived forecast, the
+driver's tyre, the pit lane and the running order, each read at the clock.
 """
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import html
+import json
 import math
 import time
+from collections.abc import Callable, Iterator
 from datetime import timedelta
-from functools import lru_cache
+from functools import lru_cache, partial
+from pathlib import Path
 from typing import Any
 
 import gradio as gr
@@ -19,20 +25,79 @@ import pandas as pd
 from boxbox.data import (
     Timeline,
     cards_at,
+    flags_at,
     frame,
     load_splits,
     load_timeline,
+    pit_state,
     pit_window,
-    status_now,
+    standings,
+    tyre_at,
+    tyre_options,
 )
+from boxbox.data.cards_v2 import weather_at
+from boxbox.data.openmeteo import forecast_at
+from boxbox.data.replay import race_lap
 from boxbox.data.splits import CLOSED_SPLITS, SPLITS_V2_FILE
+from boxbox.model.policy2_prompt import policy2_instructions
 from boxbox.rules import format_answer
+from boxbox.rules.policy2 import TYRE_LOSS_LIMITS
 
+from . import icons as I
 from . import panels as P
 
 TICK = 0.5  # seconds between timer ticks
+SOUND = Path("boxbox.wav")  # played on each new 2.0 card whose policy 2.0 call is BOX
+CHECK_FILE = Path("data/reference/replay-model-check.json")
+MODEL_NAME = "OpenJev Flash 9B"
+READY_NOTE = "Press Ask the model to read the card on screen."
+OFF_NOTE = "Start the app with -R or -O to ask OpenJev about this card."
+# (card, lap, driver) -> {call, probabilities, tau, seconds}, from boxbox.model.openjev
+Asker = Callable[[dict[str, Any], int, str], dict[str, Any]]
 SPEEDS = ("x1", "x2", "x4")
 HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
+ZOOM = 2.2  # one turn covers twice the farthest reach, plus 10% room
+METRICS = (  # icon, label, reading field, format, unit
+    ("air", "Air", "air_temperature", ".0f", "°C"),
+    ("track", "Track", "track_temperature", ".0f", "°C"),
+    ("humidity", "Humidity", "humidity", ".0f", "%"),
+    ("wind", "Wind", "wind_speed", ".1f", " m/s"),
+)
+SOFTEST = ("SOFT", "MEDIUM", "HARD")  # the softer, the faster on a new set
+DEFAULT = ("2024-22", "63")  # Las Vegas 2024 on Russell: the tab opens on it
+FLAG_WORDS = {
+    "GREEN": "Green flag",
+    "YELLOW": "Yellow flag",
+    "DOUBLE YELLOW": "Double yellow",
+    "RED": "Red flag",
+    "SC": "Safety car",
+    "VSC": "Virtual safety car",
+    "CHEQUERED": "Chequered flag",
+}
+SKY_WORDS = {
+    "sun": "Clear",
+    "moon": "Clear night",
+    "partly": "Partly cloudy",
+    "cloud": "Cloudy",
+    "fog": "Fog",
+    "drizzle": "Drizzle",
+    "rain": "Rain",
+    "storm": "Storm",
+    "unknown": "Sky unknown",
+}
+STATE_CLASSES = {
+    "BOX": "box",
+    "STAY OUT": "stay",
+    "NO CALL": "nocall",
+    "IN PIT": "pit",
+    "OUT LAP": "pit out",
+    "RETIRED": "idle",
+    "NO CARD": "idle",
+}
+ATTRIBUTION = (
+    '<a href="https://open-meteo.com/" target="_blank" rel="noopener">'
+    "Weather data by Open-Meteo.com</a>"
+)
 
 
 def race_choices() -> list[tuple[str, str]]:
@@ -60,17 +125,198 @@ def clock_text(line: Timeline, lap: int, t: float) -> str:
     local = line.start + pd.Timedelta(seconds=t) + line.utc_offset
     # a lap-1 red flag dates the start from the restart, so the clock can be negative
     elapsed = ("-" if t < 0 else "") + str(timedelta(seconds=int(abs(t))))
-    status = status_now(line, t)
     return (
-        f'<div class="situation"><div class="race">{html.escape(line.event)}</div>'
-        f'<div class="mono">{local:%H:%M:%S} local &nbsp; {elapsed} elapsed &nbsp; '
-        f'Lap {lap}/{line.total_laps} &nbsp; <span class="track">Track {status}'
-        f"</span></div></div>"
+        f'<div class="clock"><div class="lap">Lap <b>{lap}</b> / {line.total_laps}</div>'
+        f'<div class="mono">{elapsed} elapsed</div>'
+        f'<div class="mono">{local:%H:%M:%S} local</div>'
+        f'<div class="mono">{_utc(line.utc_offset)}</div></div>'
+    )
+
+
+def _utc(offset: pd.Timedelta) -> str:
+    """The track's offset from UTC, as UTC+3, UTC-8 or UTC+5:30."""
+    minutes = int(offset.total_seconds() // 60)
+    hours, rest = divmod(abs(minutes), 60)
+    return f"UTC{'+' if minutes >= 0 else '-'}{hours}" + (
+        f":{rest:02d}" if rest else ""
+    )
+
+
+def _flag_tile(line: Timeline, driver: str, t: float) -> str:
+    """The flag at the clock, large, with the yellow sectors and a blue flag under it;
+    the edge takes the flag's colour beside its word."""
+    kind, sectors, blue = flags_at(line, driver, t)
+    yellow = sorted(s for s in sectors if s is not None)
+    where = ""
+    if yellow:
+        plural = "s" if len(yellow) > 1 else ""
+        where = f"Yellow in sector{plural} {', '.join(map(str, yellow))}"
+    if blue:
+        where += (
+            f"{'. ' if where else ''}Blue flag for {html.escape(_name(line, driver))}"
+        )
+    colour = I.FLAG_COLOURS.get(kind.removeprefix("DOUBLE "), "var(--bx-ink)")
+    return (
+        f'<div class="tile track" style="--flag:{colour}"><div class="head">Track</div>'
+        f'<div class="flagged">{I.flag(kind)}<div class="word">{FLAG_WORDS[kind]}</div>'
+        f'<div class="sub">{where}</div></div></div>'
+    )
+
+
+def _weather_tile(line: Timeline, t: float) -> str:
+    """The sky now, large, beside air and track temperature, humidity and wind, each
+    with its icon and its word."""
+    at = line.start + pd.Timedelta(seconds=t)
+    weather = getattr(line.context, "weather", None)
+    reading = (weather_at(weather, at) if weather is not None else None) or {}
+    now, _ = forecast_at(line.forecast, at)
+    if reading.get("rainfall"):
+        kind = "rain"
+    else:
+        kind = I.sky(now["weather_code"], now["is_day"]) if now else "unknown"
+    cells = "".join(
+        f'<div class="metric">{I.metric(icon)}<span class="label">{label}</span>'
+        f'<span class="value mono">{_value(reading, field, spec, unit)}</span></div>'
+        for icon, label, field, spec, unit in METRICS
+    )
+    return (
+        '<div class="tile weather"><div class="head">Weather now</div>'
+        f'<div class="body"><div class="sky">{I.weather(kind)}'
+        f'<span>{SKY_WORDS[kind]}</span></div><div class="metrics">{cells}</div>'
+        "</div></div>"
+    )
+
+
+def _value(values: dict[str, Any], field: str, spec: str, unit: str) -> str:
+    value = values.get(field)
+    return "?" if value is None or pd.isna(value) else f"{value:{spec}}{unit}"
+
+
+def _forecast_tile(line: Timeline, t: float) -> str:
+    """The archived forecast steps after the clock as a table, one row per step."""
+    at = line.start + pd.Timedelta(seconds=t)
+    _, ahead = forecast_at(line.forecast, at)
+    rows = []
+    for step in ahead:
+        kind = I.sky(step["weather_code"], step["is_day"])
+        minutes = round((step["at"] - at).total_seconds() / 60)
+        local = step["at"] + line.utc_offset
+        rows.append(
+            f'<tr><td class="mono">{local:%H:%M}</td><td class="mono">{minutes} min</td>'
+            f'<td>{I.weather(kind)}<span class="sr-only">{SKY_WORDS[kind]}</span></td>'
+            f'<td class="mono">{_value(step, "temperature_2m", ".0f", "°C")}</td>'
+            f'<td class="mono">{_value(step, "precipitation", ".1f", " mm")}</td>'
+            f'<td class="mono">{_value(step, "wind_speed_10m", ".1f", " m/s")}</td></tr>'
+        )
+    if line.forecast is None:
+        body = '<div class="sub">Forecast unavailable</div>'
+    elif not rows:
+        body = '<div class="sub">No forecast past the race</div>'
+    else:
+        head = "".join(
+            f'<th scope="col">{h}</th>'
+            for h in ("Time", "In", "Sky", "Temp", "Rain", "Wind")
+        )
+        body = (
+            '<div class="scroll"><table class="steps"><caption class="sr-only">'
+            "Archived forecast steps after the clock, in local time</caption>"
+            f"<thead><tr>{head}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+        )
+    return (
+        f'<div class="tile forecast"><div class="head">Archived forecast</div>{body}'
+        f'<div class="sub">{ATTRIBUTION}</div></div>'
+    )
+
+
+def tyre_life(compound: str, slope: float | None) -> int | None:
+    """Laps a new set lasts before its loss reaches policy 2.0's upper wear limit."""
+    if not slope or slope <= 0:
+        return None
+    return int(float(TYRE_LOSS_LIMITS[compound][1]) / slope)
+
+
+def best_compound(options: dict[str, Any]) -> str | None:
+    """The softest dry compound whose life covers the laps left, else the one that
+    lasts longest. A dry race needs two dry compounds, so with one used so far only
+    the other two count. No choice on a wet track or without any degradation."""
+    if options["wet"]:
+        return None
+    lives = {c: tyre_life(c, options["slopes"].get(c, (None,))[0]) for c in SOFTEST}
+    candidates = [c for c in SOFTEST if lives[c] is not None]
+    if len(options["used"]) == 1:
+        candidates = [c for c in candidates if c not in options["used"]]
+    lasting = [c for c in candidates if lives[c] >= options["laps_left"]]
+    if lasting:
+        return lasting[0]
+    return max(candidates, key=lambda c: lives[c]) if candidates else None
+
+
+def tyre_tile(line: Timeline, driver: str, t: float) -> str:
+    """The three dry compounds for the chosen car: degradation per lap of tyre age,
+    life to the wear limit and where the value comes from, the set on the car
+    highlighted and the best choice marked."""
+    options = tyre_options(line, driver, t)
+    current, _ = tyre_at(line, driver, t)
+    best = best_compound(options)
+    rows = []
+    for c in SOFTEST:
+        slope, source = options["slopes"].get(c, (None, None))
+        life = tyre_life(c, slope)
+        on = ' class="on" aria-current="true"' if c == current else ""
+        badge = ' <span class="best">Best</span>' if c == best else ""
+        rows.append(
+            f"<tr{on}><td>{I.tyre(c)}{c.title()}{badge}</td>"
+            f'<td class="mono">{f"+{slope:.3f} s" if slope and slope > 0 else "?"}</td>'
+            f'<td class="mono">{f"~{life} laps" if life is not None else "?"}</td>'
+            f'<td class="src">{source or ""}</td></tr>'
+        )
+    notes = [f"{options['laps_left']} laps left"]
+    if options["wet"]:
+        notes.append("wet track: slicks not compared")
+    elif len(options["used"]) == 1:
+        notes.append("needs a second compound")
+    life = tyre_life(best, options["slopes"][best][0]) if best else None
+    if life is not None and life < options["laps_left"]:
+        notes.append("none lasts to the flag")
+    head = "".join(
+        f'<th scope="col">{h}</th>'
+        for h in ("Compound", "Per Lap of Age", "Life", "Source")
+    )
+    return (
+        f'<div class="tile tyres"><div class="head">Tyres for '
+        f'{html.escape(_name(line, driver))}</div><div class="scroll">'
+        '<table class="compounds">'
+        '<caption class="sr-only">Time lost per lap of tyre age and laps to the wear '
+        f"limit, per dry compound</caption><thead><tr>{head}</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
+        f'<div class="sub">{", ".join(notes)}</div></div>'
+    )
+
+
+def status_strip(line: Timeline, driver: str, t: float) -> str:
+    """The flag, the weather now, the archived forecast and the three dry compounds
+    at clock t."""
+    return (
+        f'<div class="strip">{_flag_tile(line, driver, t)}{_weather_tile(line, t)}'
+        f"{_forecast_tile(line, t)}{tyre_tile(line, driver, t)}</div>"
     )
 
 
 def _name(line: Timeline, driver: str) -> str:
     return line.drivers.get(driver, {}).get("acronym") or f"car {driver}"
+
+
+def _ink(colour: str) -> str:
+    """Black or white, whichever reads better on a #rrggbb colour."""
+    try:
+        channels = [int(colour[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+    except ValueError:  # the ink fallback for a car without a team colour
+        return "var(--block-background-fill)"
+    linear = [
+        c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels
+    ]
+    luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    return "#000" if luminance > 0.179 else "#fff"  # equal contrast at 0.179
 
 
 def _team_car(
@@ -79,19 +325,30 @@ def _team_car(
     degrees: float,
     inside: bool = False,
     named: bool = True,
+    in_pit: bool = False,
 ) -> str:
-    """One car on the ring in its team colour, labelled with its acronym."""
+    """One car on the ring in its team colour with its number, labelled with its
+    acronym; a car in the pit lane has a dashed outline and says PIT."""
     x, y = P._xy(degrees, P.RADIUS)
-    lx, ly = P._xy(degrees, P.RADIUS - 26 if inside else P.RADIUS + 26)
+    # the chosen car's label sits inside, clear of the inner rejoin arc
+    lx, ly = P._xy(degrees, P.RADIUS - 34 if inside else P.RADIUS + 28)
     side = math.sin(math.radians(degrees))
     anchor = "middle" if inside or degrees == 0 else "start" if side > 0 else "end"
     colour = line.drivers.get(driver, {}).get("colour") or "var(--bx-ink)"
-    dot = f'<circle cx="{x:.1f}" cy="{y:.1f}" r="8" fill="{html.escape(colour)}" class="car"/>'
+    pit = " pit" if in_pit else ""
+    # the number's colour is a style: .chart text sets fill over an attribute
+    dot = (
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="11" fill="{html.escape(colour)}" '
+        f'class="car{pit}"/><text x="{x:.1f}" y="{y:.1f}" class="num" '
+        f'text-anchor="middle" dominant-baseline="central" '
+        f'style="fill:{_ink(colour)}">{html.escape(driver)}</text>'
+    )
     if not named:
         return dot
+    label = _name(line, driver) + (" PIT" if in_pit else "")
     return (
         f'{dot}<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="{anchor}" '
-        f'dominant-baseline="middle">{html.escape(_name(line, driver))}</text>'
+        f'dominant-baseline="middle">{html.escape(label)}</text>'
     )
 
 
@@ -123,92 +380,414 @@ def _neighbours(line: Timeline, angles: dict[str, float], scale: float | None) -
     return ", ".join(parts) + ". " if parts else ""
 
 
-def circle(line: Timeline, driver: str, now: dict[str, Any], window: tuple) -> str:
+def turn(scale: float | None, seconds: list[float], loss: float | None) -> float | None:
+    """Seconds one turn of the ring stands for: the real lap, zoomed in while the field
+    is close, so the farthest car and the rejoin point still fit; rounded up to 5 s so
+    the caption does not flicker."""
+    if not scale or not seconds:
+        return scale
+    reach = max(max(abs(s) for s in seconds), (loss or 0.0) + P.MARGIN)
+    return min(scale, math.ceil(ZOOM * reach / 5) * 5)
+
+
+def _arc(start: float, end: float, radius: float, cls: str) -> str:
+    """An arc counter-clockwise from `start` to `end` degrees at `radius`."""
+    end = max(end, start - 359)
+    (x1, y1), (x2, y2) = P._xy(start, radius), P._xy(end, radius)
+    large = 1 if start - end > 180 else 0
+    return (
+        f'<path d="M{x1:.1f},{y1:.1f} A{radius},{radius} 0 {large} 0 '
+        f'{x2:.1f},{y2:.1f}" class="{cls}"/>'
+    )
+
+
+def _ticks(one: float) -> tuple[str, int]:
+    """A tick every 5 s (10 s past a 60 s turn) each side of the car on top."""
+    step = 5 if one <= 60 else 10
+    marks = []
+    for k in range(1, int(one / 2 // step) + 1):
+        for degrees in (k * step / one * 360, -k * step / one * 360):
+            (x1, y1), (x2, y2) = (
+                P._xy(degrees, P.RADIUS - 6),
+                P._xy(degrees, P.RADIUS + 6),
+            )
+            marks.append(
+                f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
+                'class="tick-mark"/>'
+            )
+    return "".join(marks), step
+
+
+def circle(
+    line: Timeline,
+    driver: str,
+    now: dict[str, Any],
+    window: tuple,
+    in_pit: frozenset[str] = frozenset(),
+) -> str:
     """Every car by time gap from `driver`, on top, and the pit window in yellow for
-    the track status at the clock."""
-    scale, angles = now["scale"], now["angles"]
-    loss, condition = window
+    the track status at the clock, on a ring that zooms in when the field is close."""
+    scale, loss, condition = now["scale"], *window
+    seconds = {d: a / 360 * scale for d, a in now["angles"].items()} if scale else {}
+    one = turn(scale, list(seconds.values()), loss)
+    angles = {d: s / one * 360 for d, s in seconds.items()}
     shapes = [
         f'<circle cx="{P.CENTRE[0]}" cy="{P.CENTRE[1]}" r="{P.RADIUS}" class="ring"/>'
     ]
-    if loss is not None and scale:
-        shapes.append(P._band(-loss / scale * 360, -(loss + P.MARGIN) / scale * 360))
+    ticks, step = _ticks(one) if one else ("", 0)
+    shapes.append(ticks)
+    if loss is not None and one:
+        # inside the ring, where no dot hides it: the way back to the rejoin point in
+        # the pit colour, then the rejoin window in yellow
+        rejoin, end = -loss / one * 360, -(loss + P.MARGIN) / one * 360
+        inner = P.RADIUS - 18
+        rx, ry = P._xy(rejoin, P.RADIUS - 40)
+        shapes += [
+            _arc(0.0, rejoin, inner, "loss"),
+            _arc(rejoin, end, inner, "window"),
+            (
+                f'<text x="{rx:.1f}" y="{ry:.1f}" text-anchor="middle" '
+                'dominant-baseline="middle">rejoin</text>'
+            ),
+        ]
     named = _named(angles)
     shapes += [
-        _team_car(line, other, angle, named=other in named)
+        _team_car(line, other, angle, named=other in named, in_pit=other in in_pit)
         for other, angle in angles.items()
     ]
-    shapes.append(_team_car(line, driver, 0, inside=True))
+    shapes.append(_team_car(line, driver, 0, inside=True, in_pit=driver in in_pit))
     text = (
         f"{condition} pit window {loss:.1f} to {loss + P.MARGIN:.1f} s back"
         if loss is not None
         else "no pit window"
     )
-    text = _neighbours(line, angles, scale) + text
+    scale_text = f"1 turn = {one:.0f} s, ticks every {step} s" if one else ""
+    pits = ", ".join(_name(line, d) for d in sorted(in_pit))
+    # the neighbours show on the ring and in the table; screen readers still hear them
     label = (
-        f"{_name(line, driver)} on top, {len(angles)} other cars by time gap. {text}."
+        f"{_name(line, driver)} on top, {len(angles)} other cars by time gap, "
+        f"{scale_text}. {_neighbours(line, angles, one)}{text}."
+        + (f" In the pit lane: {pits}." if pits else "")
     )
     box = f"0 0 {P.CIRCLE_WIDTH} {P.CIRCLE_HEIGHT}"
     svg = P._svg(box, label, "".join(shapes))
-    return f'<div class="chart replay">{svg}<div class="readout">{text}</div></div>'
-
-
-def _banner(card: dict | None, lap: int | None, driver: str, version: str) -> str:
-    if card is not None:
-        return P.banner(format_answer(card))
-    if lap is None:
-        why = f"Car {driver} is no longer running."
-    else:
-        why = f"No {version} card for car {driver} at lap {lap}: pit lane, final lap or no timing"
-        why += ", or wet running for a 1.0 card." if version == "1.0" else "."
-    return f'<div class="banner idle"><div class="call">No card</div><div class="why">{why}</div></div>'
-
-
-def calls(card: dict | None, card_v2: dict | None, lap: int | None, driver: str) -> str:
-    """Policy 2.0 on the 2.0 card next to policy 1.1 on the 1.0 card, both read when
-    the car started its lap: a safety car out since then reaches them at the line."""
-    when = f", lap {lap} card, as of lap {lap - 1}" if lap else ""
     return (
-        '<div class="calls">'
-        f'<div><div class="label">Policy 2.0, card 2.0{when}</div>'
-        f"{_banner(card_v2, lap, driver, '2.0')}</div>"
-        f'<div><div class="label">Policy 1.1, card 1.0 (what the model reads){when}</div>'
-        f"{_banner(card, lap, driver, '1.0')}</div></div>"
+        f'<div class="chart replay">{svg}<div class="readout">{text}<br>'
+        f"{scale_text}</div></div>"
     )
 
 
-def view(state: dict[str, Any], t: float) -> tuple[str, str, str]:
-    """The clock, the circle and the two calls at race time t."""
+def call_state(card_v2: dict | None, lap: int | None, pit: str | None) -> str:
+    """What the call panel shows: the pit lane and out-lap first, then a stopped car or
+    a lap with no 2.0 card, else policy 2.0's call."""
+    if pit:
+        return pit
+    if lap is None:
+        return "RETIRED"
+    parsed = P.parse_answer(format_answer(card_v2)) if card_v2 is not None else None
+    return parsed[0] if parsed else "NO CARD"
+
+
+def _why(state: str, card_v2: dict | None, lap: int | None, name: str) -> str:
+    if state in P.CALLS:
+        return P.parse_answer(format_answer(card_v2))[1]
+    return {
+        "IN PIT": f"{name} is in the pit lane.",
+        "OUT LAP": f"{name} is on the out-lap; the next card comes at the line.",
+        "RETIRED": f"{name} is no longer running.",
+    }.get(state, f"No 2.0 card for {name} at lap {lap}: final lap or no timing.")
+
+
+def calls(
+    card_v2: dict | None,
+    lap: int | None,
+    driver: str,
+    key: str = "",
+    pit: str | None = None,
+    name: str = "",
+) -> str:
+    """Policy 2.0 on the 2.0 card, read when the car started its lap: a safety car out
+    since then reaches it at the line. In the pit lane and on the out-lap the panel
+    says so instead of a call.
+
+    When policy 2.0 says BOX, `data-box` carries the card's `key`, and the page plays
+    the sound once for each new key (`sound_head`); the banner blinks three times, and
+    a new BOX card restarts it (the odd and even laps swap the animation).
+    """
+    state = call_state(card_v2, lap, pit)
+    box = state == "BOX"
+    marker = f' data-box="{html.escape(key)}"' if box and key else ""
+    when = f", lap {lap} card, as of lap {lap - 1}" if state in P.CALLS else ""
+    cls = STATE_CLASSES[state] + (
+        f" {'odd' if (lap or 0) % 2 else 'even'}" if box else ""
+    )
+    why = html.escape(_why(state, card_v2, lap, name or f"Car {driver}"))
+    return (
+        f'<div class="calls" data-sound="replay"{marker}>'
+        f'<div class="label">Policy 2.0, card 2.0{when}</div>'
+        f'<div class="banner {cls}" role="status" aria-live="polite">'
+        f'<div class="call">{state}</div><div class="why">{why}</div></div></div>'
+    )
+
+
+def check_note(path: Path = CHECK_FILE) -> str:
+    """The foot of the model tile: the agreement with policy 2.0 that the check measured.
+
+    The figures are shown only for the prompt they were measured with, and the
+    validation one says that tau was chosen on those cards."""
+    try:
+        check = json.loads(path.read_text(encoding="utf-8"))
+        if (
+            check["prompt_sha256"]
+            != hashlib.sha256(policy2_instructions().encode()).hexdigest()
+        ):
+            return (
+                "Zero-shot, no reason written. The measured agreement is for an "
+                "earlier prompt, so it is not shown."
+            )
+        parts = [
+            f"{100 * agreed / cards:.0f}% of {cards} {split.replace('_', '-')} cards"
+            + (", where tau was chosen" if split == "validation" else "")
+            for split, (agreed, cards) in check["agreement"].items()
+        ]
+    except (OSError, ValueError, KeyError, TypeError, ZeroDivisionError):
+        return "Zero-shot, no reason written. Agreement with policy 2.0 not measured."
+    return (
+        "Zero-shot, no reason written. It agrees with policy 2.0 on "
+        + ", ".join(parts)
+        + " of the check sample."
+    )
+
+
+def model_tile(body: str) -> str:
+    label = f"{MODEL_NAME}, zero-shot, card 2.0"
+    return f'<div class="model-call"><div class="label">{label}</div>{body}</div>'
+
+
+def model_message(text: str, cls: str = "idle") -> str:
+    """The tile with a sentence in place of a call: waiting, nothing to read, or an error."""
+    return model_tile(
+        f'<div class="banner {cls}" role="status" aria-live="polite">'
+        f'<div class="call">{html.escape(text)}</div></div>'
+    )
+
+
+def _bars(probabilities: dict[str, float]) -> str:
+    rows = "".join(
+        f'<div class="prob"><span class="name">{name}</span>'
+        f'<span class="bar"><i class="{STATE_CLASSES[name]}" '
+        f'style="width:{probabilities.get(name, 0.0) * 100:.0f}%"></i></span>'
+        f'<span class="mono">{probabilities.get(name, 0.0):.2f}</span></div>'
+        for name in P.CALLS
+    )
+    return f'<div class="probs">{rows}</div>'
+
+
+def model_result(
+    result: dict[str, Any], lap: int, rule: str, note: str, driver: str = ""
+) -> str:
+    """The model's call, its three probabilities and whether it matches the rule's call."""
+    call, tau = result["call"], result["tau"]
+    of_car = f" of car {html.escape(driver)}" if driver else ""
+    how = f"threshold {tau:.2f}" if tau is not None else "most probable option"
+    same = (
+        "Agrees with policy 2.0"
+        if call == rule
+        else f"Differs from policy 2.0, which says {rule}"
+    )
+    return model_tile(
+        f'<div class="banner {STATE_CLASSES[call]}" role="status" aria-live="polite">'
+        f'<div class="call">{call}</div>'
+        f'<div class="why">Lap {lap} card{of_car}, {how}, {result["seconds"]:.1f} s</div></div>'
+        f"{_bars(result['probabilities'])}"
+        f'<div class="agree">{html.escape(same)}</div>'
+        f'<div class="note">{html.escape(note)}</div>'
+    )
+
+
+def model_answer(
+    state: dict[str, Any],
+    asker: Asker | None,
+    cache: dict[tuple[str, str, int], dict[str, Any]],
+    note: str = "",
+) -> str:
+    """The tile for the card on screen. There is nothing to ask in the pit lane, on an
+    out-lap, once retired or without a card; an answer is kept for its race, driver and
+    lap. A failed request is shown, not kept, and asked again on the next click."""
+    if asker is None or not state:
+        return model_message(READY_NOTE if asker else OFF_NOTE)
+    line, driver = timeline(state["race"]), state["driver"]
+    t = clock(state, time.monotonic())
+    card, lap = cards_at(line, driver, t)
+    rule = call_state(card, lap, pit_state(line, driver, t, lap))
+    if rule not in P.CALLS:
+        return model_message(_why(rule, card, lap, _name(line, driver)))
+    key = (state["race"], driver, lap)
+    if key not in cache:
+        try:
+            cache[key] = asker(card, lap, driver)
+        except Exception as error:  # noqa: BLE001 - any failure is shown, none stops the replay
+            gr.Warning(f"OpenJev did not answer: {error}")
+            return model_message(f"No answer: {str(error)[:160]}", "bad")
+    return model_result(cache[key], lap, rule, note, driver)
+
+
+def ask_model(
+    state: dict[str, Any],
+    asker: Asker | None,
+    cache: dict[tuple[str, str, int], dict[str, Any]],
+    note: str = "",
+) -> Iterator[str]:
+    """The button: a waiting tile at once, then the answer. It never writes `state`."""
+    yield model_message("Asking OpenJev", "idle")
+    yield model_answer(state, asker, cache, note)
+
+
+def driver_tile(line: Timeline, driver: str) -> str:
+    """The chosen car: number in its team colour, acronym and team."""
+    info = line.drivers.get(driver, {})
+    colour = info.get("colour") or "var(--bx-ink)"
+    return (
+        f'<div class="driver"><span class="num mono" style="background:'
+        f'{html.escape(colour)};color:{_ink(colour)}">{html.escape(driver)}</span>'
+        f"<span><b>{html.escape(_name(line, driver))}</b> "
+        f'<span class="team">{html.escape(info.get("team", ""))}</span></span></div>'
+    )
+
+
+def _gap(gap: tuple[float | None, int] | None) -> str:
+    if gap is None:
+        return "?"
+    seconds, down = gap
+    if seconds is None:
+        if not down:  # no lap down, so the gap is a hole in the timing
+            return "?"
+        return f"+{down} LAP{'S' if down > 1 else ''}"
+    return f"+{seconds:.1f}"
+
+
+def standings_table(
+    line: Timeline, driver: str, t: float, in_pit: frozenset[str]
+) -> str:
+    """The running order at the clock, gaps taken at the line, the chosen car marked."""
+    rows = []
+    for pos, row in enumerate(standings(line, t), start=1):
+        d = row["driver"]
+        info = line.drivers.get(d, {})
+        gap = "Leader" if pos == 1 else _gap(row["gap"])
+        interval = "" if pos == 1 else _gap(row["interval"])
+        if row["out"]:
+            gap, interval = "OUT", ""
+        compound, age = tyre_at(line, d, t)
+        tyre = (
+            f'{I.tyre(compound)}<span class="mono">{age}</span>'
+            f'<span class="sr-only"> {html.escape(compound.lower())}</span>'
+            if compound and age is not None
+            else "?"
+        )
+        badge = ' <span class="pit">PIT</span>' if d in in_pit else ""
+        classes = " ".join(
+            c for c in ("me" if d == driver else "", "out" if row["out"] else "") if c
+        )
+        attrs = f' class="{classes}"' if classes else ""
+        attrs += ' aria-current="true"' if d == driver else ""
+        rows.append(
+            f'<tr{attrs}><td class="mono">{pos}</td>'
+            f'<td class="car" style="--team:{html.escape(info.get("colour") or "var(--bx-ring)")}">'
+            f'<span class="mono">{html.escape(d)}</span> {html.escape(_name(line, d))}{badge}</td>'
+            f'<td class="mono">{gap}</td><td class="mono">{interval}</td><td>{tyre}</td></tr>'
+        )
+    return (
+        '<table class="standings"><caption class="sr-only">Running order at the clock, '
+        "gaps taken at the line</caption><thead><tr>"
+        + "".join(
+            f'<th scope="col">{h}</th>' for h in ("Pos", "Car", "Gap", "Int", "Tyre")
+        )
+        + f"</tr></thead><tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def view(state: dict[str, Any], t: float) -> tuple[str, str, str, str, str]:
+    """The clock, the status strip, the driver and call, the circle and the running
+    order at race time t."""
     line, driver = timeline(state["race"]), state["driver"]
     now = frame(line, driver, t)
-    card, card_v2, lap = cards_at(line, driver, t)
+    card_v2, lap = cards_at(line, driver, t)
+    in_pit = frozenset(d for d in line.cars if pit_state(line, d, t) == "IN PIT")
+    key = f"{state['race']}|{driver}|{lap}"
+    pit = pit_state(line, driver, t, lap)
     return (
         clock_text(line, now["lap"], t),
-        circle(line, driver, now, pit_window(line, driver, t)),
-        calls(card, card_v2, lap, driver),
+        status_strip(line, driver, t),
+        driver_tile(line, driver)
+        + calls(card_v2, lap, driver, key, pit, _name(line, driver)),
+        circle(line, driver, now, pit_window(line, driver, t), in_pit),
+        standings_table(line, driver, t, in_pit),
     )
 
 
-def pick_race(race_id: str) -> tuple:
-    """A new race, paused at the end of lap 1 on its leader, and the controls on."""
+def sound_head(sound: Path = SOUND) -> str:
+    """A page script that plays `sound` once for each new BOX key of a `data-sound` panel.
+
+    The panels are the replay call (one key per 2.0 card) and the Card tab's banner (one
+    key per answer). The sound is inlined, so no file route is needed; without the file,
+    nothing plays. Browsers allow the sound after the first click on the page.
+    """
+    if not sound.is_file():
+        return ""
+    data = base64.b64encode(sound.read_bytes()).decode("ascii")
+    return f"""<script>
+(() => {{
+  const sound = new Audio("data:audio/wav;base64,{data}");
+  const last = {{}};  // per panel; a panel out of the page keeps its last key. Gradio edits the page in
+  // place, so a new BOX may only change the data-box attribute
+  new MutationObserver(() => {{
+    for (const panel of document.querySelectorAll("[data-sound]")) {{
+      const key = panel.dataset.box || null;
+      if (key && key !== last[panel.dataset.sound]) {{
+        sound.currentTime = 0;
+        sound.play().catch(() => {{}});
+      }}
+      last[panel.dataset.sound] = key;
+    }}
+  }}).observe(document.documentElement, {{
+    childList: true, subtree: true, attributes: true, attributeFilter: ["data-box"]
+  }});
+}})();
+</script>"""
+
+
+def pick_race(race_id: str, driver: str | None = None) -> tuple:
+    """A new race, paused at the end of lap 1 on `driver` if it raced, else on its
+    leader, and the controls on."""
     if not race_id:  # the dropdown was cleared
-        return (gr.skip(),) * 10
+        return (gr.skip(),) * 11
     line = timeline(race_id)
     order = running_order(line)
+    first = driver if driver in order else order[0]
+    lap = race_lap(line, line.first)
     state = {
         "race": race_id,
-        "driver": order[0],
+        "driver": first,
         "t": line.first,
         "end": line.end,
         "wall": None,
         "speed": "x1",
+        "lap": lap,
     }
     names = [(f"{_name(line, d)} ({d})", d) for d in order]
-    drivers = gr.update(choices=names, value=order[0], interactive=True)
-    on = gr.update(interactive=True)
-    laps = gr.update(maximum=line.total_laps - 1, value=2, interactive=True)
-    controls = (on, on, gr.update(interactive=True, value="x1"), laps)
+    drivers = gr.update(choices=names, value=first, interactive=True)
+    button = gr.update(interactive=True, value="Play")
+    laps = gr.update(maximum=line.total_laps, value=lap, interactive=True)
+    controls = (button, gr.update(interactive=True, value="x1"), laps)
     return state, drivers, gr.update(active=False), *controls, *view(state, line.first)
+
+
+def open_default() -> tuple:
+    """The tab opens on the default race and driver, when that race is open."""
+    race_id, driver = DEFAULT
+    opened = any(race_id == r for _, r in race_choices())
+    return pick_race(race_id if opened else "", driver)
 
 
 def running_order(line: Timeline) -> list[str]:
@@ -235,14 +814,23 @@ def lap_start(line: Timeline, lap: int) -> float:
     return max(min(ends, default=line.first), line.first)
 
 
+def _follow(state: dict[str, Any], lap: int) -> tuple[dict[str, Any], Any]:
+    """The lap slider follows the race lap; an unchanged lap sends nothing, so a drag
+    under way is not pulled back on every tick."""
+    if lap == state.get("lap"):
+        return state, gr.skip()
+    return {**state, "lap": lap}, gr.update(value=lap)
+
+
 def jump(state: dict[str, Any], lap: int) -> tuple:
-    """Move the clock to the start of a lap; a running replay keeps running from it."""
+    """Move the clock to the start of a lap; a running replay keeps running from it.
+    The slider keeps what was typed, so typing 12 does not stop at 2."""
     line = timeline(state["race"])
     # a lap typed digit by digit passes through 1, below the slider's real range
-    lap = min(max(int(lap or 2), 2), line.total_laps - 1)
+    lap = min(max(int(lap or 2), 2), line.total_laps)
     t = min(lap_start(line, lap), state["end"])
     wall = None if state["wall"] is None else time.monotonic()
-    state = {**state, "t": t, "wall": wall}
+    state = {**state, "t": t, "wall": wall, "lap": race_lap(line, t)}
     return state, *view(state, t)
 
 
@@ -251,14 +839,21 @@ def pick_driver(state: dict[str, Any], driver: str) -> tuple:
     return state, *view(state, clock(state, time.monotonic()))
 
 
-def play(state: dict[str, Any]) -> tuple:
-    now = time.monotonic()  # re-anchored, so a second Play does not rewind
-    return {**state, "t": clock(state, now), "wall": now}, gr.update(active=True)
-
-
 def pause(state: dict[str, Any]) -> tuple:
-    state = {**state, "t": clock(state, time.monotonic()), "wall": None}
-    return state, gr.update(active=False), *view(state, state["t"])
+    t = clock(state, time.monotonic())
+    state, bar = _follow(
+        {**state, "t": t, "wall": None}, race_lap(timeline(state["race"]), t)
+    )
+    return state, gr.update(active=False), gr.update(value="Play"), bar, *view(state, t)
+
+
+def toggle(state: dict[str, Any]) -> tuple:
+    """One button: Play from the clock, or Pause; its label says what a click does."""
+    if state.get("wall") is not None:
+        return pause(state)
+    now = time.monotonic()  # re-anchored, so the clock does not jump
+    state = {**state, "t": clock(state, now), "wall": now}
+    return state, gr.update(active=True), gr.update(value="Pause"), *(gr.skip(),) * 6
 
 
 def set_speed(state: dict[str, Any], speed: str) -> dict[str, Any]:
@@ -269,36 +864,94 @@ def set_speed(state: dict[str, Any], speed: str) -> dict[str, Any]:
 
 
 def tick(state: dict[str, Any]) -> tuple:
-    """One timer tick: the clock from wall time; at the flag the replay pauses."""
+    """One timer tick: the clock from wall time and the slider on the race lap; at the
+    flag the replay pauses."""
     t = clock(state, time.monotonic())
-    if t < state["end"]:
-        return gr.skip(), gr.skip(), *view(state, t)
-    return pause(state)
+    if t >= state["end"]:
+        return pause(state)
+    followed, bar = _follow(state, race_lap(timeline(state["race"]), t))
+    # an unchanged lap writes nothing: a click that ran meanwhile keeps its state
+    written = gr.skip() if followed is state else followed
+    return written, gr.skip(), gr.skip(), bar, *view(followed, t)
 
 
-def replay_tab() -> None:
-    """The replay controls and panels, wired inside the current Blocks."""
+def replay_tab(asker: Asker | None = None) -> tuple:
+    """The replay controls in one block, then the status strip, then the driver, call and
+    the model tile, then the circle beside the running order, wired inside the current
+    Blocks. Without an `asker` the model button is off.
+
+    Returns the opening load, (function, outputs), for the Blocks to run on page load.
+    """
     state = gr.State({})
     timer = gr.Timer(TICK, active=False)
+    choices = race_choices()
+    default = DEFAULT[0] if any(DEFAULT[0] == r for _, r in choices) else None
+    with gr.Group(elem_classes="bx-bar"), gr.Row(equal_height=True):
+        race = gr.Dropdown(choices, value=default, label="Race", scale=3, min_width=200)
+        driver = gr.Dropdown(
+            [], label="Driver", interactive=False, scale=2, min_width=140
+        )
+        with gr.Column(scale=3, min_width=280):
+            with gr.Row(equal_height=True):
+                play_button = gr.Button(
+                    "Play",
+                    variant="primary",
+                    interactive=False,
+                    scale=0,
+                    min_width=96,
+                )
+                speed = gr.Radio(
+                    list(SPEEDS),
+                    value="x1",
+                    label="Speed",
+                    show_label=False,
+                    interactive=False,
+                    scale=1,
+                    min_width=150,
+                    elem_classes="bx-speed",
+                )
+            lap = gr.Slider(
+                2, 3, value=2, step=1, label="Jump to lap", interactive=False
+            )
+        clock_html = gr.HTML(scale=1, min_width=150, elem_classes="bx-clock")
+    status_html = gr.HTML()
     with gr.Row():
-        race = gr.Dropdown(race_choices(), value=None, label="Race", scale=2)
-        driver = gr.Dropdown([], label="Driver", interactive=False, scale=1)
-        off = {"interactive": False, "scale": 0, "min_width": 90}
-        play_button = gr.Button("Play", variant="primary", **off)
-        pause_button = gr.Button("Pause", **off)
-        speed = gr.Radio(list(SPEEDS), value="x1", label="Speed", interactive=False)
-    lap = gr.Slider(1, 3, value=2, step=1, label="Jump to lap", interactive=False)
-    clock_html, circle_html, call_html = gr.HTML(), gr.HTML(), gr.HTML()
-    panels = [clock_html, circle_html, call_html]
-    controls = [play_button, pause_button, speed, lap]
+        with gr.Column(scale=5, min_width=360):
+            with gr.Row():
+                call_html = gr.HTML(min_width=220)
+                with gr.Column(min_width=240):
+                    ask_button = gr.Button(
+                        "Ask the model", interactive=asker is not None, size="sm"
+                    )
+                    model_html = gr.HTML(
+                        model_message(READY_NOTE if asker else OFF_NOTE)
+                    )
+            circle_html = gr.HTML()
+        with gr.Column(scale=4, min_width=320):
+            standings_html = gr.HTML()
+    # one output per panel: Gradio edits each in place, and an unchanged one costs nothing
+    panels = [clock_html, status_html, call_html, circle_html, standings_html]
+    picked = [state, driver, timer, play_button, speed, lap, *panels]
     # .change: .select misses a choice made with the keyboard, and nothing else writes
     # the race, so .change fires only on a real new choice
-    race.change(pick_race, race, [state, driver, timer, *controls, *panels], **HIDDEN)
-    driver.input(pick_driver, [state, driver], [state, *panels], **HIDDEN)
-    play_button.click(play, state, [state, timer], **HIDDEN)
-    pause_button.click(pause, state, [state, timer, *panels], **HIDDEN)
+    jumps = [race.change(pick_race, race, picked, **HIDDEN)]
+    jumps.append(driver.input(pick_driver, [state, driver], [state, *panels], **HIDDEN))
+    running = [state, timer, play_button, lap, *panels]
+    play_button.click(toggle, state, running, **HIDDEN)
     speed.input(set_speed, [state, speed], state, **HIDDEN)
-    # .change for typed laps and arrow keys, .release to replay the same lap again
-    lap.change(jump, [state, lap], [state, *panels], **HIDDEN)
-    lap.release(jump, [state, lap], [state, *panels], **HIDDEN)
-    timer.tick(tick, state, [state, timer, *panels], **HIDDEN)
+    # .input: the slider following the race lap must not jump; .release replays a lap.
+    # preprocess=False: a lap typed digit by digit passes through 1, below the slider's
+    # minimum, which Gradio would refuse; jump keeps the lap in range itself
+    raw = {**HIDDEN, "preprocess": False}
+    jumps.append(lap.input(jump, [state, lap], [state, *panels], **raw))
+    jumps.append(lap.release(jump, [state, lap], [state, *panels], **raw))
+    timer.tick(tick, state, running, **HIDDEN)
+    # the model tile: one answer per race, driver and lap; it is emptied when the card on
+    # screen changes under it by a new race, driver or jump, and no other event writes it
+    answers: dict[tuple[str, str, int], dict[str, Any]] = {}
+    ask = partial(ask_model, asker=asker, cache=answers, note=check_note())
+    ask_button.click(ask, state, model_html, trigger_mode="once", **HIDDEN)
+    emptied = partial(model_message, READY_NOTE if asker else OFF_NOTE)
+    for event in jumps:
+        event.then(emptied, None, model_html, **HIDDEN)
+    return open_default, picked

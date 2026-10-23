@@ -14,17 +14,22 @@ boxbox/                    Python package
     tyres.py               tyre degradation per compound (4bis.1)
     priors.py              priors from earlier train races (4bis.1)
     replay.py              where each car is at a clock time, for the replay (4bis.3)
+    openmeteo.py           archived weather forecast at the circuit, for the replay
   rules/                   card contract and rule engine (1.4)
     policy2.py             policy 2.0 for 2.0 cards, policy 1.1 for the rest (4bis.2)
   corpus/                  training dialogues, A and B variants (2.2, 3.1)
   model/                   model loading, observation helpers, chat engine (1.5, 2.5a)
+    policy2_prompt.py      policy 2.0 text for a model, rendered from the rule's constants (4bis.4)
+    openjev.py             client of the OpenJev server (3.4) and the Replay asker (4bis.4)
   training/                LoRA training, selection and reload (2.6, 3.2)
   evaluation/              scores, rubric sheets, paired statistics (2.3b, 4.x)
   app/                     Gradio interface (2.4), specs in docs/interface.md
     replay.py              Replay tab (4bis.3)
+    icons.py               SVG flags, tyres and weather icons of the Replay tab
 configs/                   one TOML file per experiment
 scripts/rebuild_data.py    rebuilds the race data from the command line
 scripts/reality_check.py   agreement of a policy with the teams' real stops (4bis.2)
+scripts/replay_model_check.py agreement of OpenJev with policy 2.0 on 2.0 cards (4bis.4)
 scripts/tyre_thresholds.py tyre age at green-flag stops, behind the policy 1.1 thresholds
 tests/                     pytest tests for deterministic code
 agent.ipynb                executed notebook, from installation to interface

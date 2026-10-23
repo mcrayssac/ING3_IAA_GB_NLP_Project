@@ -9,9 +9,13 @@ questions. The diagnostics are scored apart and never make the call.
 from __future__ import annotations
 
 import json
+import math
+import threading
+import time
 import tomllib
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -21,6 +25,9 @@ from boxbox.rules import decide
 from .conversation import _prompt
 
 CONFIG = Path("configs/openjev.toml")
+REPLAY_CONFIG = Path("configs/openjev-replay.toml")
+# The tau that the rule of #35 chose on validation (docs/openjev.md); the demo uses it.
+TAU = 0.59
 # The helper asks for one letter, so the policy's two-line answer format is left out.
 FORMAT_START = "\n\nReturn exactly two lines"
 # The first clause of each NO CALL reason that decide() gives for a card field.
@@ -165,3 +172,105 @@ def ask(base: str, request: dict[str, Any], timeout: float) -> dict[str, Any]:
         ):
             raise OpenJevError("incomplete_answer", f"no usable answer to {name}")
     return reply
+
+
+def chat_answer(call: str, answers: dict[str, Any], tau: float = TAU) -> str:
+    """The demo's two lines from one reply and its call at tau.
+
+    OpenJev picks an option and writes no text, so WHY gives its CALL probabilities and,
+    on NO CALL, the field its diagnostic names. It never borrows the rule's reason.
+    """
+    probabilities = [
+        f"{label} {float(p):.2f}"
+        for label, p in answers["call"]["probabilities"].items()
+    ]
+    shares = ", ".join(probabilities[:-1]) + f" and {probabilities[-1]}"
+    field = (answers.get("missing_field") or {}).get("choice", "none")
+    named = (
+        f", and names {field} as the field that stops the policy"
+        if call == "NO CALL" and field != "none"
+        else ""
+    )
+    return (
+        f"CALL: {call}\nWHY: OpenJev Flash 9B picks a call without writing a reason: "
+        f"it gives {shares} against a threshold of {tau:.2f}{named}."
+    )
+
+
+def responder(
+    settings: dict[str, Any],
+    policy: str,
+    decided: Callable[[dict[str, Any], float], str],
+    tau: float = TAU,
+) -> Callable[[dict[str, Any], list[dict[str, str]], str], str]:
+    """The demo's engine on a running server: one request per message, as in the study.
+
+    The request keeps the diagnostic questions so that the shared state is the one scored
+    in task 3.4; `decided` is the threshold rule of the runner.
+    """
+    base = endpoint(settings)
+    timeout = settings["server"]["request_timeout_seconds"]
+
+    def respond(
+        card: dict[str, Any], history: list[dict[str, str]], message: str
+    ) -> str:
+        inputs = {"card": card, "history": history, "message": message}
+        answers = ask(base, build_request(settings, policy, inputs), timeout)["answers"]
+        return chat_answer(decided(answers["call"], tau), answers, tau)
+
+    return respond
+
+
+# One server answers the Card tab and the Replay tile, one forward pass at a time.
+_ASKING = threading.Lock()
+
+
+def model_card(card: Any) -> Any:
+    """The card as the model reads it: a NaN becomes null, which the prompt reads as unknown."""
+    if isinstance(card, dict):
+        return {key: model_card(value) for key, value in card.items()}
+    if isinstance(card, (list, tuple)):
+        return [model_card(value) for value in card]
+    return None if isinstance(card, float) and not math.isfinite(card) else card
+
+
+def replay_message(lap: int, driver: str) -> str:
+    """The fixed question of the Replay, worded as in the corpus."""
+    return f"Lap {lap} for car {driver}: pit now or keep going?"
+
+
+def replay_asker(
+    settings: dict[str, Any],
+    policy: str,
+    decided: Callable[[dict[str, Any], float | None], str],
+    averaged: Callable[[dict[str, Any]], dict[str, Any]],
+    tau: float | None = None,
+) -> Callable[[dict[str, Any], int, str], dict[str, Any]]:
+    """The Replay's question on a running server: the 2.0 card in, the probabilities out.
+
+    One CALL question, with its options asked in every order of the config and averaged by
+    `averaged`; `decided` applies tau, and no tau gives the most probable option. No
+    diagnostic question is sent, and no reason is written: the model only chooses.
+    """
+    base = endpoint(settings)
+    timeout = settings["server"]["request_timeout_seconds"]
+
+    def ask_card(card: dict[str, Any], lap: int, driver: str) -> dict[str, Any]:
+        inputs = {
+            "card": model_card(card),
+            "history": [],
+            "message": replay_message(lap, driver),
+        }
+        request = build_request(settings, policy, inputs, diagnostics=False)
+        started = time.perf_counter()
+        with _ASKING:
+            reply = ask(base, request, timeout)
+        call = averaged(reply["answers"])["call"]
+        return {
+            "call": decided(call, tau),
+            "probabilities": {k: float(v) for k, v in call["probabilities"].items()},
+            "tau": tau,
+            "seconds": round(time.perf_counter() - started, 1),
+        }
+
+    return ask_card
