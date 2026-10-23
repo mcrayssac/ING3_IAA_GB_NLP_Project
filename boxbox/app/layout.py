@@ -12,7 +12,7 @@ from boxbox.config import RunConfig
 from boxbox.rules import POLICY_VERSION, TYRE_LIMITS
 
 from . import panels as P
-from .replay import replay_tab, sound_head
+from .replay import Asker, replay_tab, sound_head
 from .session import (
     Respond,
     exchange,
@@ -160,6 +160,24 @@ CSS = """
 @keyframes bx-blink { 50% { background: var(--block-background-fill); color: var(--bx-box); } }
 @keyframes bx-blink-b { 50% { background: var(--block-background-fill); color: var(--bx-box); } }
 @media (prefers-reduced-motion: reduce) { .calls .banner.box { animation: none; } }
+.model-call .label { font-size: 0.85em; color: var(--bx-muted); margin-bottom: 4px; }
+.model-call .banner.box { --call: var(--bx-box); }
+.model-call .banner.stay { --call: var(--bx-stay); }
+.model-call .banner.nocall { --call: var(--bx-nocall); }
+.model-call .banner.bad .call { font-size: 1.1em; color: var(--bx-bad); }
+.model-call .banner.idle .call { font-size: 1.1em; }
+.model-call .banner .why { font-size: 0.9em; color: var(--bx-muted); }
+.model-call .probs { display: grid; gap: 4px; margin: 8px 0; }
+.model-call .prob { display: grid; grid-template-columns: 5.5em 1fr 3em;
+                    align-items: center; gap: 8px; font-size: 0.9em; }
+.model-call .bar { background: var(--bx-unknown); border-radius: 4px; height: 10px;
+                   overflow: hidden; }
+.model-call .bar i { display: block; height: 100%; background: var(--bar, var(--bx-ring)); }
+.model-call .bar i.box { --bar: var(--bx-box); }
+.model-call .bar i.stay { --bar: var(--bx-stay); }
+.model-call .bar i.nocall { --bar: var(--bx-nocall); }
+.model-call .agree { font-weight: 700; font-size: 0.9em; }
+.model-call .note { color: var(--bx-muted); font-size: 12px; margin-top: 4px; }
 .chart text.num { font-size: 10px; font-weight: 800; }
 .chart .car.pit { stroke-dasharray: 3 2; }
 .chart .tick-mark { stroke: var(--bx-ring); stroke-width: 1.5; }
@@ -339,8 +357,10 @@ def build_app(
     engine: str = STUB,
     cards: dict[str, dict[str, Any]] | None = None,
     turns: int | None = None,
+    replay: Asker | None = None,
 ) -> gr.Blocks:
-    """The demo screen. Task 2.8 passes the real engine, its name and the run's turns."""
+    """The demo screen. Task 2.8 passes the real engine, its name and the run's turns; the
+    Replay tab gets its own `replay` asker, which reads 2.0 cards."""
     cards = cards or sample_cards()
     turns = RunConfig().history_turns if turns is None else turns
     first = next(iter(cards))
@@ -400,7 +420,7 @@ def build_app(
             with gr.Accordion("Role and limits", open=False):
                 gr.Markdown(role_text(respond is stub_respond))
         with gr.Tab("Replay"):
-            opening = replay_tab()
+            opening = replay_tab(replay)
         everything = [card, history, chat, message, error, situation, circle, tyres]
         everything += [inputs, raw, call, policy, details, was_cut]
         answered = [history, chat, message, error, call, policy, details, was_cut]
@@ -459,6 +479,7 @@ def launch(
     respond: Respond = stub_respond,
     engine: str = STUB,
     turns: int | None = None,
+    replay: Asker | None = None,
     **options: Any,
 ) -> Any:
     """Build the screen and launch it with its theme; options go to Gradio's launch."""
@@ -477,6 +498,6 @@ def launch(
         "run_history": False,
         "head": sound_head(),
     } | options
-    return build_app(respond, engine, turns=turns).launch(
+    return build_app(respond, engine, turns=turns, replay=replay).launch(
         theme=theme, css=CSS, **settings
     )

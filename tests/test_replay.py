@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import copy
 import dataclasses
 import itertools
+import json
 
 import gradio as gr
 import numpy as np
@@ -498,3 +500,102 @@ def test_the_tiles_show_each_reading_with_its_icon() -> None:
     gone = R.status_strip(dataclasses.replace(line, forecast=None), "1", 100.0)
     assert "Forecast unavailable" in gone
     assert "tyre" not in R.driver_tile(line, "1")
+
+
+def _model_race(monkeypatch, answer: str = "CALL: BOX\nWHY: The window is open."):
+    """A two-car race whose lap-2 card carries a stub policy 2.0 answer."""
+    line = race({"1": (0.0, [EVEN] * 3), "2": (3.0, [EVEN] * 3)})
+    line = dataclasses.replace(line, cards_v2={("1", 2): {"answer": answer}})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    monkeypatch.setattr(R, "format_answer", lambda card: card["answer"])
+    state = {"race": "r", "driver": "1", "t": 100.0, "end": 270.0, "wall": None}
+    return state | {"speed": "x1"}
+
+
+def _asked(call: str = "BOX"):
+    seen = []
+
+    def asker(card, lap, driver):
+        seen.append((card["answer"], lap, driver))
+        probabilities = {"BOX": 0.71, "STAY OUT": 0.2, "NO CALL": 0.09}
+        return {
+            "call": call,
+            "probabilities": probabilities,
+            "tau": None,
+            "seconds": 1.8,
+        }
+
+    return asker, seen
+
+
+def test_the_model_tile_shows_the_call_the_probabilities_and_the_agreement(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked("BOX")
+    tile = R.model_answer(state, asker, {}, "Foot note.")
+    assert seen == [("CALL: BOX\nWHY: The window is open.", 2, "1")]
+    assert 'class="banner box"' in tile and "Lap 2 card, most probable option" in tile
+    assert "0.71" in tile and "0.09" in tile and "Foot note." in tile
+    assert "Agrees with policy 2.0" in tile and "data-sound" not in tile
+    other, _ = _asked("STAY OUT")
+    tile = R.model_answer(state, other, {})
+    assert "Differs from policy 2.0, which says BOX" in tile
+
+
+def test_the_model_answer_is_kept_for_its_race_driver_and_lap(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked()
+    cache: dict = {}
+    first = R.model_answer(state, asker, cache)
+    assert R.model_answer(state, asker, cache) == first and len(seen) == 1
+    assert list(cache) == [("r", "1", 2)]
+
+
+def test_the_model_is_not_asked_without_a_card_to_read(monkeypatch):
+    state = _model_race(monkeypatch)
+    asker, seen = _asked()
+    monkeypatch.setattr(R, "pit_state", lambda *args: "IN PIT")
+    assert "pit lane" in R.model_answer(state, asker, {})
+    monkeypatch.undo()
+    state = _model_race(monkeypatch)
+    retired = R.model_answer({**state, "t": 500.0}, asker, {})
+    assert "no longer running" in retired
+    assert seen == []
+
+
+def test_a_failed_request_is_shown_and_asked_again_next_time(monkeypatch):
+    state = _model_race(monkeypatch)
+    calls = []
+
+    def broken(card, lap, driver):
+        calls.append(lap)
+        raise RuntimeError("server down")
+
+    cache: dict = {}
+    for _ in range(2):
+        with pytest.warns(UserWarning, match="OpenJev did not answer"):
+            tile = R.model_answer(state, broken, cache)
+        assert "No answer: server down" in tile and 'class="banner bad"' in tile
+    assert calls == [2, 2] and cache == {}  # a failure is never kept
+
+
+def test_the_ask_button_never_writes_the_state_and_shows_a_waiting_tile(monkeypatch):
+    state = _model_race(monkeypatch)
+    before = copy.deepcopy(state)
+    asker, _ = _asked()
+    waiting, answer = list(R.ask_model(state, asker, {}))
+    assert "Asking OpenJev" in waiting and "banner box" in answer
+    assert state == before
+    assert R.OFF_NOTE in R.model_answer(state, None, {})
+    assert R.READY_NOTE in R.model_answer({}, asker, {})
+
+
+def test_the_foot_of_the_tile_reports_the_measured_agreement(tmp_path):
+    file = tmp_path / "check.json"
+    file.write_text(
+        json.dumps({"agreement": {"validation": [60, 100], "mini_test": [45, 100]}})
+    )
+    note = R.check_note(file)
+    assert (
+        "60% of 100 validation cards" in note and "45% of 100 mini-test cards" in note
+    )
+    assert "not measured" in R.check_note(tmp_path / "missing.json")
