@@ -3,6 +3,181 @@ BoxBox run guide
 
 Run every command from the repository root.
 
+Start here: package, reload and reproduction (task 5.2)
+-------------------------------------------------------
+
+What is delivered. The Git repository holds the code, configs, tests, the
+notebook agent.ipynb, this guide and the data the project created:
+data/splits.json (frozen race splits), data/corpus/ (corpora A and B,
+validation, mini-test), data/final/ (the 200 final cases and the 40 review
+targets) and data/demo/ (the demo cards). Raw OpenF1 and Jolpica responses
+(data/cache/), race cards (data/cards/, data/cards-v2/) and run folders
+(runs/) are never committed: a script rebuilds them (section C).
+
+The two retained adapters are outside Git, with the same bytes in two places:
+
+    boxbox-adapters.zip, 224,010,171 bytes
+    SHA-256 984bd6ad254d2903a360ba0ab51099df760961d420457f20b88f70689a7dc7a6
+
+    A  https://huggingface.co/ING3NLPProject/boxbox-adapter-a, revision
+       ece13db9ea1770a338156250501bc7a17d327235, folder s2028-e1
+    B  https://huggingface.co/ING3NLPProject/boxbox-adapter-b, revision
+       f182f8e9150fa518576eb99c0785bae5dd3ed5f8, folder s2027-e3
+
+The Hub repos are private: without the token of a member of ING3NLPProject
+they answer 401 (checked on 23 October 2026). A reader uses the zip. Unzipped
+at the repository root, it puts the two checkpoints where selected_adapter()
+looks first, runs/2026-10-19_2-6-adapter-a-s2028/trainer/checkpoint-120 and
+runs/2026-10-21_3-2-adapter-b-s2027/trainer/checkpoint-360, with their cards,
+licence notice and hashes in runs/boxbox-adapters/. Either way, the loader
+refuses weights whose SHA-256 differs from configs/freeze.json. The zip was
+made from local copies of the two Hub repos, and it can be made again, byte
+for byte, from such copies (a browser download may add " (1)" to file names):
+
+    .venv/bin/python -m scripts.package adapters --from-a DIR_A --from-b DIR_B --output boxbox-adapters.zip
+
+Three other study artifacts stay outside Git, kept by the team: the 4.2 run
+folder in 4.2-final-delivery.zip, and the 4.3 review sheet with its second
+reviews and the initial ratings, whose hashes are in
+docs/final-findings-evidence.json (provenance). They are only needed to run
+4.4 and 4.5 again (section B).
+
+    4.2-final-delivery.zip
+    SHA-256 2993ac76fe620d3aaf3df811369fdd88a4fbdd1911e0c8582318b6af99896a2b
+
+A. Requirements, versions and resources
+
+Python 3.13 and uv, with the exact versions of requirements.txt (torch 2.14.1,
+transformers 5.20.1, peft 0.21.2, trl 1.16.0, gradio 6.30.0). Only macOS on
+Apple silicon with MPS and bf16 was measured; CUDA and CPU were not tested.
+Sizes and times measured on 23 October 2026, except the final scoring (21
+October) and the training (19 to 21 October):
+
+    base model SmolLM3-3B in the Hub cache      6.15 GB (downloaded once)
+    .venv after installing requirements.txt     1.2 GB
+    boxbox-adapters.zip / unzipped              224 MB / 242 MB
+    OpenF1 cache and 1.0 cards, 70 races        38 MB and 40 MB
+    data rebuild from the network (section C)   32.8 min on an Apple M1
+    load one adapter, then answer one card      10 to 13 s each, Apple M1 16 GB
+    final scoring, 600 answers (4.2)            6,068.5 s of generation, Apple M1
+    training, one seed (sections 11 and 12)     about 72 min, Apple M3 Max 38.7 GB
+
+Training was measured only on the M3 Max with the MPS memory capped at 20 GB.
+
+Check the installation, the freeze, the licences, raw data kept out of Git and
+the adapter links as a reader without a token:
+
+    .venv/bin/python -m scripts.package check --adapters boxbox-adapters.zip
+
+It prints a JSON report and exits with 1 when a check fails. A Hub link that
+answers 401 is reported, not failed, when the zip holds the frozen weights.
+--offline skips the Hub. It loads no model.
+
+B. Reload path: the frozen versions without training
+
+    git clone https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project.git
+    cd ING3_IAA_GB_NLP_Project
+    uv venv --python 3.13 .venv
+    uv pip install --python .venv/bin/python -r requirements.txt
+    unzip /path/to/boxbox-adapters.zip
+    .venv/bin/python -m pytest -q tests
+    .venv/bin/python -m boxbox.app -A
+
+-B answers with adapter B (section 8). The notebook (section 6) loads adapter A
+the same way. The first model load downloads the public base model; no token
+is needed. On 23 October 2026, in a fresh clone of main at f45946c with the zip
+unzipped, A and B loaded from runs/ with HF_HUB_OFFLINE=1 and no token, and
+each answered one fixture card in the strict two-line format. In a new .venv
+installed from requirements.txt, the full test suite of this task's branch
+passed (543 tests, 2 min 53 s).
+
+With the 4.2 run folder copied intact into runs/, the paired analysis of 4.4
+runs again without a model, and the 4.2 run verifies at the commit that
+merged its runner (757df9d); later commits change the sources it seals:
+
+    .venv/bin/python -m scripts.final_analysis run --run-dir runs/4-2-final-50067b54741c-49b4aea370af
+    git worktree add --detach ../boxbox-4-2 757df9d
+    (in ../boxbox-4-2, with the run folder copied into its runs/)
+    ../ING3_IAA_GB_NLP_Project/.venv/bin/python -m scripts.final_scoring verify --run-dir runs/4-2-final-50067b54741c-49b4aea370af
+
+On 23 October 2026 the analysis rerun gave a docs/final-analysis-evidence.json
+equal to the committed one, and verify passed at 757df9d. The findings of 4.5
+also need the two review files above; they were not run again.
+
+Reloading shows what the frozen adapters answer. It is not training evidence:
+the losses, the three seeds, the checkpoint choice and the stopping rule come
+from the training runs (sections 11 and 12, docs/adapter-a.md, docs/adapter-b.md).
+
+C. Rebuild the submitted data
+
+The cards behind the frozen corpus and final cases rebuild exactly only at
+commit 631b783 (section 3). Rebuild them in a separate worktree, with the
+.venv of the repository, then compare with the committed files. From the
+repository root, with the repository folder named ING3_IAA_GB_NLP_Project:
+
+    git worktree add --detach ../boxbox-frozen 631b783
+    cd ../boxbox-frozen
+    ../ING3_IAA_GB_NLP_Project/.venv/bin/python -m scripts.rebuild_data cards
+    ../ING3_IAA_GB_NLP_Project/.venv/bin/python -m scripts.build_corpus build
+    git status --porcelain
+    ../ING3_IAA_GB_NLP_Project/.venv/bin/python -c "from boxbox.config import load_config; from scripts.train_adapter import validation_cases; validation_cases(load_config('configs/baseline-selected.toml'))"
+    mv data/final data/final-committed
+    ../ING3_IAA_GB_NLP_Project/.venv/bin/python -m scripts.final_cases build
+    cd ../ING3_IAA_GB_NLP_Project
+    .venv/bin/python -m scripts.package rebuilt --root ../boxbox-frozen
+
+git status prints nothing when the corpus is rebuilt byte for byte; the
+one-line check stops if the 100 validation cases differ from those of 2.5b.
+rebuilt compares the corpus, the final dialogues, cases, review targets and
+manifest (build time and commit aside), and the final card files with the
+hashes of data/final/manifest.json.
+
+Done on 23 October 2026 from the network: 70 races, 0 failures, 32.8 min.
+The corpus files and their manifest were identical, and so were the 100
+validation cases (ba30d2a6832b) and the 40 mini-test cases (144c48b86b55).
+final.jsonl, cases.jsonl and review-selection.json were identical, at 631b783
+and at ddda0f3, the commit recorded in data/final/manifest.json. The 7 final
+card files hold the same cards, but their recorded hashes are those of the
+same files with CRLF line ends: Path.write_text writes CRLF on Windows, where
+the final cards were built. rebuilt accepts both and says which. The rebuild
+keeps OpenF1 and Jolpica data on the machine; do not publish data/cache/ or
+data/cards/.
+
+D. Full reproduction, in order
+
+    1. Install and test (sections 1 and 2), then rebuild the data (section C).
+    2. Feasibility check, optional (section 5).
+    3. Baseline prompts on validation (section 10).
+    4. Adapter A, three seeds (section 11), then adapter B (section 12).
+    5. Interim A/B analysis (section 13); OpenJev, exploratory (section 14).
+    6. Freeze: python -m scripts.freeze check (docs/freeze.md). The record of
+       21 October is never written again.
+    7. Final cases (docs/final-cases.md), as rebuilt in section C.
+    8. Final scoring (4.2, below). The retained run is the only final run; do
+       not generate another final comparison.
+    9. Human review (4.3), paired gains (4.4) and findings (4.5), below.
+
+Steps 3 to 5 regenerate model answers and train new adapters. They were not
+run again in task 5.2, so whether a new training gives the same weights byte
+for byte is not known. The study's results are those of the frozen
+checkpoints, identified by their hashes in configs/freeze.json.
+
+E. Licences
+
+    code, docs, notebook       Apache 2.0 (LICENSE)
+    SmolLM3-3B, base model     Apache 2.0 (Hub card), not redistributed
+    OpenF1 data                CC BY-NC-SA 4.0, non-commercial
+    Jolpica-F1 data            CC BY-NC-SA 4.0 (its terms of use), non-commercial
+    data/corpus, data/final,
+    data/demo                  CC BY-NC-SA 4.0 (NOTICE in each folder)
+    adapters A and B           CC BY-NC-SA 4.0 (Hub cards, NOTICE in the zip)
+    OpenJev Flash 9B           CC BY-NC 4.0, optional, not included
+    Open-Meteo forecast        CC BY 4.0, Replay tab only, cached locally
+    boxbox.wav                 third-party clip, terms not checked (README.md)
+
+The timing data belongs to the Formula 1 companies. The raw responses and
+cards stay local, and only the script that rebuilds them is shared.
+
 1. Install
 ----------
 
@@ -41,7 +216,8 @@ results were built from the cards of 18 October, which only commit 631b783 (the
 last commit before the milestone was merged) rebuilds exactly. Do not run this
 command over a data/cards/ folder you still need. With rebuilt cards,
 validation_cases and the steps built on it stop with "V-001: card differs from
-its recorded source/transformation".
+its recorded source/transformation". Section C of "Start here" rebuilds the
+frozen cards at 631b783 and compares them with the committed files.
 
 The splits were made once with the command below, which refuses to overwrite
 the existing file:
@@ -168,7 +344,8 @@ adapter A or B instead, with its training prompt and decoding:
 
 The adapter comes from its local run folder or from the private Hub repo
 recorded in configs/adapter-a-selection.json or adapter-b-selection.json, and
-is refused if its hash differs. With -A or -B, the badge names the seed and
+is refused if its hash differs. Unzipping boxbox-adapters.zip ("Start here")
+fills both local run folders, so no token is needed. With -A or -B, the badge names the seed and
 epoch of the adapter, and a line under the call gives the format
 check, the generation time, the tokens, why generation stopped and how much of
 the conversation was sent. A warning on the call says when the token or
@@ -333,7 +510,7 @@ returns the config, the adapter folder and the p01 prompt A was trained on, whic
 must be passed as instructions to load_conversation_engine. It uses the local
 run folder or the recorded Hub revision, and refuses an adapter, config or prompt
 whose hash differs. The Hub download needs a member's token in HF_TOKEN or
-hf auth login.
+hf auth login; without one, unzip boxbox-adapters.zip ("Start here").
 
 Adapter A is seed 2028 at epoch 1. Over the three seeds, CALL agreement is
 0.740 (95% interval 0.650 to 0.830) and every answer is in the strict format.
