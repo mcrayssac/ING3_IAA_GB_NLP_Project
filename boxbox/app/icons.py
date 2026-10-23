@@ -129,3 +129,24 @@ def sky(code: float | None, is_day: float | None = 1) -> str:
     if code in (1, 2):
         return "partly" if is_day else "moon"
     return "sun" if is_day else "moon"
+
+
+METRIC_SHAPES = {
+    "air": '<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/><path d="M12 9v7"/>',
+    "track": (
+        '<path d="M10 11V4a2 2 0 1 1 4 0v7a3.5 3.5 0 1 1-4 0z"/>'
+        '<path d="M3 20h18"/><path d="M6 23h3m3 0h3m3 0h2"/>'
+    ),
+    "humidity": '<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/>',
+    "wind": '<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 15h15a3 3 0 1 1-3 3"/>',
+}
+
+
+def metric(kind: str) -> str:
+    """A weather reading's icon, drawn like the sky icons, in the text colour."""
+    return _icon(
+        f'<g fill="none" stroke="currentColor" stroke-width="1.8" '
+        f'stroke-linecap="round" stroke-linejoin="round">{METRIC_SHAPES[kind]}</g>',
+        "0 0 24 24",
+        "metric",
+    )

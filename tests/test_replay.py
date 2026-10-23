@@ -13,7 +13,15 @@ import pytest
 from boxbox.app import icons as I
 from boxbox.app import replay as R
 from boxbox.app.replay import _named, circle, clock, lap_start
-from boxbox.data import card_at, flags_at, frame, pit_state, standings, tyre_at
+from boxbox.data import (
+    card_at,
+    flags_at,
+    frame,
+    pit_state,
+    standings,
+    tyre_at,
+    tyre_options,
+)
 from boxbox.data.cards_v2 import RaceContext
 from boxbox.data.replay import (
     SECTORS,
@@ -407,3 +415,88 @@ def test_a_policy_2_box_marks_the_card_for_the_sound(monkeypatch, tmp_path) -> N
     sound.write_bytes(b"RIFF")
     head = R.sound_head(sound)
     assert head.startswith("<script>") and "data:audio/wav;base64,UklGRg==" in head
+
+
+def test_the_best_compound_is_the_softest_that_lasts_with_two_compounds() -> None:
+    slopes = {"SOFT": (0.05, "race"), "MEDIUM": (0.06, "race"), "HARD": (0.03, "race")}
+    options = {
+        "slopes": slopes,
+        "laps_left": 12,
+        "used": {"SOFT", "HARD"},
+        "wet": False,
+    }
+    # lives: SOFT 0.62 / 0.05 = 12, MEDIUM 1.08 / 0.06 = 18, HARD 1.38 / 0.03 = 46
+    assert R.tyre_life("SOFT", 0.05) == 12 and R.tyre_life("HARD", None) is None
+    assert R.best_compound(options) == "SOFT"
+    assert R.best_compound({**options, "laps_left": 15}) == "MEDIUM"
+    assert R.best_compound({**options, "laps_left": 60}) == "HARD"  # none lasts
+    assert R.best_compound({**options, "used": {"SOFT"}}) == "MEDIUM"  # a second one
+    assert R.best_compound({**options, "wet": True}) is None
+    assert R.best_compound({**options, "slopes": {}}) is None
+
+
+def test_tyre_options_read_the_card_lap_the_laps_left_and_the_sets_used() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})  # crossings at 90, 180, 270...
+    slopes = {"SOFT": (0.05, "global"), "MEDIUM": (0.08, "circuit"), "HARD": None}
+    line = dataclasses.replace(
+        line,
+        degradation={2: slopes, 3: {**slopes, "MEDIUM": (0.09, "race")}},
+        tyres={("1", lap): ("MEDIUM", lap) for lap in (1, 2, 3)}
+        | {("1", 4): ("HARD", 1)},
+    )
+    options = tyre_options(line, "1", 200.0)  # on lap 3, two laps done
+    assert options["lap"] == 3 and options["slopes"]["MEDIUM"] == (0.09, "race")
+    assert options["laps_left"] == 3 and options["used"] == {"MEDIUM"}
+    assert not options["wet"]
+    assert tyre_options(line, "1", 280.0)["used"] == {"MEDIUM", "HARD"}
+    assert tyre_options(line, "1", 280.0)["slopes"]["MEDIUM"] == (0.09, "race")
+
+
+def test_the_inner_arc_shows_the_way_to_the_rejoin_window() -> None:
+    line = race({"1": (0.0, [EVEN] * 3), "44": (20.0, [EVEN] * 3)})
+    svg = circle(line, "1", frame(line, "1", 150.0), (20.0, "GREEN"))
+    assert 'class="loss"' in svg and 'class="window"' in svg and ">rejoin<" in svg
+    assert 'class="band"' not in svg  # the ring itself carries no rejoin any more
+    readout = svg.split('class="readout">')[1]
+    assert "behind" not in readout and "44 20.0 s behind" not in readout
+    assert "car 44 20.0 s behind" in svg.split("</title>")[0]  # still read aloud
+    red = circle(line, "1", frame(line, "1", 150.0), (None, "RED"))
+    assert 'class="loss"' not in red and ">rejoin<" not in red
+    assert 'local</div><div class="mono">UTC+3<' in R.clock_text(line, 2, 150.0)
+    assert R._utc(pd.Timedelta(hours=-8)) == "UTC-8"
+    assert R._utc(pd.Timedelta(hours=5, minutes=30)) == "UTC+5:30"
+
+
+def test_the_tiles_show_each_reading_with_its_icon() -> None:
+    line = race({"1": (0.0, [EVEN] * 3)})
+    weather = pd.DataFrame(
+        {
+            "at": [START],
+            "air_temperature": [26.4],
+            "track_temperature": [31.2],
+            "humidity": [61.0],
+            "wind_speed": [1.6],
+            "rainfall": [0.0],
+        }
+    )
+    steps = pd.DataFrame(
+        {
+            "at": [START + pd.Timedelta(minutes=m) for m in (0, 15, 30)],
+            "weather_code": [0, 3, 61],
+            "is_day": [0, 0, 0],
+            "temperature_2m": [24.0, 23.6, 23.1],
+            "precipitation": [0.0, 0.0, 0.4],
+            "wind_speed_10m": [2.0, 2.4, 3.1],
+        }
+    )
+    context = RaceContext(pd.DataFrame(), [], {}, weather, [], {}, {})
+    line = dataclasses.replace(line, context=context, forecast=steps)
+    strip = R.status_strip(line, "1", 100.0)
+    assert strip.count('class="icon metric"') == 4
+    for value in ("26°C", "31°C", "61%", "1.6 m/s"):
+        assert value in strip
+    assert '<table class="steps">' in strip and '<th scope="col">Wind</th>' in strip
+    assert "0.4 mm" in strip and "Weather data by Open-Meteo.com" in strip
+    gone = R.status_strip(dataclasses.replace(line, forecast=None), "1", 100.0)
+    assert "Forecast unavailable" in gone
+    assert "tyre" not in R.driver_tile(line, "1")

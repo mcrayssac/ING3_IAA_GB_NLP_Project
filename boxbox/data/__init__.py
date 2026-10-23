@@ -14,6 +14,7 @@ from .replay import (
     standings,
     status_now,
     tyre_at,
+    tyre_options,
 )
 from .splits import (
     FinalSplitClosedError,
@@ -49,4 +50,5 @@ __all__ = [
     "standings",
     "status_now",
     "tyre_at",
+    "tyre_options",
 ]

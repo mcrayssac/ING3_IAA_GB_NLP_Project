@@ -109,20 +109,46 @@ CSS = """
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden;
            clip: rect(0 0 0 0); white-space: nowrap; }
 .strip { display: flex; flex-wrap: wrap; gap: 12px; }
-.tile { flex: 1 1 200px; border: 1px solid var(--bx-ring); border-radius: 8px;
-        padding: 8px 12px; }
-.tile .head { font-size: 0.8em; color: var(--bx-muted); text-transform: uppercase;
-              letter-spacing: 0.04em; }
-.tile .main { display: flex; align-items: center; font-weight: 700; font-size: 1.15em;
-              margin: 2px 0; }
-.tile .sub { color: var(--bx-muted); font-size: 0.85em; }
-.tile.forecast { flex: 2 1 320px; }
-.forecast .step { display: inline-flex; align-items: center; gap: 10px; margin: 2px 16px 2px 0; }
+/* one type scale for the tiles: 12 px labels, 14 px values, 18 px and 24 px for the
+   main value of a tile */
+/* the bases fit the four tiles on one row of about 1,200 px; narrower, they wrap,
+   and min-width 0 lets a table scroll inside its tile instead of widening it */
+.tile { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 6px;
+        border: 1px solid var(--bx-ring); border-radius: 8px; padding: 12px; }
+.tile .head { font-size: 12px; font-weight: 600; color: var(--bx-muted);
+              text-transform: uppercase; letter-spacing: 0.04em; }
+.tile .sub { color: var(--bx-muted); font-size: 12px; }
+.tile .scroll { overflow-x: auto; }
+.tile.forecast { flex: 1.4 1 330px; }
+.tile.track { flex: 0.8 1 150px; border-left: 6px solid var(--flag); }
+.tile.track .flagged { flex: 1; display: flex; flex-direction: column; align-items: center;
+                       justify-content: center; gap: 6px; text-align: center; }
+.tile.track .flagged .icon { height: 3em; margin: 0; }
+.tile.track .word { font-size: 24px; font-weight: 700; line-height: 1.1; }
+.tile.weather .body { flex: 1; display: flex; align-items: center; gap: 10px; }
+.tile.weather .sky { display: flex; flex-direction: column; align-items: center; gap: 4px;
+                     font-size: 14px; font-weight: 600; text-align: center; }
+.tile.weather .sky .icon { height: 2.6em; margin: 0; }
+.metrics { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+           gap: 8px 10px; }
+.metric { display: grid; grid-template-columns: auto 1fr; column-gap: 8px;
+          align-items: center; }
+.metric .icon { grid-row: span 2; width: 1.6em; height: 1.6em; margin: 0;
+                color: var(--bx-muted); }
+.metric .label { font-size: 12px; color: var(--bx-muted); }
+.metric .value { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.tile.weather { flex: 1.2 1 280px; }
+.steps, .compounds { width: 100%; border-collapse: collapse; font-size: 14px; }
+.steps th, .compounds th { text-align: left; color: var(--bx-muted); font-weight: 600;
+                           font-size: 12px; }
+.steps td, .steps th, .compounds td, .compounds th {
+  padding: 3px 4px; white-space: nowrap; border: none !important;
+  border-bottom: 1px solid var(--bx-zone1) !important; }
+.steps .icon { height: 1.4em; margin: 0; }
 .driver { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 8px; }
 .driver .num { display: inline-block; min-width: 2.2em; text-align: center; font-weight: 800;
                border-radius: 6px; padding: 2px 6px; border: 1px solid var(--bx-ring); }
 .driver .team { color: var(--bx-muted); }
-.driver .tyre { display: inline-flex; align-items: center; }
 .calls .banner.box { --call: var(--bx-box); background: var(--bx-box); color: var(--bx-on-call);
                      animation: bx-blink 1s step-end 3; }
 .calls .banner.box.odd { animation-name: bx-blink-b; }
@@ -137,6 +163,15 @@ CSS = """
 .chart text.num { font-size: 10px; font-weight: 800; }
 .chart .car.pit { stroke-dasharray: 3 2; }
 .chart .tick-mark { stroke: var(--bx-ring); stroke-width: 1.5; }
+.chart.replay .loss { fill: none; stroke: var(--bx-pit); stroke-width: 5;
+                      stroke-linecap: round; }
+.chart.replay .window { fill: none; stroke: var(--bx-window); stroke-width: 9; }
+.tile.tyres { flex: 1.5 1 360px; }
+.compounds td:first-child { display: flex; align-items: center; white-space: nowrap; }
+.compounds tr.on td { background: var(--bx-unknown); font-weight: 800; }
+.compounds .src { color: var(--bx-muted); font-size: 12px; }
+.compounds .best { margin-left: 6px; padding: 0 6px; border-radius: 4px; font-size: 12px;
+                   font-weight: 700; color: var(--bx-ink); border: 1px solid var(--bx-ink); }
 .standings { width: 100%; border-collapse: collapse; font-size: 0.92em; }
 .standings th { text-align: left; color: var(--bx-muted); font-weight: 600; }
 .standings td, .standings th { padding: 3px 6px; border-bottom: 1px solid var(--bx-zone1); }

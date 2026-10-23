@@ -18,13 +18,15 @@ from typing import Any, NamedTuple
 import numpy as np
 import pandas as pd
 
-from .cards import build_race_cards
+from .cards import WET_COMPOUNDS, build_race_cards
 from .cards_v2 import (
     MARGIN,
     _pit_condition,
     build_race_cards_v2,
+    lap_facts,
     pit_loss_now,
     race_context,
+    slope_now,
 )
 from .openf1 import (
     CACHE_DIR,
@@ -40,6 +42,7 @@ from .openf1 import (
 )
 from .openmeteo import load_forecast
 from .priors import PRIORS_FILE, load_reference
+from .tyres import DRY
 
 SECTORS = ["duration_sector_1", "duration_sector_2", "duration_sector_3"]
 THIRDS = np.array([0, 1 / 3, 2 / 3, 1])
@@ -87,6 +90,10 @@ class Timeline:
     )
     flags: list[Flag] = field(default_factory=list)  # yellow, clear and blue flags
     forecast: pd.DataFrame | None = None  # Open-Meteo steps, for display only
+    # each dry compound's degradation on each card lap: (s per lap of age, source)
+    degradation: dict[int, dict[str, tuple[float | None, str | None]]] = field(
+        default_factory=dict
+    )
 
 
 def build_timeline(
@@ -193,6 +200,19 @@ def _flags(messages: list[dict[str, Any]], start: pd.Timestamp) -> list[Flag]:
     return sorted(flags, key=lambda f: f[0])  # tuples with None do not compare
 
 
+def _degradation(
+    table: pd.DataFrame, context: Any, race: dict[str, Any]
+) -> dict[int, dict[str, tuple[float | None, str | None]]]:
+    """Each dry compound's degradation on each card lap, read as the 2.0 cards read
+    their own compound's: this race's laps once reliable, else the circuit or global
+    prior from earlier train races."""
+    slopes = {}
+    for lap in range(2, int(table["lap"].max())):
+        facts = lap_facts(table, lap - 1)
+        slopes[lap] = {c: slope_now(facts, context, race, c) for c in DRY}
+    return slopes
+
+
 def load_timeline(
     race: dict[str, Any], cache_dir: Path = CACHE_DIR, priors_file: Path = PRIORS_FILE
 ) -> Timeline:
@@ -244,6 +264,7 @@ def load_timeline(
             line.start + pd.Timedelta(seconds=line.end),
             openf1_cache=cache_dir,
         ),
+        degradation=_degradation(table, context, race),
     )
 
 
@@ -505,6 +526,30 @@ def tyre_at(timeline: Timeline, driver: str, t: float) -> tuple[str | None, int 
     if compound is None:  # a lap without timing, as the lap a car stops on track
         compound, age = timeline.tyres.get((driver, lap - 1), (None, None))
     return compound, None if age is None else age - 1
+
+
+def tyre_options(timeline: Timeline, driver: str, t: float) -> dict[str, Any]:
+    """What the dry compounds offer the driver at clock t: their degradation on the
+    card lap shown, the laps left, the dry compounds used so far and a wet track."""
+    _, card, lap = cards_at(timeline, driver, t)
+    seen = _seen(timeline.cars[driver], t)
+    done = int(seen.lap[-1]) if len(seen.lap) else 0
+    lap = lap or done + 1  # a stopped car keeps its last lap
+    known = [n for n in timeline.degradation if n <= lap]
+    used = {
+        c
+        for (d, n), (c, _) in timeline.tyres.items()
+        if d == driver and n <= done + 1 and c in DRY
+    }
+    current, _ = tyre_at(timeline, driver, t)
+    surface = (card or _surface_card(timeline, driver, lap) or {}).get("surface")
+    return {
+        "lap": lap,
+        "slopes": timeline.degradation[max(known)] if known else {},
+        "laps_left": max(timeline.total_laps - done, 0),
+        "used": used,
+        "wet": surface == "WET" or current in WET_COMPOUNDS,
+    }
 
 
 def _behind(

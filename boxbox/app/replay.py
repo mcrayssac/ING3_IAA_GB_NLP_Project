@@ -30,13 +30,14 @@ from boxbox.data import (
     pit_window,
     standings,
     tyre_at,
+    tyre_options,
 )
 from boxbox.data.cards_v2 import weather_at
 from boxbox.data.openmeteo import forecast_at
 from boxbox.data.replay import race_lap
 from boxbox.data.splits import CLOSED_SPLITS, SPLITS_V2_FILE
 from boxbox.rules import format_answer
-from boxbox.rules.decision import laps
+from boxbox.rules.policy2 import TYRE_LOSS_LIMITS
 
 from . import icons as I
 from . import panels as P
@@ -46,6 +47,13 @@ SOUND = Path("boxbox.wav")  # played on each new 2.0 card whose policy 2.0 call 
 SPEEDS = ("x1", "x2", "x4")
 HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
 ZOOM = 2.2  # one turn covers twice the farthest reach, plus 10% room
+METRICS = (  # icon, label, reading field, format, unit
+    ("air", "Air", "air_temperature", ".0f", "°C"),
+    ("track", "Track", "track_temperature", ".0f", "°C"),
+    ("humidity", "Humidity", "humidity", ".0f", "%"),
+    ("wind", "Wind", "wind_speed", ".1f", " m/s"),
+)
+SOFTEST = ("SOFT", "MEDIUM", "HARD")  # the softer, the faster on a new set
 DEFAULT = ("2024-22", "63")  # Las Vegas 2024 on Russell: the tab opens on it
 FLAG_WORDS = {
     "GREEN": "Green flag",
@@ -110,11 +118,23 @@ def clock_text(line: Timeline, lap: int, t: float) -> str:
     return (
         f'<div class="clock"><div class="lap">Lap <b>{lap}</b> / {line.total_laps}</div>'
         f'<div class="mono">{elapsed} elapsed</div>'
-        f'<div class="mono">{local:%H:%M:%S} local</div></div>'
+        f'<div class="mono">{local:%H:%M:%S} local</div>'
+        f'<div class="mono">{_utc(line.utc_offset)}</div></div>'
+    )
+
+
+def _utc(offset: pd.Timedelta) -> str:
+    """The track's offset from UTC, as UTC+3, UTC-8 or UTC+5:30."""
+    minutes = int(offset.total_seconds() // 60)
+    hours, rest = divmod(abs(minutes), 60)
+    return f"UTC{'+' if minutes >= 0 else '-'}{hours}" + (
+        f":{rest:02d}" if rest else ""
     )
 
 
 def _flag_tile(line: Timeline, driver: str, t: float) -> str:
+    """The flag at the clock, large, with the yellow sectors and a blue flag under it;
+    the edge takes the flag's colour beside its word."""
     kind, sectors, blue = flags_at(line, driver, t)
     yellow = sorted(s for s in sectors if s is not None)
     where = ""
@@ -123,69 +143,150 @@ def _flag_tile(line: Timeline, driver: str, t: float) -> str:
         where = f"Yellow in sector{plural} {', '.join(map(str, yellow))}"
     if blue:
         where += f"{'. ' if where else ''}Blue flag for {_name(line, driver)}"
+    colour = I.FLAG_COLOURS.get(kind.removeprefix("DOUBLE "), "var(--bx-ink)")
     return (
-        f'<div class="tile"><div class="head">Track</div>'
-        f'<div class="main">{I.flag(kind)}{FLAG_WORDS[kind]}</div>'
-        f'<div class="sub">{where}</div></div>'
+        f'<div class="tile track" style="--flag:{colour}"><div class="head">Track</div>'
+        f'<div class="flagged">{I.flag(kind)}<div class="word">{FLAG_WORDS[kind]}</div>'
+        f'<div class="sub">{where}</div></div></div>'
     )
 
 
 def _weather_tile(line: Timeline, t: float) -> str:
+    """The sky now, large, beside air and track temperature, humidity and wind, each
+    with its icon and its word."""
     at = line.start + pd.Timedelta(seconds=t)
     weather = getattr(line.context, "weather", None)
-    reading = weather_at(weather, at) if weather is not None else None
+    reading = (weather_at(weather, at) if weather is not None else None) or {}
     now, _ = forecast_at(line.forecast, at)
-    if reading and reading["rainfall"]:
+    if reading.get("rainfall"):
         kind = "rain"
     else:
         kind = I.sky(now["weather_code"], now["is_day"]) if now else "unknown"
-    if reading is None:
-        return f'<div class="tile"><div class="head">Weather</div><div class="main">{I.weather(kind)}{SKY_WORDS[kind]}</div></div>'
-    values = [
-        ("Air", reading["air_temperature"], "°C"),
-        ("Track", reading["track_temperature"], "°C"),
-        ("Humidity", reading["humidity"], "%"),
-        ("Wind", reading["wind_speed"], " m/s"),
-    ]
-    sub = " · ".join(
-        f"{name} {v:.0f}{unit}" for name, v, unit in values if v is not None
+    cells = "".join(
+        f'<div class="metric">{I.metric(icon)}<span class="label">{label}</span>'
+        f'<span class="value mono">{_value(reading, field, spec, unit)}</span></div>'
+        for icon, label, field, spec, unit in METRICS
     )
     return (
-        f'<div class="tile"><div class="head">Weather now</div>'
-        f'<div class="main">{I.weather(kind)}{SKY_WORDS[kind]}</div>'
-        f'<div class="sub mono">{sub}</div></div>'
+        '<div class="tile weather"><div class="head">Weather now</div>'
+        f'<div class="body"><div class="sky">{I.weather(kind)}'
+        f'<span>{SKY_WORDS[kind]}</span></div><div class="metrics">{cells}</div>'
+        "</div></div>"
     )
+
+
+def _value(values: dict[str, Any], field: str, spec: str, unit: str) -> str:
+    value = values.get(field)
+    return "?" if value is None or pd.isna(value) else f"{value:{spec}}{unit}"
 
 
 def _forecast_tile(line: Timeline, t: float) -> str:
+    """The archived forecast steps after the clock as a table, one row per step."""
     at = line.start + pd.Timedelta(seconds=t)
     _, ahead = forecast_at(line.forecast, at)
-    steps = []
+    rows = []
     for step in ahead:
         kind = I.sky(step["weather_code"], step["is_day"])
         minutes = round((step["at"] - at).total_seconds() / 60)
         local = step["at"] + line.utc_offset
-        steps.append(
-            f'<div class="step">{I.weather(kind)}<span class="sr-only">{SKY_WORDS[kind]}</span>'
-            f'<span class="mono">{local:%H:%M}, in {minutes} min</span>'
-            f'<span class="mono">{step["temperature_2m"]:.0f}°C, '
-            f"{step['precipitation']:.1f} mm</span></div>"
+        rows.append(
+            f'<tr><td class="mono">{local:%H:%M}</td><td class="mono">{minutes} min</td>'
+            f'<td>{I.weather(kind)}<span class="sr-only">{SKY_WORDS[kind]}</span></td>'
+            f'<td class="mono">{_value(step, "temperature_2m", ".0f", "°C")}</td>'
+            f'<td class="mono">{_value(step, "precipitation", ".1f", " mm")}</td>'
+            f'<td class="mono">{_value(step, "wind_speed_10m", ".1f", " m/s")}</td></tr>'
         )
     if line.forecast is None:
         body = '<div class="sub">Forecast unavailable</div>'
+    elif not rows:
+        body = '<div class="sub">No forecast past the race</div>'
     else:
-        body = "".join(steps) or '<div class="sub">No forecast past the race</div>'
+        head = "".join(
+            f'<th scope="col">{h}</th>'
+            for h in ("Time", "In", "Sky", "Temp", "Rain", "Wind")
+        )
+        body = (
+            '<div class="scroll"><table class="steps"><caption class="sr-only">'
+            "Archived forecast steps after the clock, in local time</caption>"
+            f"<thead><tr>{head}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+        )
     return (
         f'<div class="tile forecast"><div class="head">Archived forecast</div>{body}'
         f'<div class="sub">{ATTRIBUTION}</div></div>'
     )
 
 
+def tyre_life(compound: str, slope: float | None) -> int | None:
+    """Laps a new set lasts before its loss reaches policy 2.0's upper wear limit."""
+    if not slope or slope <= 0:
+        return None
+    return int(float(TYRE_LOSS_LIMITS[compound][1]) / slope)
+
+
+def best_compound(options: dict[str, Any]) -> str | None:
+    """The softest dry compound whose life covers the laps left, else the one that
+    lasts longest. A dry race needs two dry compounds, so with one used so far only
+    the other two count. No choice on a wet track or without any degradation."""
+    if options["wet"]:
+        return None
+    lives = {c: tyre_life(c, options["slopes"].get(c, (None,))[0]) for c in SOFTEST}
+    candidates = [c for c in SOFTEST if lives[c] is not None]
+    if len(options["used"]) == 1:
+        candidates = [c for c in candidates if c not in options["used"]]
+    lasting = [c for c in candidates if lives[c] >= options["laps_left"]]
+    if lasting:
+        return lasting[0]
+    return max(candidates, key=lambda c: lives[c]) if candidates else None
+
+
+def tyre_tile(line: Timeline, driver: str, t: float) -> str:
+    """The three dry compounds for the chosen car: degradation per lap of tyre age,
+    life to the wear limit and where the value comes from, the set on the car
+    highlighted and the best choice marked."""
+    options = tyre_options(line, driver, t)
+    current, _ = tyre_at(line, driver, t)
+    best = best_compound(options)
+    rows = []
+    for c in SOFTEST:
+        slope, source = options["slopes"].get(c, (None, None))
+        life = tyre_life(c, slope)
+        on = ' class="on" aria-current="true"' if c == current else ""
+        badge = ' <span class="best">Best</span>' if c == best else ""
+        rows.append(
+            f"<tr{on}><td>{I.tyre(c)}{c.title()}{badge}</td>"
+            f'<td class="mono">{f"+{slope:.3f} s" if slope else "?"}</td>'
+            f'<td class="mono">{f"~{life} laps" if life is not None else "?"}</td>'
+            f'<td class="src">{source or ""}</td></tr>'
+        )
+    notes = [f"{options['laps_left']} laps left"]
+    if options["wet"]:
+        notes.append("wet track: slicks not compared")
+    elif len(options["used"]) == 1:
+        notes.append("needs a second compound")
+    life = tyre_life(best, options["slopes"][best][0]) if best else None
+    if life is not None and life < options["laps_left"]:
+        notes.append("none lasts to the flag")
+    head = "".join(
+        f'<th scope="col">{h}</th>'
+        for h in ("Compound", "Per Lap of Age", "Life", "Source")
+    )
+    return (
+        f'<div class="tile tyres"><div class="head">Tyres for '
+        f'{html.escape(_name(line, driver))}</div><div class="scroll">'
+        '<table class="compounds">'
+        '<caption class="sr-only">Time lost per lap of tyre age and laps to the wear '
+        f"limit, per dry compound</caption><thead><tr>{head}</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
+        f'<div class="sub">{", ".join(notes)}</div></div>'
+    )
+
+
 def status_strip(line: Timeline, driver: str, t: float) -> str:
-    """The flag, the weather now and the archived forecast at clock t."""
+    """The flag, the weather now, the archived forecast and the three dry compounds
+    at clock t."""
     return (
         f'<div class="strip">{_flag_tile(line, driver, t)}{_weather_tile(line, t)}'
-        f"{_forecast_tile(line, t)}</div>"
+        f"{_forecast_tile(line, t)}{tyre_tile(line, driver, t)}</div>"
     )
 
 
@@ -217,7 +318,8 @@ def _team_car(
     """One car on the ring in its team colour with its number, labelled with its
     acronym; a car in the pit lane has a dashed outline and says PIT."""
     x, y = P._xy(degrees, P.RADIUS)
-    lx, ly = P._xy(degrees, P.RADIUS - 28 if inside else P.RADIUS + 28)
+    # the chosen car's label sits inside, clear of the inner rejoin arc
+    lx, ly = P._xy(degrees, P.RADIUS - 34 if inside else P.RADIUS + 28)
     side = math.sin(math.radians(degrees))
     anchor = "middle" if inside or degrees == 0 else "start" if side > 0 else "end"
     colour = line.drivers.get(driver, {}).get("colour") or "var(--bx-ink)"
@@ -276,6 +378,17 @@ def turn(scale: float | None, seconds: list[float], loss: float | None) -> float
     return min(scale, math.ceil(ZOOM * reach / 5) * 5)
 
 
+def _arc(start: float, end: float, radius: float, cls: str) -> str:
+    """An arc counter-clockwise from `start` to `end` degrees at `radius`."""
+    end = max(end, start - 359)
+    (x1, y1), (x2, y2) = P._xy(start, radius), P._xy(end, radius)
+    large = 1 if start - end > 180 else 0
+    return (
+        f'<path d="M{x1:.1f},{y1:.1f} A{radius},{radius} 0 {large} 0 '
+        f'{x2:.1f},{y2:.1f}" class="{cls}"/>'
+    )
+
+
 def _ticks(one: float) -> tuple[str, int]:
     """A tick every 5 s (10 s past a 60 s turn) each side of the car on top."""
     step = 5 if one <= 60 else 10
@@ -312,9 +425,19 @@ def circle(
     ticks, step = _ticks(one) if one else ("", 0)
     shapes.append(ticks)
     if loss is not None and one:
-        # the label sits further in than on the Card tab: the dots here are larger
-        band = (-loss / one * 360, -(loss + P.MARGIN) / one * 360, P.RADIUS - 40)
-        shapes.append(P._band(*band))
+        # inside the ring, where no dot hides it: the way back to the rejoin point in
+        # the pit colour, then the rejoin window in yellow
+        rejoin, end = -loss / one * 360, -(loss + P.MARGIN) / one * 360
+        inner = P.RADIUS - 18
+        rx, ry = P._xy(rejoin, P.RADIUS - 40)
+        shapes += [
+            _arc(0.0, rejoin, inner, "loss"),
+            _arc(rejoin, end, inner, "window"),
+            (
+                f'<text x="{rx:.1f}" y="{ry:.1f}" text-anchor="middle" '
+                'dominant-baseline="middle">rejoin</text>'
+            ),
+        ]
     named = _named(angles)
     shapes += [
         _team_car(line, other, angle, named=other in named, in_pit=other in in_pit)
@@ -326,12 +449,13 @@ def circle(
         if loss is not None
         else "no pit window"
     )
-    text = _neighbours(line, angles, one) + text
     scale_text = f"1 turn = {one:.0f} s, ticks every {step} s" if one else ""
     pits = ", ".join(_name(line, d) for d in sorted(in_pit))
+    # the neighbours show on the ring and in the table; screen readers still hear them
     label = (
         f"{_name(line, driver)} on top, {len(angles)} other cars by time gap, "
-        f"{scale_text}. {text}." + (f" In the pit lane: {pits}." if pits else "")
+        f"{scale_text}. {_neighbours(line, angles, one)}{text}."
+        + (f" In the pit lane: {pits}." if pits else "")
     )
     box = f"0 0 {P.CIRCLE_WIDTH} {P.CIRCLE_HEIGHT}"
     svg = P._svg(box, label, "".join(shapes))
@@ -394,22 +518,15 @@ def calls(
     )
 
 
-def driver_tile(line: Timeline, driver: str, t: float) -> str:
-    """The chosen car: number in its team colour, acronym, team and current tyre."""
+def driver_tile(line: Timeline, driver: str) -> str:
+    """The chosen car: number in its team colour, acronym and team."""
     info = line.drivers.get(driver, {})
     colour = info.get("colour") or "var(--bx-ink)"
-    compound, age = tyre_at(line, driver, t)
-    tyre = (
-        f"{I.tyre(compound)}{compound.title()}, {laps(age)}"
-        if compound
-        else f"{I.tyre(None)}Tyre unknown"
-    )
     return (
         f'<div class="driver"><span class="num mono" style="background:'
         f'{html.escape(colour)};color:{_ink(colour)}">{html.escape(driver)}</span>'
         f"<span><b>{html.escape(_name(line, driver))}</b> "
-        f'<span class="team">{html.escape(info.get("team", ""))}</span></span>'
-        f'<span class="tyre">{tyre}</span></div>'
+        f'<span class="team">{html.escape(info.get("team", ""))}</span></span></div>'
     )
 
 
@@ -475,7 +592,7 @@ def view(state: dict[str, Any], t: float) -> tuple[str, str, str, str, str]:
     return (
         clock_text(line, now["lap"], t),
         status_strip(line, driver, t),
-        driver_tile(line, driver, t)
+        driver_tile(line, driver)
         + calls(card_v2, lap, driver, key, pit, _name(line, driver)),
         circle(line, driver, now, pit_window(line, driver, t), in_pit),
         standings_table(line, driver, t, in_pit),
@@ -664,7 +781,7 @@ def replay_tab() -> tuple:
                     elem_classes="bx-speed",
                 )
             lap = gr.Slider(
-                1, 3, value=2, step=1, label="Jump to lap", interactive=False
+                2, 3, value=2, step=1, label="Jump to lap", interactive=False
             )
         clock_html = gr.HTML(scale=1, min_width=150, elem_classes="bx-clock")
     status_html = gr.HTML()
@@ -684,8 +801,11 @@ def replay_tab() -> tuple:
     running = [state, timer, play_button, lap, *panels]
     play_button.click(toggle, state, running, **HIDDEN)
     speed.input(set_speed, [state, speed], state, **HIDDEN)
-    # .input: the slider following the race lap must not jump; .release replays a lap
-    lap.input(jump, [state, lap], [state, *panels], **HIDDEN)
-    lap.release(jump, [state, lap], [state, *panels], **HIDDEN)
+    # .input: the slider following the race lap must not jump; .release replays a lap.
+    # preprocess=False: a lap typed digit by digit passes through 1, below the slider's
+    # minimum, which Gradio would refuse; jump keeps the lap in range itself
+    raw = {**HIDDEN, "preprocess": False}
+    lap.input(jump, [state, lap], [state, *panels], **raw)
+    lap.release(jump, [state, lap], [state, *panels], **raw)
     timer.tick(tick, state, running, **HIDDEN)
     return open_default, picked
