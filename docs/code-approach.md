@@ -32,8 +32,11 @@ scripts/reality_check.py   agreement of a policy with the teams' real stops (4bi
 scripts/replay_model_check.py agreement of OpenJev with policy 2.0 on 2.0 cards (4bis.4)
 scripts/tyre_thresholds.py tyre age at green-flag stops, behind the policy 1.1 thresholds
 scripts/package.py         adapter archives and the reader checks of the delivery (5.2)
+scripts/results_figures.py figures of the README results mosaic
 tests/                     pytest tests for deterministic code
 agent.ipynb                executed notebook, from installation to interface
+rapport.pdf                French report, committed; its sources are local
+docs/images/               figures and captures of the README mosaic, committed
 data/splits.json           race split manifest, committed
 data/splits-v2.json        2023 to 2026 race split manifest, committed (4bis.1)
 data/reference/            pit loss references and 2.0 priors, committed (4bis.1)

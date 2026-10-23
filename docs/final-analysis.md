@@ -131,7 +131,7 @@ Answers stopped at the 64-token limit: 53 for the baseline, 2 for A and 2 for B,
 - **One seed per adapter,** as described above.
 - **Machines:** the run used an Apple M1. B was selected on an M3 Max, and answers can differ slightly between machines.
 - **Shared wordings:** the final questions reuse wordings that also appear in validation (4.1).
-- **Automatic measures only:** they check the CALL line and the format, not whether the WHY sentence is supported. Human ratings of 40 targets per version come in 4.3.
+- **Automatic measures only:** they check the CALL line and the format, not whether the WHY sentence is supported. Human ratings of 40 targets per version were added in 4.3 and are combined with these gains in [final-findings.md](final-findings.md).
 - **Policy agreement only:** agreement with the policy reference does not show that a call is strategically optimal in a real race.
 - **Source availability:** the upstream reconstruction and observation-cutoff limitations recorded in 4.1/4.2 remain. Pairing and hash checks establish the identity of the supplied cards and outputs, not causal availability of every source observation.
 
@@ -141,9 +141,9 @@ Answers stopped at the 64-token limit: 53 for the baseline, 2 for A and 2 for B,
 
 The review correction enriches the committed evidence and tightens input checks; it preserves the original estimates, intervals, transitions and truncation counts. The original analysis was run from `e82a42e`. The corrected run records the current HEAD and uncommitted local corrections with `git_dirty=true`; its script and artifact hashes identify what was executed. The original committed evidence and the immutable 4.2 run are retained separately. No final response was regenerated.
 
-When the 4.3 ratings are complete, the human measures use the same pairing on the 40 selected targets (`human=True`). They become final paired human gains only once every applicable pair is rated.
+When the 4.3 ratings are complete, the human measures use the same pairing on the 40 selected targets (`human=True`). They become final paired human gains only once every applicable pair is rated. Status (23 October 2026): the ratings are complete, and 4.5 reports the human gains in [final-findings.md](final-findings.md).
 
-The 4.2 archive ships the masking key with the rating sheet, so 4.3 should record whether any rater could unmask the versions.
+The 4.2 archive ships the masking key with the rating sheet, so 4.3 should record whether any rater could unmask the versions. Status (23 October 2026): 4.5 records that the archive was available to the team, so the ratings are not blind.
 
 ## Reproduce
 

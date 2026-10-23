@@ -1,7 +1,8 @@
 BoxBox run guide
 ================
 
-Run every command from the repository root.
+Run every command from the repository root, except those that sections B and C
+run in a separate worktree.
 
 Start here: package, reload and reproduction (task 5.2)
 -------------------------------------------------------
@@ -13,6 +14,13 @@ validation, mini-test), data/final/ (the 200 final cases and the 40 review
 targets) and data/demo/ (the demo cards). Raw OpenF1 and Jolpica responses
 (data/cache/), race cards (data/cards/, data/cards-v2/) and run folders
 (runs/) are never committed: a script rebuilds them (section C).
+
+The report, rapport.pdf, is also in Git, at the repository root. It is in French
+and has 29 pages: cover, contents, four body pages and annexes A to H. The
+French video is shared with the stakeholders by a cloud-hosted link. It is not
+in the repository and its link is not recorded here. The four archives named
+below, with their SHA-256 values, are attached to the submission only. There is
+no public link, and the two Hugging Face repos are private.
 
 The two retained adapters are outside Git, with the same bytes in two places:
 
@@ -54,7 +62,9 @@ A. Requirements, versions and resources
 
 Python 3.13 and uv, with the exact versions of requirements.txt (torch 2.14.1,
 transformers 5.20.1, peft 0.21.2, trl 1.16.0, gradio 6.30.0). Only macOS on
-Apple silicon with MPS and bf16 was measured; CUDA and CPU were not tested.
+Apple silicon with MPS and bf16 was measured, apart from the task 2.7 mini-test,
+which was run on a Colab NVIDIA L4 GPU in bf16 (docs/mini-test.md,
+docs/freeze.md). Other CUDA setups and CPU were not tested.
 Sizes and times measured on 23 October 2026, except the final scoring (21
 October) and the training (19 to 21 October):
 
@@ -94,8 +104,9 @@ the same way. The first model load downloads the public base model; no token
 is needed. On 23 October 2026, in a fresh clone of main at f45946c with the zip
 unzipped, A and B loaded from runs/ with HF_HUB_OFFLINE=1 and no token, and
 each answered one fixture card in the strict two-line format. In a new .venv
-installed from requirements.txt, the full test suite of this task's branch
-passed (543 tests, 2 min 53 s).
+installed from requirements.txt, the full test suite of the task 5.2 branch
+passed (543 tests, 2 min 53 s). On main at 6c5654f, pytest --collect-only
+collects 546 tests (collected, not run).
 
 With the 4.2 run folder copied intact into runs/, the paired analysis of 4.4
 runs again without a model, and the 4.2 run verifies at the commit that
@@ -178,6 +189,8 @@ E. Licences
     Jolpica-F1 data            CC BY-NC-SA 4.0 (its terms of use), non-commercial
     data/corpus, data/final,
     data/demo                  CC BY-NC-SA 4.0 (NOTICE in each folder)
+    data/reference/            priors-v2.json derives from OpenF1 data;
+                               pit-loss-reference.csv cites press estimates
     adapters A and B           CC BY-NC-SA 4.0 (Hub cards, NOTICE in the zip)
     OpenJev Flash 9B           CC BY-NC 4.0, optional, not included
     Open-Meteo forecast        CC BY 4.0, Replay tab only, cached locally
@@ -185,6 +198,10 @@ E. Licences
 
 The timing data belongs to the Formula 1 companies. The raw responses and
 cards stay local, and only the script that rebuilds them is shared.
+
+BoxBox is an unofficial student project with no link to the Formula 1
+companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND
+PRIX and related marks are trade marks of Formula One Licensing B.V.
 
 1. Install
 ----------
@@ -274,8 +291,10 @@ If it prints NO-GO, run the fallback with SmolLM2-1.7B-Instruct:
 
     .venv/bin/python -m scripts.feasibility configs/feasibility-smollm2.toml
 
-Only MPS with bf16 has been measured. On CUDA the code uses bf16 when the GPU
-supports it and fp16 otherwise, and fp32 on CPU, but none of these was tested.
+This check ran only on MPS with bf16. On CUDA the code uses bf16 when the GPU
+supports it and fp16 otherwise, and fp32 on CPU. Only the task 2.7 mini-test
+used CUDA, on a Colab L4 in bf16 (docs/mini-test.md). fp16 and CPU were not
+tested.
 
 Measured on 18 October 2026 at commit 94aa4ca (clean tree) on an Apple M3 Max
 (38.7 GB, MPS, bf16), LoRA r 16 on all linear layers, batch 4, 30 steps, MPS
@@ -298,8 +317,9 @@ same memory cap.
 
 The decision is GO for this disposable workload. The time for 400 dialogues
 over 3 epochs (300 steps) is extrapolated from 30 steps on examples of about
-304 tokens; it was not measured. Task 2.6 must measure it on the real corpus,
-whose multi-turn dialogues are longer.
+304 tokens; it was not measured. Task 2.6 then measured it on the real corpus,
+whose rows hold 802 to 969 tokens. Training took about 72 minutes per seed, model
+loading included (section 11, docs/adapter-a.md).
 
 6. Notebook
 -----------
@@ -484,7 +504,9 @@ Run the real-model smoke using the pinned baseline and synthetic cases only:
 The smoke creates a new ignored runs/<date>_2-5a-smollm3-smoke/ directory with
 fixed case and input ledgers, output/error records, raw text, generated token
 IDs, prompt/context traces and effective generation settings. It does not read
-real validation, mini-test or final cases. Protocol 1.1.0 remains proposed;
+real validation, mini-test or final cases. Protocol 1.1.0 was proposed when this
+smoke was written and has been accepted since the freeze (configs/freeze.json,
+docs/freeze.md);
 automatic parser/agreement diagnostics are not human ratings. See
 docs/conversation-engine.md for template, token/time bounds, errors and 2.5b,
 2.6 and 2.8 handoffs.
@@ -623,7 +645,7 @@ mini-test evidence, including B's reduction in unjustified decisions and its
 increase in excessive refusals. docs/interim-ab-evidence.json holds exact counts,
 paired transitions, uncertainty support and source hashes. This is an interim
 analysis; B retention, protocol acceptance and the final freeze remain team
-decisions. Human scores are still pending.
+decisions. Human scores came later, with the final run (task 4.3, below).
 
 To check the retained evidence without loading a model, extract 3-2-runs.zip
 and 2-6-logs.zip into separate local folders. From the repository root:
@@ -714,7 +736,8 @@ and must be copied intact to hand over results. On 21 October, the initial Hub
 access failure was resolved with locally supplied checkpoints matching the freeze.
 Run runs/4-2-final-50067b54741c-49b4aea370af completed with 600 responses (200 each),
 zero request errors and no technical resume; seal/verify passed. Its 120 review
-rows remain pending. Counts and hashes: docs/final-scoring-results.json. Preserve
+rows were rated in task 4.3 (below). Counts and hashes:
+docs/final-scoring-results.json. Preserve
 this run and reuse it; do not generate another final comparison.
 The 4.2 results page includes the unjustified-decision and excessive-refusal
 rates, decision coverage, family agreement and the expected/predicted CALL table.
@@ -786,17 +809,23 @@ are committed, so a fresh checkout can start at cards-v2, which writes
 data/cards-v2/ and its manifest (not committed). quality compares the computed
 gap ahead with OpenF1's intervals on validation, mini_test, final and
 test_2026; these intervals never feed a card. Section 3 explains why the cards
-command gives corrected 1.0 cards on this branch.
+command gives corrected 1.0 cards on main.
 
 reality_check measures how often a policy says BOX when cars really stopped.
 It reads data/cards-v2/, so run cards-v2 first. Its default splits are
 validation, mini_test and final, and --splits picks others. With --thresholds
 it prints, per compound, the 25th percentile and the median tyre loss on the
-cards of real green stops; the wear limits of policy 2.0 come from the train
+cards of real green stops; the wear limits of policy 2.0 were set from the train
 races:
 
     .venv/bin/python -m scripts.reality_check
     .venv/bin/python -m scripts.reality_check --splits train --thresholds
+
+Since the 2026 VSC fix, the second command prints 0.37 and 0.64 s per lap for
+SOFT, 0.62 and 1.07 for MEDIUM and 0.94 and 1.42 for HARD. Policy 2.0 keeps its
+frozen limits, 0.34 and 0.62, 0.63 and 1.08, and 0.92 and 1.38
+(docs/race-card-contract-v2.md), and was not retuned
+(docs/4bis-decisions.md, D7).
 
 On the evaluation races, policy 2.0 says BOX at the start of 53.6% of the
 real stop laps (recall), and 15.6% of its BOX cards are followed by a stop

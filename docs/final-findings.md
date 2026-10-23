@@ -148,7 +148,7 @@ One case per mechanism, among the 40 reviewed targets. The mechanisms come from 
 - Schedule: B trained overnight from 20 to 21 October and the freeze moved to 21 October, recorded at 14:49 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17), [#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19)).
 - OpenJev (3.4) ran as an exploratory study and sits outside this comparison ([#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35)).
 - B was kept, so the A/B hypotheses are tested.
-- The Experimental milestone (data v2, policy 2.0, replay) lives on `main-experimental`. Nothing on this page uses it.
+- The Experimental milestone (data v2, policy 2.0, replay) was merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69), then [PR #72](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/72). Nothing on this page uses it.
 
 ## Limits
 
@@ -164,6 +164,7 @@ One case per mechanism, among the 40 reviewed targets. The mechanisms come from 
 
 - The report and the notebook can use the two measure tables, the hypothesis table and the five cases. Numbers in the report must come from these tables or from the two evidence files.
 - The video can state one result in each direction: B almost never decides when it should abstain, and it also refuses every usable-incomplete card.
+- Status (23 October 2026): 5.3, 5.4 and 5.5 are done, so these two points record what 4.5 handed over.
 
 ## Reproduce
 

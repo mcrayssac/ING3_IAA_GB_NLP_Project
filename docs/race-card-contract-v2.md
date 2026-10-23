@@ -9,7 +9,7 @@ Card 2.0 keeps every field of card 1.0 (`docs/race-card-contract.md`) and adds t
 | `schema_version` | `"2.0"`. |
 | `race.circuit_key` | OpenF1 circuit id. Priors use it because event names change (the Spanish Grand Prix moved from Barcelona to Madrid in 2026). |
 | `as_of` | ISO time at which the driver crosses the line at the end of lap L - 1. The card is read at that moment. |
-| `surface` | `DRY` or `WET`. WET with rain in the last 10 minutes or when the field's green laps run at 110% or more of the best dry pace so far. When lap times give no reference, WET when half the field is on wet tyres. |
+| `surface` | `DRY` or `WET`. WET with rain in the last 10 minutes or when the field's green laps run at 110% or more of the best dry pace so far (this rule never fires in the merged code, see D6 in `4bis-decisions.md`). When lap times give no reference, WET when half the field is on wet tyres. |
 | `track_status` | `GREEN`, `SC` or `VSC` when the driver crosses the line (red-flag cards are skipped). |
 | `compound` | Also `INTERMEDIATE` and `WET`. |
 | `tyre_degradation_s_per_lap`, `tyre_degradation_source` | Time lost per lap of tyre age for this compound. `race` once the race's own fit has a standard error under 0.03 and a positive slope, otherwise `circuit` or `global` from earlier train races. Null on wet tyres. |
@@ -37,7 +37,7 @@ Card 2.0 keeps every field of card 1.0 (`docs/race-card-contract.md`) and adds t
 | MEDIUM | 0.63 s per lap | 1.08 s per lap |
 | HARD | 0.92 s per lap | 1.38 s per lap |
 
-The limits are the 25th percentile and the median of `tyre_loss_s_per_lap` on the cards of real green-flag stops in the train races, without Qatar 2023 and its 18-lap limit (`python -m scripts.reality_check --splits train --thresholds`). Teams stop a soft set at a lower time loss than a hard one, so one limit for every compound would delay soft stops and bring hard ones forward.
+The limits are the 25th percentile and the median of `tyre_loss_s_per_lap` on the cards of real green-flag stops in the train races, without Qatar 2023 and its 18-lap limit (`python -m scripts.reality_check --splits train --thresholds`). Since the 2026 VSC fix, the rebuilt train cards give 0.37 and 0.64 for SOFT, 0.62 and 1.07 for MEDIUM and 0.94 and 1.42 for HARD with this command, and the policy keeps the limits above. Teams stop a soft set at a lower time loss than a hard one, so one limit for every compound would delay soft stops and bring hard ones forward.
 
 ## Known limits
 

@@ -108,14 +108,14 @@ Check: on 21,864 cards with a known gap ahead, the computed gap differs from Ope
 
 ## Agreement with the teams
 
-`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps. The table comes from the first run; D13 gives the adopted rule after the causality fixes of the replay review and the 2026 VSC fix (D3), on 664 stops.
+`scripts/reality_check.py` asks, for every strategy stop, whether the card at the start of the stop lap says BOX (recall), and, for every BOX card, whether the car stops within two laps (precision). Red-flag tyre changes, retirements, damage stops and penalty stops are left out. A rule that said BOX at random would reach a precision of 8.1% on the evaluation races (`validation`, `mini_test` and `final`, 668 stops), the share of laps followed by a stop within two laps. The table comes from the first run; D13 gives the adopted rule after the causality fixes of the replay review and the 2026 VSC fix (D3), on 664 stops, four fewer than the 668 of the first run. The fix leaves out three stops of the validation races whose out-lap ran into a VSC, and one stop has no 2.0 card.
 
 | Rule | Recall | Precision | BOX share of cards |
 |---|---:|---:|---:|
 | Policy 1.1 on 1.0 cards | 1.3% | 7.1% | 1.3% |
 | Policy 2.0 with a rejoin test on every stop | 3.0% | 6.6% | 2.6% |
 | Policy 2.0 without the rejoin test | 62.1% | 14.3% | 33.2% |
-| Policy 2.0, rejoin only before the upper wear limit | 53.6% | 15.5% | 26.2% |
+| Policy 2.0, rejoin only before the upper wear limit | 53.6% | 15.5% (15.6% after the fixes) | 26.2% |
 | Age only (BOX from the 1.1 upper age) | 49.0% | 14.7% | 24.7% |
 
 The rejoin test is what kept the policy away from the teams. It gives BOX only when the gap behind covers the whole pit loss, which mid-field cars almost never have, while teams stop anyway and accept the places. Tyre wear carries the signal, and the best per-lap rule reaches about twice the precision of chance: stop timing also depends on things a card does not hold, such as each team's plan and its rivals' moves. These numbers are exploratory: the wear limits come from the train races, and the policy variant was chosen on the evaluation races (D13), so they are a selection result and not an independent test. After the 2026 VSC fix of `fbaac10`, the adopted rule gives 53.6% and 15.6% on these races and policy 1.1 gives 1.5% and 7.2% (README.txt); the table above is from the first run.
@@ -124,7 +124,7 @@ The rejoin test is what kept the policy away from the teams. It gives BOX only w
 
 Policy 2.0 keeps the rejoin test only inside the wear window, where a stop needs an undercut or a neutralisation. At or above the compound's upper wear limit (or the 1.1 upper age when wear is unknown) the call is BOX whatever sits behind. This is the variant with the best precision on the evaluation races, and it is how teams behave: they stop worn tyres and accept the places.
 
-Check: on the evaluation races the adopted policy gives a recall of 53.6% and a precision of 15.6%, against 8.0% for chance (the share of laps followed by a stop within two laps, which `scripts/reality_check.py` does not print). `test_2026` was then opened with the policy frozen. It was run a second time after the causality fixes of the replay review (stops known only once their comparison laps end, at least three cars to compare with, the red flag lasting until the restart), which moved its figures by at most 0.1 point. It was run a third time after the 2026 VSC fix (D3), again with no change to the policy. With that fix, 12 stops count as VSC stops, four stops whose out-lap ran into a VSC are left out, and recall or precision moves by up to 3.3 points per race. The figures below are from the third run:
+Check: on the evaluation races (664 stops, see Agreement with the teams) the adopted policy gives a recall of 53.6% and a precision of 15.6%, against 8.0% for chance (the share of laps followed by a stop within two laps, which `scripts/reality_check.py` does not print). `test_2026` was then opened with the policy frozen. It was run a second time after the causality fixes of the replay review (stops known only once their comparison laps end, at least three cars to compare with, the red flag lasting until the restart), which moved its figures by at most 0.1 point. It was run a third time after the 2026 VSC fix (D3), again with no change to the policy. With that fix, 12 stops count as VSC stops, four stops whose out-lap ran into a VSC are left out, and recall or precision moves by up to 3.3 points per race. The figures below are from the third run:
 
 | Race | Stops | Recall | Precision | Chance precision |
 |---|---:|---:|---:|---:|

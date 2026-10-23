@@ -54,7 +54,7 @@ HF_HUB_OFFLINE=1 .venv/bin/python -m scripts.smoke_conversation --config configs
 
 It loads the model once and runs five synthetic targets from `reference/evaluation-fixtures.json`: an initial call, a same-card follow-up with fixed history, a blocking incomplete card, an out-of-scope request with the contextual annotation, and a contradictory numeric assertion. It saves exact case/input ledgers, raw response/error envelopes compatible with `boxbox.evaluation.pair_outputs`, generated token IDs, per-attempt prompt/history/context traces, parser-only format diagnostics, policy or scope reference provenance, configuration and source snapshots under a new ignored `runs/<date>_2-5a-smollm3-smoke/` directory. It never uses validation, mini-test, final, training, or real race cards. Existing run directories are not overwritten; use a new `--name` for a distinct attempt.
 
-The strict parser checks only structure and extracts a label for diagnosis. `decide` supplies card-policy references; the synthetic contextual annotation supplies the out-of-scope reference. Neither is given to the model. Automatic agreement and self-inspection are not human ratings or a performance claim. Protocol `boxbox-eval/1.1.0` remains proposed and `acceptance_record` remains null.
+The strict parser checks only structure and extracts a label for diagnosis. `decide` supplies card-policy references; the synthetic contextual annotation supplies the out-of-scope reference. Neither is given to the model. Automatic agreement and self-inspection are not human ratings or a performance claim. Protocol `boxbox-eval/1.1.0` was proposed and `acceptance_record` was null at that point. Status (23 October 2026): the team accepted it unchanged in the 3.5 freeze on 21 October ([freeze](freeze.md)).
 
 Run the deterministic tests and lint without loading a model:
 
@@ -72,3 +72,5 @@ The complete suite is intentionally not the prescribed check because `tests/test
 - **2.6:** reuse `prepare` and the generation path with a separately loaded adapter model. This baseline loader deliberately rejects `adapter != "none"`.
 - **2.8:** pass `engine.respond` to `launch(respond=..., engine="Adapter A", turns=config.history_turns)`. The default app stub and notebook remain unchanged in 2.5a.
 - **2.3b/4.x:** keep the raw response/error envelope, fixed input hashes, effective generation settings, prompt/template hashes and actual retained history. The final split stays closed.
+
+Status (23 October 2026): 2.5b, 2.6 and 2.8 are done, and so are 4.1 to 4.5. The final split was opened in 4.1, under the freeze, and 4.2 scored the retained versions through this engine.

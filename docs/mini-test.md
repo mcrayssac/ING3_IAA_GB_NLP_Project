@@ -63,7 +63,7 @@ The 40 targets are the last assistant turn of each mini-test item, as in validat
 
 Section 8 of the protocol samples 40 targets with 8 per family for the final test. The mini-test has only 6 usable, 6 follow-up and 6 out-of-scope targets, so that sample is impossible. Every target is rated instead: 40 targets, 80 masked answers, all five axes with their applicability. This was set before generation (#14). The rater fills `review/review.csv` without opening `review/version-key.json`, then runs `rated`.
 
-This human rating has not been done yet. The five-axis scores below are an exploratory reading by an LLM judge; see [Qualitative scores](#qualitative-scores-llm-judge-not-human).
+This human rating has not been done yet. The five-axis scores below are an exploratory reading by an external language-model judge; see [Qualitative scores](#qualitative-scores-external-judge-not-human).
 
 ## Results
 
@@ -103,9 +103,9 @@ A always answers in the two-line format, and its CALL matches the policy far mor
 
 The baseline's 9 cut answers are free-text or multi-sentence answers. A's 2 cut answers are the two follow-ups that correct a user's number (M-015, M-019): the WHY is long and stops before the end of its sentence.
 
-### Qualitative scores (LLM judge, not human)
+### Qualitative scores (external judge, not human)
 
-The blind human rating planned above was not done in the 2.7 window. The 80 masked answers were instead scored with the same five axes and applicability by an LLM judge (ChatGPT, model version not recorded), from the masked rating workbook, which shows no version identity. **These are not human ratings and do not satisfy the human review of protocol section 8.** They are an exploratory reading only. The scores, their reasons and the summary are in `llm-judge-01/` of the run folder, with the script that computed them. The judge flagged 37 of the 80 rows for a second reading; no teammate has reviewed them, so they are unresolved.
+The blind human rating planned above was not done in the 2.7 window. The 80 masked answers were instead scored with the same five axes and applicability by an external language-model judge (model version not recorded), from the masked rating workbook, which shows no version identity. **These are not human ratings and do not satisfy the human review of protocol section 8.** They are an exploratory reading only. The scores, their reasons and the summary are in `llm-judge-01/` of the run folder, with the script that computed them. The judge flagged 37 of the 80 rows for a second reading; no teammate has reviewed them, so they are unresolved.
 
 Means on the 0–2 scale, pairs where the axis applies to the target, same race bootstrap:
 
@@ -131,7 +131,7 @@ In the judge's reading, A gains most on correctness and factuality, and both ver
 ### Limitations
 
 - Exploratory: 40 targets from 5 races (the two wet races give no card), up to 35% of the targets in one race, and several intervals with few contributing races. It is not an estimate for the final test.
-- No human rating yet: the five-axis scores come from one LLM judge, and its 37 flagged rows have no second reading. Human means and the human justified-refusal measure remain unavailable until a member of the team rates the sheet and another reviews the flagged rows.
+- No human rating yet: the five-axis scores come from one external language-model judge, and its 37 flagged rows have no second reading. Human means and the human justified-refusal measure remain unavailable until a member of the team rates the sheet and another reviews the flagged rows.
 - One training seed of A, one machine (L4, bf16); text can differ on another machine.
 - The 64-token cap cuts 9 baseline answers and 2 of A, which lowers their format and possibly their correctness.
 - Validation chose both the prompt and A's checkpoint; only these mini-test numbers are a fair comparison.
