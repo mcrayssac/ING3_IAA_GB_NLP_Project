@@ -185,4 +185,4 @@ Found in the review of the update of `main` with `main-experimental` (PR #72). L
 - Open-Meteo, `boxbox/data/openmeteo.py:24`: a rate limit (HTTP 429) makes the shared downloader sleep 60 s and retry, so a forecast can hold a race pick for about two minutes.
 - Tests, `tests/test_openmeteo.py:61`: its last assertion, the match with the Jolpica date, cannot fail.
 - D15 figures: the three-order row, the counts by call and the 11.6 s a card come from the run folder `runs/2026-10-23_replay-model-check-quick`, which is not committed. `data/reference/replay-model-check.json` keeps the order, tau and the two agreements.
-- `boxbox.wav`: a sound of 1.39 s at the repository root, which `sound_head` inlines in every page. No source, author or licence is recorded for it, and the repository is under Apache-2.0.
+- `boxbox.wav`: a sound of 1.39 s at the repository root, which `sound_head` inlines in every page. Its source is the YouTube video "Box Box Ringtone" (https://www.youtube.com/watch?v=ec0Ku7YxdY0), recorded in `README.txt` and `README.md`. Its author and its terms have not been checked, and the repository is under Apache-2.0.

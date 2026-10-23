@@ -105,6 +105,6 @@ D/M/E/T label data/protocol, model/notebook, evaluation/demo and team coordinati
 
 ## License
 
-The code and documentation in this repository are released under the [Apache License 2.0](LICENSE). Third-party material keeps its own terms. Race data obtained through OpenF1 and Jolpica is not covered by this licence, and the base language model, SmolLM3-3B, keeps its own licence (Apache 2.0).
+The code and documentation in this repository are released under the [Apache License 2.0](LICENSE). Third-party material keeps its own terms. Race data obtained through OpenF1 and Jolpica is not covered by this licence, and neither is `boxbox.wav`, a clip from the YouTube video "Box Box Ringtone" ([link](https://www.youtube.com/watch?v=ec0Ku7YxdY0)) whose terms have not been checked, and the base language model, SmolLM3-3B, keeps its own licence (Apache 2.0).
 
 BoxBox is an unofficial student project with no link to the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V.

@@ -174,7 +174,10 @@ check, the generation time, the tokens, why generation stopped and how much of
 the conversation was sent. A warning on the call says when the token or
 time limit may have cut the answer. boxbox.wav in the project folder plays
 on each new BOX answer of the Card tab, and on the Replay tab on each new
-card whose policy 2.0 call is BOX. The
+card whose policy 2.0 call is BOX. boxbox.wav comes from the YouTube video
+"Box Box Ringtone" (https://www.youtube.com/watch?v=ec0Ku7YxdY0). It is third-party
+material, not covered by the Apache License of this project, and its terms have not
+been checked. The
 notebook (see section 6 of this guide)
 launches the same screen with adapter A in its section 7, connected in task 2.8.
 
