@@ -1,3 +1,4 @@
 # Corpus files are hashed byte for byte: keep LF line ends on every OS
 data/corpus/*.jsonl text eol=lf
 data/corpus/*.json text eol=lf
+rapport.pdf binary
