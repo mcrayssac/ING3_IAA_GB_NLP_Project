@@ -87,7 +87,7 @@ All three versions are frozen. The final comparison scored them once, on 200 tar
 
 ## Current status
 
-Snapshot: 23 October 2026. Tasks 1.1 to 5.5 are done, and what belongs in the repository is merged into `main`. The team has submitted the package (task 5.6). The issue of task 5.6 stays open until the submission receipt is recorded, because the receipt is not stored in the repository. The [roadmap](docs/roadmap.md) lists every task with its status and, where there is one, its pull request, and the capacity assumptions are in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
+Snapshot: 23 October 2026. All tasks, 1.1 to 5.6, are done, and what belongs in the repository is merged into `main`. The team has submitted the package. The issue of task 5.6 is closed without a receipt, because the receipt is not stored in the repository. The [roadmap](docs/roadmap.md) lists every task with its status and, where there is one, its pull request, and the capacity assumptions are in the [team confirmation register](docs/team-workflow.md#daily-availability-and-capacity).
 
 The package holds the executed notebook (`agent.ipynb`), the French report (`rapport.pdf`), the data and the scripts that rebuild it, and the run guide (`README.txt`). The two adapters and the three study archives are attached to the submission, outside Git. The French video is shared with the stakeholders by a cloud-hosted link and is not in the repository.
 
