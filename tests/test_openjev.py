@@ -390,3 +390,54 @@ def test_the_demo_responder_sends_the_study_request_and_applies_tau(monkeypatch)
     assert base == "http://127.0.0.1:3000/v1"
     assert timeout == settings["server"]["request_timeout_seconds"]
     assert text.startswith("CALL: NO CALL\n")  # BOX at 0.50 stays below tau 0.59
+
+
+def test_the_replay_request_asks_only_the_call_in_three_described_orders():
+    settings = load_settings(openjev.REPLAY_CONFIG)
+    inputs = {"card": CARD, "history": [], "message": openjev.replay_message(31, "4")}
+    request = build_request(settings, "Policy.", inputs, diagnostics=False)
+    questions = request["questions"]
+    assert list(questions) == ["call", "call_1", "call_2"]
+    described = questions["call"]["criteria"]
+    assert all(isinstance(text, str) and text for text in described.values())
+    assert "policy 2.0" in questions["call"]["instructions"]
+    assert request["state"].endswith("User: Lap 31 for car 4: pit now or keep going?")
+
+
+def test_a_nan_in_a_card_reaches_the_model_as_null():
+    card = {
+        "compound": float("nan"),
+        "gap": {"seconds": float("inf")},
+        "x": [float("nan"), 1.5],
+    }
+    assert openjev.model_card(card) == {
+        "compound": None,
+        "gap": {"seconds": None},
+        "x": [None, 1.5],
+    }
+    assert card["compound"] != card["compound"]  # the card itself is untouched
+    assert '"compound":null' in openjev.state_text(
+        "P.", {"card": openjev.model_card(card), "history": [], "message": "m"}
+    )
+
+
+def test_the_replay_asker_averages_the_orders_and_applies_tau(monkeypatch):
+    sent = []
+
+    def fake_ask(base, request, timeout):
+        sent.append((base, request, timeout))
+        p = {"BOX": 0.6, "STAY OUT": 0.3, "NO CALL": 0.1}
+        names = request["questions"]
+        return {"answers": {n: {"choice": "BOX", "probabilities": p} for n in names}}
+
+    monkeypatch.setattr(openjev, "ask", fake_ask)
+    settings = load_settings(openjev.REPLAY_CONFIG)
+    argmax = openjev.replay_asker(settings, "Policy.", decided, averaged)
+    result = argmax(CARD, 31, "4")
+    base, request, timeout = sent[0]
+    assert base == "http://127.0.0.1:3000/v1" and timeout == 60
+    assert list(request["questions"]) == ["call", "call_1", "call_2"]
+    assert result["call"] == "BOX" and result["tau"] is None
+    assert result["probabilities"] == {"BOX": 0.6, "STAY OUT": 0.3, "NO CALL": 0.1}
+    strict = openjev.replay_asker(settings, "Policy.", decided, averaged, tau=0.9)
+    assert strict(CARD, 31, "4")["call"] == "NO CALL"  # BOX at 0.60 stays below tau
