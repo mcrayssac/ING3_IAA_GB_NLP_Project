@@ -58,6 +58,7 @@ boxbox/app/             Gradio screen with the Card and Replay tabs
 boxbox/evaluation/      deterministic scoring, pairing and race-level uncertainty
 scripts/rebuild_data.py rebuilds splits, race cards, priors and the gap check
 scripts/reality_check.py agreement of a policy with real stops (Experimental)
+scripts/package.py      adapter archive and reader checks of the delivery
 data/splits.json        frozen race-level splits
 data/splits-v2.json     frozen 2023 to 2026 race-level splits (Experimental)
 data/reference/         pit-loss references and 2.0 priors (Experimental)
