@@ -36,14 +36,19 @@ for byte, from such copies (a browser download may add " (1)" to file names):
 
     .venv/bin/python -m scripts.package adapters --from-a DIR_A --from-b DIR_B --output boxbox-adapters.zip
 
-Three other study artifacts stay outside Git, kept by the team: the 4.2 run
-folder in 4.2-final-delivery.zip, and the 4.3 review sheet with its second
-reviews and the initial ratings, whose hashes are in
-docs/final-findings-evidence.json (provenance). They are only needed to run
-4.4 and 4.5 again (section B).
+Other study artifacts stay outside Git, kept by the team. The notebook
+(section 6) reads the first three; 4.4 and 4.5 (section B) read the 4.2 run
+folder, and 4.5 also the 4.3 review sheet with its second reviews and the
+initial ratings, whose hashes are in docs/final-findings-evidence.json
+(provenance).
 
-    4.2-final-delivery.zip
+    4.2-final-delivery.zip   the 4.2 run folder, with the final answers
     SHA-256 2993ac76fe620d3aaf3df811369fdd88a4fbdd1911e0c8582318b6af99896a2b
+    2-6-logs.zip             console logs of the three training runs of A
+    SHA-256 661b1673828bd00e5849062e4c8b6997f34281a07616c07b6d6c5310ba967898
+    3-2-runs.zip             run folders of B's three seeds and of the 3.2
+                             mini-test, without the adapter weights
+    SHA-256 c335689384bfe155f2fa9b24e57a701674933c7a5c3083411a54d2e01f75a04c
 
 A. Requirements, versions and resources
 
@@ -61,6 +66,7 @@ October) and the training (19 to 21 October):
     load one adapter, then answer one card      10 to 13 s each, Apple M1 16 GB
     final scoring, 600 answers (4.2)            6,068.5 s of generation, Apple M1
     training, one seed (sections 11 and 12)     about 72 min, Apple M3 Max 38.7 GB
+    notebook, clean execution (section 6)       6 min 43 s, Apple M1 16 GB
 
 Training was measured only on the M3 Max with the MPS memory capped at 20 GB.
 
@@ -156,6 +162,8 @@ D. Full reproduction, in order
     8. Final scoring (4.2, below). The retained run is the only final run; do
        not generate another final comparison.
     9. Human review (4.3), paired gains (4.4) and findings (4.5), below.
+    10. The notebook (section 6), which shows the whole study in one run and
+        launches the screen.
 
 Steps 3 to 5 regenerate model answers and train new adapters. They were not
 run again in task 5.2, so whether a new training gives the same weights byte
@@ -296,14 +304,60 @@ whose multi-turn dialogues are longer.
 6. Notebook
 -----------
 
-agent.ipynb is the notebook of the submitted study. The Experimental milestone
-does not change it.
+agent.ipynb is the notebook of the submitted study: the installation (its
+section 0), then the seven steps of the assignment, from the definition of the
+agent to the Gradio screen. The committed file keeps the outputs of its clean
+execution in task 5.4. The Experimental milestone does not change it.
+
+It reads four archives kept outside Git ("Start here"). From the repository
+root, with the archives in the folder above it:
+
+    unzip -q -n ../boxbox-adapters.zip
+    unzip -q -n ../2-6-logs.zip -x "__MACOSX/*" -d runs
+    unzip -q -n ../3-2-runs.zip -d runs
+    unzip -q ../4.2-final-delivery.zip "run/*" -d ../4-2-delivery
+    mv ../4-2-delivery/run runs/4-2-final-50067b54741c-49b4aea370af
+    rmdir ../4-2-delivery
+
+-n never replaces a file: 3-2-runs.zip holds B's adapter_config.json again,
+with the same bytes as boxbox-adapters.zip. Section 0 of the notebook names
+the files that are missing, and the first cell that reads one stops with a
+FileNotFoundError on its path. Section 0 also reads the model's licence on the
+Hub, so the notebook needs network access. Then open it, or execute it from the
+command line:
 
     .venv/bin/jupyter notebook agent.ipynb
-
-To execute it from the command line:
-
     .venv/bin/jupyter nbconvert --to notebook --execute --inplace agent.ipynb
+
+Two flags set what it runs. RUN_TRAINING, in section 5, is False: the cell
+reads the losses of the real training runs from the archives above (A's logs
+print them with four significant digits, B's run folders keep the exact
+values). True runs the seeds command of section 11 for A, which trains and
+validates three new seeds, each step in a fresh process (about 72 minutes of
+training and 10 of validation per seed on the M3 Max), then reads their run
+folders. It needs the memory of training beside the model the notebook holds,
+and task 5.4 did not run it: a stand-in for the command checked only that the
+cells read new run folders. RUN_DEMO, in section 7, is True: it launches the
+screen with adapter A on 127.0.0.1, private (share=False), for as long as the
+kernel runs. The notebook loads SmolLM3-3B once and puts adapter A on it, so it
+holds one model in memory (6.5 GB in bf16). It never generates a final answer:
+section 6 checks the sealed 4.2 run and computes the analysis of 4.4 again from
+its answers.
+
+Done on 23 October 2026 (task 5.4) on an Apple M1 with 16 GB, macOS 26.6.2, in
+a new .venv installed from requirements.txt in a new worktree of main at
+17e2113, with the four archives unpacked as above: the nbconvert command exited
+with 0 in 403 s, the 29 code cells ran in order, and no output is an error. The
+base model and the packages came from the local Hugging Face and uv caches.
+The earlier executions of the task gave the same values, the sampled answers of
+section 2 included, timings aside. Two warnings stay in the outputs, a
+tokenizer note of transformers and the pop-up message of a refused upload. One
+more execution, with the same outputs, kept its kernel running while a script
+outside the repository drove
+the screen from headless Chrome: a typed question, the quick questions "Why?"
+and "Will it rain later?", Reset, a file that is not JSON and a change of card
+gave the answers and messages of section 7, with no error in the page. No
+person clicked through the screen for this check.
 
 7. Evaluation tooling (task 2.3b)
 --------------------------------
