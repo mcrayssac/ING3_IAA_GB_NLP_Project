@@ -1,6 +1,6 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 22 October 2026. Milestones 4 and 4 bis (Experimental) are done.** Tasks 1.1 to 4.5 are done: the final cases (4.1), the single scoring run (4.2), the human review (4.3), the paired gains (4.4) and the findings with five cases (4.5) are merged into `main`. No merged work shows delivery tasks 5.2 to 5.6 as done. The report and video outline (5.1) is ready. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison. Milestone 4 bis widened the race data, added policy 2.0 and a race replay, merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69). The study, its frozen versions and its results do not change and are not re-run.
+**Snapshot: 23 October 2026. Milestones 4 and 4 bis (Experimental) are done.** Tasks 1.1 to 4.5 are done: the final cases (4.1), the single scoring run (4.2), the human review (4.3), the paired gains (4.4) and the findings with five cases (4.5) are merged into `main`. Delivery task 5.2, the package, guide and links, is merged in [PR #74](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/74). The report and video outline (5.1) is closed, and its working material stays out of Git until the final report (5.3) and video (5.5). Tasks 5.3 to 5.6 are planned. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison. Milestone 4 bis widened the race data, added policy 2.0 and a race replay, merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69). The study, its frozen versions and its results do not change and are not re-run.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
@@ -35,7 +35,7 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 | 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | done | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
 | 4. Evaluation | 20 Oct after freeze–21 Oct | done: 4.1 to 4.5 done ([#59](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/59), [#62](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/62), [#63](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/63), [#64](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/64), [#68](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/68)) | Closed final test, human review, paired gains, uncertainty and conclusions |
 | 4 bis. Experimental | 22–23 Oct | done | Data v2, policy 2.0, replay and the Replay's model tile, merged into `main` |
-| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | planned: 5.1 ready | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
+| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | in progress: 5.1 and 5.2 done, 5.3 to 5.6 planned | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
 
 | Window | Planned work | Target and hand-off |
 |---|---|---|
@@ -86,7 +86,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 6 unfinished tasks: 5.1 is ready, and 5.2 to 5.6 are planned. Tasks 1.1 to 4.5 and 4bis.1 to 4bis.4 are done.
+No task carries the ready label in this snapshot. The queue holds 4 unfinished tasks, 5.3 to 5.6, and all four carry the planned label. Tasks 1.1 to 4.5, 4bis.1 to 4bis.4, 5.1 and 5.2 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -168,8 +168,8 @@ This milestone widens the race data, makes it match what happened on track and g
 
 | ID | Task and expected output | Category | Planned window (Paris) | Prerequisites | Snapshot | Issue |
 |---|---|---|---|---|---|---|
-| 5.1 | **Draft French report and video outline.** Prepare the French report structure and three-minute video outline from the agreed scope; leave result sections empty until measured. | E | 17–19 Oct, alongside implementation | 1.1, 1.2 | ready | [#25](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) |
-| 5.2 | **Package reconstruction, guide and links.** Package the reconstruction procedure, English README.txt and stable links to the retained frozen adapters. | D | 21 Oct, morning | 4.1 | planned | [#26](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/26) |
+| 5.1 | **Draft French report and video outline.** Prepare the French report structure and three-minute video outline from the agreed scope; leave result sections empty until measured. | E | 17–19 Oct, alongside implementation | 1.1, 1.2 | done (23 Oct, closed with its working material kept out of Git; 5.3 and 5.5 carry it) | [#25](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) |
+| 5.2 | **Package reconstruction, guide and links.** Package the reconstruction procedure, English README.txt and stable links to the retained frozen adapters. | D | 21 Oct, morning | 4.1 | done (23 Oct, [PR #74](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/74)) | [#26](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/26) |
 | 5.3 | **Finalise the French report.** Produce the French report PDF, at most four pages excluding annexes, using measured results. | E | 21 Oct, evening | 4.5, 5.1 | planned | [#27](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/27) |
 | 5.4 | **Clean complete notebook execution.** Reproduce the complete English notebook in a fresh environment and retain its executed outputs. | M | 21 Oct, evening | 4.5, 5.2, 2.8 | planned | [#28](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/28) |
 | 5.5 | **Record the French pitch video.** Record and edit a French pitch of about three minutes with the English product, measured results and limitations. | E | 22 Oct, morning | 5.3, 5.4 | planned | [#29](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/29) |

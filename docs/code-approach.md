@@ -31,6 +31,7 @@ scripts/rebuild_data.py    rebuilds the race data from the command line
 scripts/reality_check.py   agreement of a policy with the teams' real stops (4bis.2)
 scripts/replay_model_check.py agreement of OpenJev with policy 2.0 on 2.0 cards (4bis.4)
 scripts/tyre_thresholds.py tyre age at green-flag stops, behind the policy 1.1 thresholds
+scripts/package.py         adapter archives and the reader checks of the delivery (5.2)
 tests/                     pytest tests for deterministic code
 agent.ipynb                executed notebook, from installation to interface
 data/splits.json           race split manifest, committed
