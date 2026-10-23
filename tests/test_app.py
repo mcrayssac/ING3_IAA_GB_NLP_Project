@@ -380,3 +380,40 @@ def test_a_box_answer_on_the_card_banner_carries_its_sound_key() -> None:
     with pytest.warns(UserWarning, match="timeout"):
         kept = L.ask(broken, 3, card(), first[0], "Why?", False)
     assert 'data-box="1"' in kept[4]  # the same answer again: no second sound
+
+
+def test_the_replay_button_follows_the_asker() -> None:
+    def ask_button(app) -> gr.Button:
+        return next(
+            b
+            for b in app.blocks.values()
+            if isinstance(b, gr.Button) and b.value == "Ask the model"
+        )
+
+    asker = lambda card, lap, driver: {}
+    assert ask_button(build_app(replay=asker)).interactive is True
+    assert ask_button(build_app()).interactive is False
+
+
+def test_the_replay_flag_combines_with_an_adapter_but_engines_stay_exclusive() -> None:
+    from boxbox.app.__main__ import build_parser
+
+    parser = build_parser()
+    assert (parser.parse_args([]).engine, parser.parse_args([]).replay) == (None, False)
+    assert vars(parser.parse_args(["-R"])) == {"engine": None, "replay": True}
+    assert vars(parser.parse_args(["-B", "-R"])) == {"engine": "B", "replay": True}
+    assert vars(parser.parse_args(["-O", "-R"])) == {
+        "engine": "OpenJev",
+        "replay": True,
+    }
+    with pytest.raises(SystemExit):
+        parser.parse_args(["-A", "-B"])
+
+
+def test_no_flag_launches_the_stub_without_a_replay_model(monkeypatch) -> None:
+    from boxbox.app import __main__ as main_module
+
+    seen = []
+    monkeypatch.setattr(main_module, "launch", lambda **kw: seen.append(kw))
+    main_module.main([])
+    assert seen == [{"inbrowser": True, "replay": None}]

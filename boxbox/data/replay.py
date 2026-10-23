@@ -18,7 +18,7 @@ from typing import Any, NamedTuple
 import numpy as np
 import pandas as pd
 
-from .cards import WET_COMPOUNDS, build_race_cards
+from .cards import WET_COMPOUNDS
 from .cards_v2 import (
     MARGIN,
     _pit_condition,
@@ -67,7 +67,7 @@ class Car(NamedTuple):
 
 @dataclass(frozen=True)
 class Timeline:
-    """One race on the replay clock, with its 1.0 and 2.0 cards keyed by (driver, lap)."""
+    """One race on the replay clock, with its 2.0 cards keyed by (driver, lap)."""
 
     event: str
     start: pd.Timestamp  # race start, UTC
@@ -76,7 +76,6 @@ class Timeline:
     end: float  # chequered flag: the leader's last crossing
     total_laps: int
     cars: dict[str, Car]
-    cards: dict[tuple[str, int], dict[str, Any]]  # 1.0, what the trained model reads
     cards_v2: dict[tuple[str, int], dict[str, Any]] = field(default_factory=dict)
     drivers: dict[str, dict[str, str]] = field(default_factory=dict)
     windows: list[Window] = field(default_factory=list)
@@ -99,7 +98,6 @@ class Timeline:
 def build_timeline(
     table: pd.DataFrame,
     raw: pd.DataFrame,
-    cards: dict[tuple[str, int], dict[str, Any]],
     event: str = "",
     utc_offset: str = "0s",
 ) -> Timeline:
@@ -139,7 +137,6 @@ def build_timeline(
         float(flag),
         total,
         cars,
-        cards,
     )
 
 
@@ -216,8 +213,8 @@ def _degradation(
 def load_timeline(
     race: dict[str, Any], cache_dir: Path = CACHE_DIR, priors_file: Path = PRIORS_FILE
 ) -> Timeline:
-    """The timeline of a cached race with its 1.0 and 2.0 cards rebuilt from the same
-    table, the drivers, the neutralisations and the pit-loss context."""
+    """The timeline of a cached race with its 2.0 cards rebuilt from its table, the
+    drivers, the neutralisations and the pit-loss context."""
     table = race_table(race, cache_dir)  # reads laps.json through the cache first
     folder = cache_dir / str(race["session_key"])
     raw = pd.DataFrame(json.loads((folder / "laps.json").read_text(encoding="utf-8")))
@@ -228,16 +225,12 @@ def load_timeline(
     offset = next(
         s["gmt_offset"] for s in sessions if s["session_key"] == race["session_key"]
     )
-    cards = {
-        (r["card"]["driver_number"], r["card"]["lap"]): r["card"]
-        for r in build_race_cards(table, race)[0]
-    }
     messages, extras = race_control(race, cache_dir), race_extras(race, cache_dir)
     priors = json.loads(priors_file.read_text(encoding="utf-8"))["races"]
     context = race_context(
         race, table, messages, extras["weather"], priors, load_reference()
     )
-    line = build_timeline(table, raw, cards, race["event"], offset)
+    line = build_timeline(table, raw, race["event"], offset)
     cards_v2 = build_race_cards_v2(table, race, context)[0]
     tyres = table[["driver_number", "lap", "compound", "tyre_age_end"]]
     return replace(
@@ -425,17 +418,6 @@ def frame(timeline: Timeline, driver: str, t: float) -> dict[str, Any]:
     return {"lap": race_lap(timeline, t), "scale": scale, "angles": angles}
 
 
-def card_at(
-    timeline: Timeline, driver: str, t: float
-) -> tuple[dict | None, int | None]:
-    """The card of the lap the driver is on, as of its last crossing (lap L-1 end)."""
-    seen = _seen(timeline.cars[driver], t)
-    if not len(seen.lap):
-        return None, None
-    lap = int(seen.lap[-1]) + 1
-    return timeline.cards.get((driver, lap)), lap
-
-
 def _ready(timeline: Timeline, driver: str, lap: int, card: dict | None) -> float:
     """When a lap's card can be shown: once the car behind and the cars it counts in
     its pit window have crossed the line too, as on a timing screen."""
@@ -449,24 +431,28 @@ def _ready(timeline: Timeline, driver: str, lap: int, card: dict | None) -> floa
     return max([as_of + behind, *counted])
 
 
+def lap_on(timeline: Timeline, driver: str, t: float) -> int | None:
+    """The lap the driver is on at clock t, read from its crossings up to t only."""
+    seen = _seen(timeline.cars[driver], t)
+    return int(seen.lap[-1]) + 1 if len(seen.lap) else None
+
+
 def cards_at(
     timeline: Timeline, driver: str, t: float
-) -> tuple[dict | None, dict | None, int | None]:
-    """The 1.0 and 2.0 cards the driver has at clock t, or no card once it stopped.
+) -> tuple[dict | None, int | None]:
+    """The 2.0 card the driver has at clock t and its lap, or no card once it stopped.
 
-    A lap's card shows once the cars it reads have crossed; until then the previous
-    lap's card stays up."""
-    if progress(timeline.cars[driver], t) is None:
-        return None, None, None
-    card, lap = card_at(timeline, driver, t)
-    card_v2 = timeline.cards_v2.get((driver, lap))
-    if lap and lap > 2 and t < _ready(timeline, driver, lap, card_v2 or card):
+    The card is the one of the lap the driver is on, as of its last crossing (lap L-1
+    end). It shows once the cars it reads have crossed; until then the previous lap's
+    card stays up."""
+    lap = lap_on(timeline, driver, t)
+    if lap is None or progress(timeline.cars[driver], t) is None:
+        return None, None
+    card = timeline.cards_v2.get((driver, lap))
+    if lap > 2 and t < _ready(timeline, driver, lap, card):
         lap -= 1
-        card, card_v2 = (
-            timeline.cards.get((driver, lap)),
-            timeline.cards_v2.get((driver, lap)),
-        )
-    return card, card_v2, lap
+        card = timeline.cards_v2.get((driver, lap))
+    return card, lap
 
 
 def status_now(timeline: Timeline, t: float) -> str:
@@ -531,7 +517,7 @@ def tyre_at(timeline: Timeline, driver: str, t: float) -> tuple[str | None, int 
 def tyre_options(timeline: Timeline, driver: str, t: float) -> dict[str, Any]:
     """What the dry compounds offer the driver at clock t: their degradation on the
     card lap shown, the laps left, the dry compounds used so far and a wet track."""
-    _, card, lap = cards_at(timeline, driver, t)
+    card, lap = cards_at(timeline, driver, t)
     seen = _seen(timeline.cars[driver], t)
     done = int(seen.lap[-1]) if len(seen.lap) else 0
     lap = lap or done + 1  # a stopped car keeps its last lap
@@ -620,7 +606,7 @@ def pit_window(timeline: Timeline, driver: str, t: float) -> tuple[float | None,
     status = status_now(timeline, t)
     if status == "RED":
         return None, "RED"
-    _, own, lap = cards_at(timeline, driver, t)
+    own, lap = cards_at(timeline, driver, t)
     card = own or _surface_card(timeline, driver, lap)
     surface = card["surface"] if card else "DRY"
     kind = _pit_condition(status, surface, card["compound"] if own else None)

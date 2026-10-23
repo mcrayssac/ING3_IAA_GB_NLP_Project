@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import base64
 import html
+import json
 import math
 import time
+from collections.abc import Callable, Iterator
 from datetime import timedelta
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +46,12 @@ from . import panels as P
 
 TICK = 0.5  # seconds between timer ticks
 SOUND = Path("boxbox.wav")  # played on each new 2.0 card whose policy 2.0 call is BOX
+CHECK_FILE = Path("data/reference/replay-model-check.json")
+MODEL_NAME = "OpenJev Flash 9B"
+READY_NOTE = "Press Ask the model to read the card on screen."
+OFF_NOTE = "Start the app with -R or -O to ask OpenJev about this card."
+# (card, lap, driver) -> {call, probabilities, tau, seconds}, from boxbox.model.openjev
+Asker = Callable[[dict[str, Any], int, str], dict[str, Any]]
 SPEEDS = ("x1", "x2", "x4")
 HIDDEN = {"api_visibility": "private", "show_progress": "hidden"}
 ZOOM = 2.2  # one turn covers twice the farthest reach, plus 10% room
@@ -518,6 +526,104 @@ def calls(
     )
 
 
+def check_note(path: Path = CHECK_FILE) -> str:
+    """The foot of the model tile: the agreement with policy 2.0 that the check measured."""
+    try:
+        agreement = json.loads(path.read_text(encoding="utf-8"))["agreement"]
+        parts = [
+            f"{100 * agreed / cards:.0f}% of {cards} {split.replace('_', '-')} cards"
+            for split, (agreed, cards) in agreement.items()
+        ]
+    except (OSError, ValueError, KeyError, TypeError, ZeroDivisionError):
+        return "Zero-shot, no reason written. Agreement with policy 2.0 not measured."
+    return (
+        "Zero-shot, no reason written. It agrees with policy 2.0 on "
+        + ", ".join(parts)
+        + " of the check sample."
+    )
+
+
+def model_tile(body: str) -> str:
+    label = f"{MODEL_NAME}, zero-shot, card 2.0"
+    return f'<div class="model-call"><div class="label">{label}</div>{body}</div>'
+
+
+def model_message(text: str, cls: str = "idle") -> str:
+    """The tile with a sentence in place of a call: waiting, nothing to read, or an error."""
+    return model_tile(
+        f'<div class="banner {cls}" role="status" aria-live="polite">'
+        f'<div class="call">{html.escape(text)}</div></div>'
+    )
+
+
+def _bars(probabilities: dict[str, float]) -> str:
+    rows = "".join(
+        f'<div class="prob"><span class="name">{name}</span>'
+        f'<span class="bar"><i class="{STATE_CLASSES[name]}" '
+        f'style="width:{probabilities.get(name, 0.0) * 100:.0f}%"></i></span>'
+        f'<span class="mono">{probabilities.get(name, 0.0):.2f}</span></div>'
+        for name in P.CALLS
+    )
+    return f'<div class="probs">{rows}</div>'
+
+
+def model_result(result: dict[str, Any], lap: int, rule: str, note: str) -> str:
+    """The model's call, its three probabilities and whether it matches the rule's call."""
+    call, tau = result["call"], result["tau"]
+    how = f"threshold {tau:.2f}" if tau is not None else "most probable option"
+    same = (
+        "Agrees with policy 2.0"
+        if call == rule
+        else f"Differs from policy 2.0, which says {rule}"
+    )
+    return model_tile(
+        f'<div class="banner {STATE_CLASSES[call]}" role="status" aria-live="polite">'
+        f'<div class="call">{call}</div>'
+        f'<div class="why">Lap {lap} card, {how}, {result["seconds"]:.1f} s</div></div>'
+        f"{_bars(result['probabilities'])}"
+        f'<div class="agree">{html.escape(same)}</div>'
+        f'<div class="note">{html.escape(note)}</div>'
+    )
+
+
+def model_answer(
+    state: dict[str, Any],
+    asker: Asker | None,
+    cache: dict[tuple[str, str, int], dict[str, Any]],
+    note: str = "",
+) -> str:
+    """The tile for the card on screen. There is nothing to ask in the pit lane, on an
+    out-lap, once retired or without a card; an answer is kept for its race, driver and
+    lap, and a failed request is shown and never retried."""
+    if asker is None or not state:
+        return model_message(READY_NOTE if asker else OFF_NOTE)
+    line, driver = timeline(state["race"]), state["driver"]
+    t = clock(state, time.monotonic())
+    card, lap = cards_at(line, driver, t)
+    rule = call_state(card, lap, pit_state(line, driver, t, lap))
+    if rule not in P.CALLS:
+        return model_message(_why(rule, card, lap, _name(line, driver)))
+    key = (state["race"], driver, lap)
+    if key not in cache:
+        try:
+            cache[key] = asker(card, lap, driver)
+        except Exception as error:  # noqa: BLE001 - any failure is shown, none stops the replay
+            gr.Warning(f"OpenJev did not answer: {error}")
+            return model_message(f"No answer: {str(error)[:160]}", "bad")
+    return model_result(cache[key], lap, rule, note)
+
+
+def ask_model(
+    state: dict[str, Any],
+    asker: Asker | None,
+    cache: dict[tuple[str, str, int], dict[str, Any]],
+    note: str = "",
+) -> Iterator[str]:
+    """The button: a waiting tile at once, then the answer. It never writes `state`."""
+    yield model_message("Asking OpenJev", "idle")
+    yield model_answer(state, asker, cache, note)
+
+
 def driver_tile(line: Timeline, driver: str) -> str:
     """The chosen car: number in its team colour, acronym and team."""
     info = line.drivers.get(driver, {})
@@ -585,7 +691,7 @@ def view(state: dict[str, Any], t: float) -> tuple[str, str, str, str, str]:
     order at race time t."""
     line, driver = timeline(state["race"]), state["driver"]
     now = frame(line, driver, t)
-    _, card_v2, lap = cards_at(line, driver, t)
+    card_v2, lap = cards_at(line, driver, t)
     in_pit = frozenset(d for d in line.cars if pit_state(line, d, t) == "IN PIT")
     key = f"{state['race']}|{driver}|{lap}"
     pit = pit_state(line, driver, t, lap)
@@ -746,9 +852,10 @@ def tick(state: dict[str, Any]) -> tuple:
     return state, gr.skip(), gr.skip(), bar, *view(state, t)
 
 
-def replay_tab() -> tuple:
-    """The replay controls in one block, then the status strip, then the driver, call
-    and circle beside the running order, wired inside the current Blocks.
+def replay_tab(asker: Asker | None = None) -> tuple:
+    """The replay controls in one block, then the status strip, then the driver, call and
+    the model tile, then the circle beside the running order, wired inside the current
+    Blocks. Without an `asker` the model button is off.
 
     Returns the opening load, (function, outputs), for the Blocks to run on page load.
     """
@@ -787,7 +894,15 @@ def replay_tab() -> tuple:
     status_html = gr.HTML()
     with gr.Row():
         with gr.Column(scale=5, min_width=360):
-            call_html = gr.HTML()
+            with gr.Row():
+                call_html = gr.HTML(min_width=220)
+                with gr.Column(min_width=240):
+                    ask_button = gr.Button(
+                        "Ask the model", interactive=asker is not None, size="sm"
+                    )
+                    model_html = gr.HTML(
+                        model_message(READY_NOTE if asker else OFF_NOTE)
+                    )
             circle_html = gr.HTML()
         with gr.Column(scale=4, min_width=320):
             standings_html = gr.HTML()
@@ -796,8 +911,8 @@ def replay_tab() -> tuple:
     picked = [state, driver, timer, play_button, speed, lap, *panels]
     # .change: .select misses a choice made with the keyboard, and nothing else writes
     # the race, so .change fires only on a real new choice
-    race.change(pick_race, race, picked, **HIDDEN)
-    driver.input(pick_driver, [state, driver], [state, *panels], **HIDDEN)
+    jumps = [race.change(pick_race, race, picked, **HIDDEN)]
+    jumps.append(driver.input(pick_driver, [state, driver], [state, *panels], **HIDDEN))
     running = [state, timer, play_button, lap, *panels]
     play_button.click(toggle, state, running, **HIDDEN)
     speed.input(set_speed, [state, speed], state, **HIDDEN)
@@ -805,7 +920,15 @@ def replay_tab() -> tuple:
     # preprocess=False: a lap typed digit by digit passes through 1, below the slider's
     # minimum, which Gradio would refuse; jump keeps the lap in range itself
     raw = {**HIDDEN, "preprocess": False}
-    lap.input(jump, [state, lap], [state, *panels], **raw)
-    lap.release(jump, [state, lap], [state, *panels], **raw)
+    jumps.append(lap.input(jump, [state, lap], [state, *panels], **raw))
+    jumps.append(lap.release(jump, [state, lap], [state, *panels], **raw))
     timer.tick(tick, state, running, **HIDDEN)
+    # the model tile: one answer per race, driver and lap; it is emptied when the card on
+    # screen changes under it by a new race, driver or jump, and no other event writes it
+    answers: dict[tuple[str, str, int], dict[str, Any]] = {}
+    ask = partial(ask_model, asker=asker, cache=answers, note=check_note())
+    ask_button.click(ask, state, model_html, trigger_mode="once", **HIDDEN)
+    emptied = partial(model_message, READY_NOTE if asker else OFF_NOTE)
+    for event in jumps:
+        event.then(emptied, None, model_html, **HIDDEN)
     return open_default, picked
