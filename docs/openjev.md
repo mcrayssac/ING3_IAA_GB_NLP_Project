@@ -286,7 +286,7 @@ Zero-shot OpenJev is clearly better than the untuned baseline on validation and 
 
 An upgrade round with described options and three averaged option orders (U1, below) does not change this.
 
-For the final comparison, these results support keeping A and B as the compared systems. The decision is the team's, on #35 (task 3.4.8). If OpenJev is kept, its configuration is frozen first: revisions, file hashes, readout values, questions and τ = 0.59.
+For the final comparison, these results support keeping A and B as the compared systems. The team decided this on 21 October (decision 3.4.8 on #35): OpenJev stays out of the final comparison and 3.4 closed as an exploratory study. Had OpenJev been kept, its configuration would have been frozen first: revisions, file hashes, readout values, questions and τ = 0.59.
 
 ## Upgrade round U1 (post hoc)
 

@@ -1,6 +1,6 @@
 # BoxBox recovery roadmap
 
-**Snapshot: 23 October 2026. Milestones 4 and 4 bis (Experimental) are done.** Tasks 1.1 to 4.5 are done: the final cases (4.1), the single scoring run (4.2), the human review (4.3), the paired gains (4.4) and the findings with five cases (4.5) are merged into `main`. Delivery tasks 5.2 (package, guide and links, [PR #74](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/74)), 5.4 (clean notebook execution, [PR #76](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/76)) and 5.3 (the French report, `rapport.pdf`, [PR #77](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/77)) are merged. The video (5.5) is shared with the stakeholders by a cloud-hosted link and is not in the repository. The report and video outline (5.1) is closed, and its working material stays out of Git. Task 5.6 is planned. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison. Milestone 4 bis widened the race data, added policy 2.0 and a race replay, merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69). The study, its frozen versions and its results do not change and are not re-run.
+**Snapshot: 23 October 2026. Milestones 4 and 4 bis (Experimental) are done.** Tasks 1.1 to 4.5 are done: the final cases (4.1), the single scoring run (4.2), the human review (4.3), the paired gains (4.4) and the findings with five cases (4.5) are merged into `main`. Delivery tasks 5.2 (package, guide and links, [PR #74](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/74)), 5.4 (clean notebook execution, [PR #76](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/76)) and 5.3 (the French report, `rapport.pdf`, [PR #77](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/77)) are merged. The video (5.5) is shared with the stakeholders by a cloud-hosted link and is not in the repository. The report and video outline (5.1) is closed, and its working material stays out of Git. The team has submitted the package (task 5.6), and the real deadline was 23 October at 23:59 Paris time. The receipt is not stored in the repository, so the issue of 5.6 stays open until it is recorded. Baseline, A and B are the retained versions. The optional OpenJev baseline (3.4) closed as an exploratory study outside the final comparison. Milestone 4 bis widened the race data, added policy 2.0 and a race replay, merged into `main` in [PR #69](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/69) and, with its last features, in [PR #72](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/72). The study, its frozen versions and its results do not change and are not re-run.
 
 This is the single active roadmap. Its tables define task IDs, outputs, dependencies and proposed windows. [GitHub issues](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues) track live claims, blockers, reviews and evidence. Table statuses and diagrams are dated snapshots, never automatic progress based on elapsed dates. The [execution guide](roadmap-annexe.md) maps the assignment and both earlier plans to these tasks.
 
@@ -20,13 +20,13 @@ Protect the complete seven-step assignment, executed notebook, French report and
 
 Never cut race separation before example generation, manual data-quality checks, validation-based selection, the closed final test or honest reporting. If B is dropped, retain a valid baseline/A comparison and state that the A/B research question remains unanswered. The optional OpenJev baseline (3.4) starts only after the MVP gate and is the first work dropped when time is short. Repeat runs and the second-checkpoint study (called V2 in the original plan, unrelated to card 2.0 or splits v2) are deferred beyond this recovery window.
 
-**Reserve: 8 collective hours, inside the 50–70 hours.** Keep it separate from task allocations; protect corrections and submission, especially after the package is ready on 22 October at noon. It is not eight hours per person or extra capacity. There are no per-task effort estimates.
+**Reserve: 8 collective hours, inside the 50–70 hours.** Keep it separate from task allocations; protect corrections and submission, especially after the package is planned to be ready on 22 October at noon. It is not eight hours per person or extra capacity. There are no per-task effort estimates.
 
 The **original, superseded plan** assumed 110 hours: 36 h for the MVP, 30 h for V1 (adapter B), 12 h for repeat runs and the second-checkpoint study and 32 h for final evaluation/delivery, including 8 h reserve. These are historical allocations, not remaining availability or hours already worked.
 
 ## Milestones and daily priorities
 
-All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integrated output must exist before the next task starts, including same-day hand-offs.
+All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integrated output must exist before the next task starts, including same-day hand-offs. Windows and targets are the plan's, and the status columns give the 23 October snapshot.
 
 | Milestone | Recovery window | Snapshot status | Completion target |
 |---|---|---|---|
@@ -35,7 +35,7 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 | 3. Experiments | 20 Oct; B corpus preparation on 19 Oct | done | Interim findings and retained versions frozen by **20 Oct 18:00**, with baseline/A fallback only by team decision |
 | 4. Evaluation | 20 Oct after freeze–21 Oct | done: 4.1 to 4.5 done ([#59](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/59), [#62](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/62), [#63](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/63), [#64](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/64), [#68](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/68)) | Closed final test, human review, paired gains, uncertainty and conclusions |
 | 4 bis. Experimental | 22–23 Oct | done | Data v2, policy 2.0, replay and the Replay's model tile, merged into `main` |
-| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | in progress: 5.1 to 5.5 done, 5.6 planned | Package ready **22 Oct 12:00**; submission receipt by **22 Oct 23:59 Paris time** |
+| 5. Delivery and presentation | 21–22 Oct; outlines may start 17 Oct | in progress: 5.1 to 5.5 done, 5.6 submitted with the receipt not stored | Package ready **22 Oct 12:00** (plan); submission by **23 Oct 23:59 Paris time** (deadline) |
 
 | Window | Planned work | Target and hand-off |
 |---|---|---|
@@ -53,10 +53,10 @@ All dates below are **2026, Europe/Paris**. A predecessor's reviewed and integra
 
 ## Three decision gates
 
-| Gate | Evidence and required decision | Outcome at the 22 October snapshot |
+| Gate | Evidence and required decision | Outcome at the 23 October snapshot |
 |---|---|---|
 | After the first feasibility run (1.5) | Use measured runtime, memory, reload success and actual GPU access to confirm the schedule or record a workable fallback; check reconstruction runtime in 2.1 as well. | GO with SmolLM3-3B on 18 October ([#4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/4)). |
-| 19 Oct evening (2.7 + 2.8) | If the complete MVP is missing, prioritise its blockers and explicitly reassess research scope. A shell or an unreviewed training run is not a complete MVP. | Passed on 20 October evening, with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). |
+| 19 Oct evening (2.7 + 2.8) | If the complete MVP is missing, prioritise its blockers and explicitly reassess research scope. A shell or an unreviewed training run is not a complete MVP. | Passed on 20 October evening, with the 2.8 pull request merged that day ([PR #53](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/pull/53)) and the human rating of the mini-test still to do. The 2.8 issue closed on the morning of 21 October, and the decision is recorded in it ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). |
 | 20 Oct noon (3.2) | Proceed with B only if training, review and interim analysis can finish before the 18:00 freeze. Otherwise record the decision to defer B/3.3 and freeze baseline/A after 2.7 and 2.8. Defer the optional 3.4 first if it competes with B or the freeze. | B started after the noon gate by team decision and trained overnight, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 on 21 October ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)). |
 
 Record a gate decision in its issue: evidence, available people/hardware, retained versions/counts, changed task states, impact on claims and team agreement. Do not reduce targets silently. Once frozen, no new experiment is scheduled. A correction affecting outputs requires a documented decision and a new freeze before final evaluation.
@@ -71,7 +71,7 @@ These changes were recorded in the issues. The task tables below keep the planne
 - **MVP:** the gate passed with the human rating of the mini-test still to do ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15#issuecomment-6310842614)). The 2.7 mini-test rated all 40 targets instead of an 8-per-family sample ([#14](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/14#issuecomment-6289853131)). Task 2.8 left notebook steps 3 to 6 to the 5.x tasks ([#15](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/15)).
 - **Schedule:** B trained overnight from 20 to 21 October, and the 3.5 freeze moved to 21 October 18:00 ([#17](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/17#issuecomment-6310842999)). The freeze was recorded at 14:49 with baseline, A and B retained and boxbox-eval 1.1.0 accepted unchanged ([#19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19#issuecomment-6316248632)).
 - **Optional 3.4:** OpenJev ran as an exploratory study outside the freeze and stays out of the final comparison ([#35](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/35#issuecomment-6320237374)).
-- **Experimental milestone:** milestone 4 bis was added and done on 22 October, after 4.4 and outside the study. Its issues are [4bis.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65), [4bis.2](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66), [4bis.3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67) and [4bis.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/70), and its choices and checks are in the [decision log](4bis-decisions.md).
+- **Experimental milestone:** milestone 4 bis was added after 4.4 and outside the study, and done on 22 October (4bis.1 to 4bis.3) and 23 October (4bis.4). Its issues are [4bis.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/65), [4bis.2](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/66), [4bis.3](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/67) and [4bis.4](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/70), and its choices and checks are in the [decision log](4bis-decisions.md).
 
 ## Shared pickup and parallel work
 
@@ -86,7 +86,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-No task carries the ready label in this snapshot. The queue holds 1 unfinished task, 5.6, and it carries the planned label. Tasks 1.1 to 4.5, 4bis.1 to 4bis.4 and 5.1 to 5.5 are done.
+No task carries the ready label in this snapshot. The queue holds 1 task, 5.6: the team submitted the package, and its issue keeps the planned label until the receipt is recorded. Tasks 1.1 to 4.5, 4bis.1 to 4bis.4 and 5.1 to 5.5 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|
@@ -105,7 +105,7 @@ Technical independence does not create more people or GPU access. Overlapping ta
 
 ## Task definitions
 
-Windows include implementation, checks and hand-off review; they are not effort estimates. The exact hand-off occurs on acceptance, never just at a clock boundary. Detailed acceptance checklists and required evidence live in each linked issue. Every table status is the **22 October snapshot**, with the closing date of each done task.
+Windows include implementation, checks and hand-off review; they are not effort estimates. The exact hand-off occurs on acceptance, never just at a clock boundary. Detailed acceptance checklists and required evidence live in each linked issue. Every table status is the **23 October snapshot**, with the closing date of each done task.
 
 ### 1. Framing and design
 

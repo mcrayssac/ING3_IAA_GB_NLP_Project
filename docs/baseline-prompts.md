@@ -98,7 +98,7 @@ engine = load_conversation_engine(config, instructions=instructions)
 
 For baseline/A, retain this prompt, native template/date, history and decoding configuration, and verify runtime identity against the recorded evidence. Task 2.6 supplies its separately loaded adapter through the same engine; the baseline loader continues to reject adapted configurations. Cross-device identity is not guaranteed.
 
-The protocol remains **proposed**, with `acceptance_record=null`. This inference handoff does not accept the protocol or perform task 3.5's collective freeze. The strict-cutoff gap-behind defect and proposed corpus A SC/VSC exception remain upstream limitations: agreement on supplied cards does not establish causal validity or optimal real strategy. No human rating, independent teammate review, team acceptance or issue closure follows from an automatic result.
+The protocol was **proposed** at that point, with `acceptance_record=null`. This inference handoff does not accept the protocol or perform task 3.5's collective freeze. Status (23 October 2026): the team accepted protocol 1.1.0 unchanged in the 3.5 freeze on 21 October, and the freeze record holds the acceptance ([freeze](freeze.md)). The strict-cutoff gap-behind defect and proposed corpus A SC/VSC exception remain upstream limitations: agreement on supplied cards does not establish causal validity or optimal real strategy. No human rating, independent teammate review, team acceptance or issue closure follows from an automatic result.
 
 ## Observed validation run: 19 October 2026
 
@@ -127,4 +127,4 @@ The selected configuration is versioned as [`configs/baseline-selected.toml`](..
 
 The selected configuration hash is `3c409cef46c1daac6305aa4842f25212a23027e6f4fa74582425d80c75672585`, and its instruction hash is `00cf2bcd7c2198e26f8170a9595117849016f559af9496cc342398ac7564a82e`. The original cases hash is `ba30d2a6832bea4749c017671c7536dd94b51ff63e7d33c6445972a8316e1a9c`; complete raw outputs hash is `6283439360332bde46baee64e702bf6ded5e3d75044461749cb3558937fbc3c6`.
 
-233 targeted tests passed. Ruff check/format, Git whitespace checks and new-file/link checks passed. The full suite was excluded because one corpus test reads the real mini-test. Independent teammate review, human response ratings and team acceptance remain unperformed; #12 is not declared closed by this delivery.
+233 targeted tests passed. Ruff check/format, Git whitespace checks and new-file/link checks passed. The full suite was excluded because one corpus test reads the real mini-test. At delivery, independent teammate review, human response ratings and team acceptance were unperformed, and #12 was not declared closed. Status (23 October 2026): PR #50 was merged and issue #12 closed on 19 October, and the team accepted protocol 1.1.0 in the 3.5 freeze on 21 October.

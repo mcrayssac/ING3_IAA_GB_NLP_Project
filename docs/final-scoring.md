@@ -9,7 +9,7 @@ cards nor selects a prompt or checkpoint.
 ## Run once
 
 Use the project environment from `README.txt`, from the repository root on the
-4.2 branch. This runner supports macOS and Linux (including Colab); its process
+`main` branch. This runner supports macOS and Linux (including Colab); its process
 lock uses `fcntl`. First make both pinned adapters accessible through the selected
 local checkpoint folders or authenticated Hugging Face access, as described in
 [adapter A](adapter-a.md) and [adapter B](adapter-b.md). Keep tokens outside Git and
@@ -157,13 +157,13 @@ table, Z/D rates, family and label breakdowns, confusion counts, trade-off and
 limitations. The [machine-readable evidence](final-scoring-results.json)
 contains the evaluator's per-version summaries, coverage, identifiers,
 timestamps, settings and hashes. It reports no paired-gain estimate or
-race-level uncertainty; those belong to 4.4. The 120 human-rating rows remain
-pending for 4.3, and no WHY has been rated here.
+race-level uncertainty; those belong to 4.4. The 120 human-rating rows were
+rated in 4.3, and no WHY was rated in task 4.2.
 
 Raw-output SHA-256:
 `81d220b479a81a599cbf95dcbfcd66b25853b01581d25454c4f0d9767eeef012`.
 `seal`, `verify` and a read-only audit of the 200 paired rows, 120 pending
 ratings, exact input/trace identities and exports passed. The complete run is
 ignored/local; copy the archive intact to transfer it. The teammate review on
-PR #62 requested changes; a follow-up review and human publication/integration
-remain required. Issue #21 has not been changed by this session.
+PR #62 requested changes. Status (23 October 2026): PR #62 was merged on 22
+October and issue #21 was closed the same day.

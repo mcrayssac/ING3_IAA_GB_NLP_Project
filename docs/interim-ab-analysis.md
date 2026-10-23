@@ -3,7 +3,9 @@
 **Evidence snapshot: 21 October 2026.** This is the local analytical deliverable for
 [issue #18](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/18), based on
 the integrated 3.2 results at `bbabb09df3f1bc7ad438a71b74b2941bbf2d45f7`.
-Independent teammate approval, integration and the 3.5 decision remain pending.
+Independent teammate approval, integration and the 3.5 decision remain pending
+(status on 23 October 2026: 3.3 and 3.5 are done, and the freeze of 21 October
+retains baseline, A and B).
 This document neither freezes versions nor opens the final test.
 
 ## Finding and recommendation for 3.5
@@ -22,11 +24,11 @@ in abstention behaviour, with a substantial cost on decidable incomplete cards.
 It does not establish better overall answer quality, reliable WHY grounding or
 optimal real race strategy.
 
-**Recommendation, awaiting team decision:** keep baseline/A/B as identifiable
+**Recommendation, awaiting team decision at the time:** keep baseline/A/B as identifiable
 research arms for the frozen comparison, with this trade-off and the missing
 human assessment explicit. B should not be presented as an unqualified product
 upgrade. No new corpus, prompt, checkpoint or decoding choice is proposed from
-these mini-test answers. The team owns the decision in
+these mini-test answers. The team decided on 21 October to retain baseline, A and B, as recorded in
 [3.5 / #19](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/19).
 
 If the team instead drops B, record the decision and reason in #19, mark the
@@ -435,7 +437,8 @@ Additional limits that constrain every conclusion:
 
 - **No actual human scores in this comparison.** The mini-test sheet has 120
   `pending` rows. Five-axis means, supported-WHY rate and human justified-refusal
-  rate remain unavailable. The older 2.7 LLM judge scores are not human scores,
+  rate remain unavailable. The older 2.7 external
+  language-model judge scores are not human scores,
   do not cover B and are not transferred to r2; its flagged rows do not become
   reviewed by this analysis. Per version, correctness/role/factuality apply to
   all 40 targets, history to two and scope to six; other axis cells remain N/A,
@@ -495,7 +498,7 @@ It does not alter the recommendation above. Its limits:
   results were read before the upgrade round, so that round's mini-test numbers
   are post hoc.
 - **Exploratory.** It is outside the 3.5 freeze. Whether it joins the final
-  comparison is the team's 3.4.8 decision on #35.
+  comparison was the team's 3.4.8 decision on #35. The decision is closed: OpenJev stays out of the final comparison.
 
 ## Reproduce and review this analysis
 

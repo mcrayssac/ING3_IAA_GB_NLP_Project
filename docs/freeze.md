@@ -37,7 +37,7 @@ The record also keeps the time (Europe/Paris), the commit, the decision and acce
 
 ## Experimental milestone
 
-The freeze covers the A/B study. The Experimental milestone, merged into `main` in PR #69, edits none of the sealed files:
+The freeze covers the A/B study. The Experimental milestone, merged into `main` in PR #69 and brought up to date in PR #72, edits none of the sealed files:
 
 - `boxbox.rules.decide` now goes through `policy2.decide`. It sends 2.0 cards to policy 2.0 and leaves every 1.0 card to the sealed policy 1.1 in `boxbox/rules/decision.py`, which gives the same calls as before.
 - The 2.0 files (cards, priors, policy 2.0, replay) and `data/splits-v2.json` sit outside the freeze.

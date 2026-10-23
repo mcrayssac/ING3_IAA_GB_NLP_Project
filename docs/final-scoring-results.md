@@ -78,7 +78,7 @@ not show this trade-off and are not a clean A/B conclusion.
 These are descriptive counts from one frozen run, not paired-gain estimates or
 uncertainty intervals. Paired automatic gains and race-level uncertainty belong
 to task 4.4; human ratings are task 4.3, and the combined conclusions are task
-4.5. No WHY response has been scored by a human. All raw responses, including
+4.5. These three tasks are done (see [final analysis](final-analysis.md) and [final findings](final-findings.md)). No WHY response was scored by a human in task 4.2. All raw responses, including
 malformed or possibly truncated outputs, were retained.
 
 ## Integrity and checks
@@ -97,10 +97,9 @@ Targeted implementation checks passed: 187 tests in the final-scoring,
 final-cases, freeze, evaluation, mini-test, conversation-engine, runs and race
 card suites; after the final runner refinement, all 15 final-scoring tests
 passed again. Ruff and Git whitespace checks passed. The review on PR #62
-requested changes; follow-up approval remains outstanding. Issue #21 is still
-open and its `status:planned` label needs to move to `status:review` after the
-branch update is published. Close it only after follow-up approval and
-integration.
+requested changes and the branch was updated. Status (23 October 2026): PR #62
+was merged on 22 October and issue #21 was closed the same day. The roadmap
+records the task as done after its integration.
 
 ## Handover archive
 

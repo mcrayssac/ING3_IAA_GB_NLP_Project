@@ -2,7 +2,7 @@
 
 ## Daily availability and capacity
 
-The 50–70 collective hours in the recovery plan are an assumption from the 17 October snapshot. Collect the remaining availability as of each confirmation through 22 October; exclude time already elapsed or spent. For 18 October, supply only remaining slots, not a full-day estimate. Do not reconstruct 17 October as remaining capacity. Past work, if reported, is separate from this remaining-hours table.
+This register is closed at the delivery date, 23 October 2026. The 50–70 collective hours in the recovery plan are an assumption from the 17 October snapshot. Collect the remaining availability as of each confirmation through 22 October; exclude time already elapsed or spent. For 18 October, supply only remaining slots, not a full-day estimate. Do not reconstruct 17 October as remaining capacity. Past work, if reported, is separate from this remaining-hours table.
 
 Each member confirms their own slots and usable human hours, including implementation, coordination, review, corrections and submission. An explicitly confirmed unavailable day is `0 h`; a missing reply is not zero availability. Do not count overlapping slots twice for one person, or count unattended compute as human capacity. Overlap across different people is valid collective time; review still requires someone other than the implementer to be available.
 
@@ -30,12 +30,12 @@ For a common assessment cutoff, let `C` be the sum of the still-usable hours con
 
 | Assessment item | Current evidence / result | Confirmation needed from | Confirmed at / accessible reference |
 |---|---|---|---|
-| Assessment cutoff | pending confirmation | Paul, after collecting the three replies | pending confirmation / pending confirmation |
-| Remaining hours per member and complete total `C` | Paul: 22.5 h and Maxime: 22.5 h confirmed across 18-22 October (10 of 15 daily entries). Matthieu: pending confirmation; complete team total unknown | Each member; Paul consolidates | pending confirmation / pending confirmation |
-| Reserve `R` and protected slots | 8 collective hours required inside `C`; slots pending confirmation | All three members | pending confirmation / pending confirmation |
-| Planned-work capacity `P` | pending confirmation; subtract reserve once after `C` is established | Paul, checked by Maxime | pending confirmation / pending confirmation |
-| Gap against 50 h / 70 h | Partial confirmed amount: 45 h. The team's actual shortfall cannot be calculated until Matthieu replies | Paul, checked by Maxime | pending confirmation / pending confirmation |
-| Capacity/scope decision | pending confirmation; 50–70 h feasibility is unverified | All three members; Paul records the decision | pending confirmation / pending confirmation |
+| Assessment cutoff | not recorded before delivery; the three members' replies are dated 18 October 2026, 15:24 to 17:36 +0200 | Paul, after collecting the three replies | pending confirmation / pending confirmation |
+| Remaining hours per member and complete total `C` | Paul: 22.5 h, Maxime: 22.5 h and Matthieu: 22.5 h confirmed across 18-22 October (15 of 15 daily entries). Complete total `C` = 67.5 h | Each member; Paul consolidates | pending confirmation / pending confirmation |
+| Reserve `R` and protected slots | 8 collective hours required inside `C`; protected slots not recorded before delivery | All three members | pending confirmation / pending confirmation |
+| Planned-work capacity `P` | 59.5 h (`C - R` = 67.5 - 8), usable only if the reserve slots were protected, which was not recorded before delivery | Paul, checked by Maxime | pending confirmation / pending confirmation |
+| Gap against 50 h / 70 h | Complete confirmed amount: 67.5 h. Gap to 50 h: `max(0, 50 - C)` = 0 h. Gap to 70 h: `max(0, 70 - C)` = 2.5 h | Paul, checked by Maxime | pending confirmation / pending confirmation |
+| Capacity/scope decision | not recorded before delivery; `C` = 67.5 h falls inside the 50–70 h assumption, 2.5 h below its upper end | All three members; Paul records the decision | pending confirmation / pending confirmation |
 
 After replies, report `max(0, 50 - C)` as the gap to the lower assumption and `max(0, 70 - C)` as the gap to its upper end. If some replies are missing, label the sum a partial confirmed amount, not total capacity. If `C < 50`, state the actual gap and obtain a linked team decision to add genuinely available time or revise sequencing/scope through the existing roadmap gates; do not allocate fictional hours or silently reduce acceptance. If `C < 8`, the reserve itself is not covered. If `50 <= C <= 70`, state where the capacity falls within the assumption and whether review/reserve slots fit; if `C > 70`, record the actual value without automatically expanding scope. Aggregate hours alone do not establish that dependency handovers fit the calendar.
 
@@ -49,4 +49,4 @@ The acknowledgment must identify the reviewed document revision or exact shared 
 | Paul PITIOT | pending confirmation | pending confirmation | pending confirmation | pending confirmation |
 | Matthieu Brault | Confirmed | Confirmed | 18 October 2026, 17:36 +0200 | PR #39 at f559eed |
 
-Record separate dates/references if the two acknowledgments are supplied at different times. An acknowledgment can link the capacity decision above. Issue assignment alone confirms neither availability nor agreement.
+Record separate dates/references if the two acknowledgments are supplied at different times. An acknowledgment can link the capacity decision above. Issue assignment alone confirms neither availability nor agreement. Paul's acknowledgments were not recorded before delivery, so his entries stay pending.
