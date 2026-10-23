@@ -179,16 +179,20 @@ def run(per_cell: int = PER_CELL, tag: str = "") -> Path:
     return folder
 
 
-def predicted(row: dict[str, Any], tau: float | None) -> str | None:
-    """The call at tau, or None for a request that failed (it counts as a miss)."""
-    return decided(row["answers"]["call"], tau) if row["status"] == "ok" else None
+def predicted(
+    row: dict[str, Any], tau: float | None, variant: str = "call"
+) -> str | None:
+    """The call at tau, or None for a request that failed (it counts as a miss).
+
+    `variant` is `call`, the mean of the three orders, or `call_0`, the first order alone."""
+    return decided(row["answers"][variant], tau) if row["status"] == "ok" else None
 
 
-def curve(rows: list[dict[str, Any]]) -> list[dict[str, float]]:
+def curve(rows: list[dict[str, Any]], variant: str = "call") -> list[dict[str, float]]:
     """CALL agreement and unjustified decisions on every tau of the grid."""
     points = []
     for tau in GRID:
-        calls = [predicted(r, tau) for r in rows]
+        calls = [predicted(r, tau, variant) for r in rows]
         no_call = [c for c, r in zip(calls, rows) if r["reference"] == "NO CALL"]
         points.append(
             {
@@ -202,9 +206,11 @@ def curve(rows: list[dict[str, Any]]) -> list[dict[str, float]]:
     return points
 
 
-def summary(rows: list[dict[str, Any]], tau: float | None) -> dict[str, Any]:
+def summary(
+    rows: list[dict[str, Any]], tau: float | None, variant: str = "call"
+) -> dict[str, Any]:
     """Agreement at tau on one split: overall, per reference call, per cell, confusion."""
-    calls = [predicted(r, tau) for r in rows]
+    calls = [predicted(r, tau, variant) for r in rows]
     by_cell: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     confusion: dict[str, Counter] = defaultdict(Counter)
     for call, row in zip(calls, rows):
@@ -226,6 +232,27 @@ def summary(rows: list[dict[str, Any]], tau: float | None) -> dict[str, Any]:
     }
 
 
+ORDERS_RULE = (
+    "Keep the three orders, as in the upgrade round of 3.4, unless the first order alone "
+    "reaches at least the validation agreement of the three, each at its own tau: then "
+    "one order is enough, and three times faster. Declared before the run."
+)
+
+
+def variant_score(by_split: dict[str, list[dict[str, Any]]], variant: str) -> dict:
+    """Tau chosen on the validation rows for one reading, applied once to every split."""
+    points = curve(by_split["validation"], variant)
+    chosen = choose_tau(points)
+    tau = chosen["tau"]
+    return {
+        "tau": tau,
+        "validation_agreement": chosen["call_agreement"],
+        "at_tau": {s: summary(r, tau, variant) for s, r in by_split.items()},
+        "most_probable": {s: summary(r, None, variant) for s, r in by_split.items()},
+        "curve": points,
+    }
+
+
 def score(run_dir: Path, write: bool = False) -> Path:
     """Choose tau on the validation rows, apply it once to mini_test, write the summary."""
     answers, _ = read_jsonl(run_dir / "answers.jsonl")
@@ -235,25 +262,35 @@ def score(run_dir: Path, write: bool = False) -> Path:
     for rows in by_split.values():
         for row in rows:
             row["cell"] = cell[row["case_id"]]
-    points = curve(by_split["validation"])
-    tau = choose_tau(points)["tau"]
+    readings = {"three_orders": "call"}
+    if all("call_0" in a["answers"] for a in answers if a["status"] == "ok"):
+        readings["first_order"] = "call_0"
+    variants = {name: variant_score(by_split, v) for name, v in readings.items()}
+    first, three = variants.get("first_order"), variants["three_orders"]
+    use = (
+        first
+        if first and first["validation_agreement"] >= three["validation_agreement"]
+        else three
+    )
+    orders = 1 if use is first else 3
     result = {
         "run": run_dir.name,
         "rule": RULE,
-        "tau": tau,
+        "orders_rule": ORDERS_RULE,
+        "orders": orders,
+        "tau": use["tau"],
         "prompt_sha256": manifest["prompt_sha256"],
         "sample_sha256": manifest["sample_sha256"],
         "per_cell": manifest["per_cell"],
-        "at_tau": {s: summary(rows, tau) for s, rows in by_split.items()},
-        "most_probable": {s: summary(rows, None) for s, rows in by_split.items()},
-        "curve": points,
+        "variants": variants,
     }
     out = run_dir / "score.json"
     write_json(out, result)
     if write:
         kept = {
             "run": run_dir.name,
-            "tau": tau,
+            "orders": orders,
+            "tau": use["tau"],
             "prompt_sha256": result["prompt_sha256"],
             "sample_sha256": result["sample_sha256"],
             "per_cell": result["per_cell"],
@@ -262,12 +299,19 @@ def score(run_dir: Path, write: bool = False) -> Path:
                 "condition, not on race laps. Tau was chosen on validation."
             ),
             "agreement": {
-                s: [result["at_tau"][s]["agreed"], result["at_tau"][s]["cards"]]
+                s: [use["at_tau"][s]["agreed"], use["at_tau"][s]["cards"]]
                 for s in SPLITS
             },
         }
         write_json(RESULT, kept)
-    print(json.dumps({k: result[k] for k in ("tau", "at_tau")}, indent=2, default=str))
+    shown = {
+        n: {
+            "tau": v["tau"],
+            "at_tau": {s: [x["agreed"], x["cards"]] for s, x in v["at_tau"].items()},
+        }
+        for n, v in variants.items()
+    }
+    print(json.dumps({"orders": orders, "variants": shown}, indent=2, default=str))
     return out
 
 

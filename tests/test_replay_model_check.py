@@ -117,14 +117,52 @@ def test_the_summary_counts_confusion_cells_and_errors():
     assert result["macro_label_agreement"] == pytest.approx((1 / 3 + 1) / 2)
 
 
-def test_score_writes_the_run_summary_and_the_committed_agreement(
-    tmp_path, monkeypatch
-):
+def test_score_chooses_the_orders_by_the_declared_rule(tmp_path, monkeypatch):
+    sure = {"BOX": 0.9, "STAY OUT": 0.05, "NO CALL": 0.05}
+    wrong = {"BOX": 0.05, "STAY OUT": 0.9, "NO CALL": 0.05}
+
+    def row(reference, split, mean, first):
+        r = answered(reference, "BOX", mean, f"{reference}|GREEN", split)
+        r["case_id"] = f"{split}-{reference}-{id(r)}"
+        r["answers"]["call_0"] = {
+            "choice": max(first, key=first.get),
+            "probabilities": first,
+        }
+        return r
+
+    def folder(name, rows):
+        run = tmp_path / name
+        run.mkdir()
+        (run / "answers.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
+        sampled = [{"card_id": r["case_id"], "cell": r["cell"]} for r in rows]
+        (run / "sample.jsonl").write_text(
+            "\n".join(json.dumps(s) for s in sampled) + "\n"
+        )
+        manifest = {"prompt_sha256": "p", "sample_sha256": "s", "per_cell": 25}
+        (run / "manifest.json").write_text(json.dumps(manifest))
+        return run
+
+    monkeypatch.setattr(M, "RESULT", tmp_path / "check.json")
+    same = [row("BOX", s, sure, sure) for s in ("validation", "mini_test")]
+    M.score(folder("same", same), write=True)
+    kept = json.loads((tmp_path / "check.json").read_text())
+    assert kept["orders"] == 1  # the first order alone ties the three: one is enough
+    worse = [row("BOX", s, sure, wrong) for s in ("validation", "mini_test")]
+    monkeypatch.setattr(
+        M, "RESULT", tmp_path / "worse.json"
+    )  # a result is written once
+    M.score(folder("worse", worse), write=True)
+    assert json.loads((tmp_path / "worse.json").read_text())["orders"] == 3
+    assert kept["agreement"] == {"validation": [1, 1], "mini_test": [1, 1]}
+
+
+def test_score_without_a_first_order_reading_keeps_the_three(tmp_path, monkeypatch):
     sure = {"BOX": 0.9, "STAY OUT": 0.05, "NO CALL": 0.05}
     rows = [
-        answered("BOX", "BOX", sure, "BOX|GREEN", "validation"),
-        answered("STAY OUT", "BOX", sure, "STAY OUT|GREEN", "validation"),
-        answered("BOX", "BOX", sure, "BOX|GREEN", "mini_test"),
+        answered("BOX", "BOX", sure, "BOX|GREEN", s)
+        for s in ("validation", "mini_test")
     ]
     run = tmp_path / "run"
     run.mkdir()
@@ -135,10 +173,6 @@ def test_score_writes_the_run_summary_and_the_committed_agreement(
         json.dumps({"prompt_sha256": "p", "sample_sha256": "s", "per_cell": 25})
     )
     monkeypatch.setattr(M, "RESULT", tmp_path / "check.json")
-    M.score(run, write=True)
+    M.score(run)
     result = json.loads((run / "score.json").read_text())
-    assert result["at_tau"]["validation"]["agreed"] == 1
-    assert result["at_tau"]["mini_test"]["cards"] == 1
-    kept = json.loads((tmp_path / "check.json").read_text())
-    assert kept["agreement"] == {"validation": [1, 2], "mini_test": [1, 1]}
-    assert kept["tau"] == result["tau"]
+    assert result["orders"] == 3 and list(result["variants"]) == ["three_orders"]
