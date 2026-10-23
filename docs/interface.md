@@ -37,7 +37,7 @@ The left column describes the race situation, numbers first and their pictures a
 - The product name.
 - The card picker. Each label starts with "Synthetic example:" or "Real race:", so the two kinds of card stay apart. After an upload the picker empties and reads "Race card (uploaded file on screen)", so it never names a card that is not shown.
 - An upload button, "Upload card (JSON)".
-- The engine badge. Until task 2.8 it reads "Stub: rule answers, not a trained model" in amber. With the real engine it reads "Adapter A" in the notebook. `python -m boxbox.app -A` or `-B` adds the seed and the epoch, for example "Adapter B · seed 2027 · epoch 3". `-O` reads "OpenJev Flash 9B · zero-shot". `-R` starts the OpenJev server for the Replay tile only and combines with `-A` or `-B`; `-O` gives the tile too.
+- The engine badge. Until task 2.8 it reads "Stub: rule answers, not a trained model" in amber. With the real engine it names the adapter, its seed and its epoch, as in the notebook ("Adapter A · seed 2028 · epoch 1") or with `python -m boxbox.app -A` or `-B`, for example "Adapter B · seed 2027 · epoch 3". `-O` reads "OpenJev Flash 9B · zero-shot". `-R` starts the OpenJev server for the Replay tile only and combines with `-A` or `-B`; `-O` gives the tile too.
 - The policy version, "Policy 1.1".
 
 ## Race situation (left column)
@@ -275,7 +275,7 @@ if RUN_DEMO:
     launch(inline=True)
 ```
 
-Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a clean run of the notebook skip a server that nobody can use. In a hosted notebook such as Colab, Gradio opens a public link unless `launch` gets `share=False`. Task 2.8 chose `share=False`, so the demo stays private. The cell is now section 7 of `agent.ipynb`, where it passes the real engine with adapter A to `launch`.
+Like `RUN_TRAINING` for the training cells, `RUN_DEMO` lets a run of the notebook skip the server. In a hosted notebook such as Colab, Gradio opens a public link unless `launch` gets `share=False`. Task 2.8 chose `share=False`, so the demo stays private. The cell is section 7 of `agent.ipynb`, where it passes the real engine with adapter A to `launch`. The clean execution of task 5.4 keeps `RUN_DEMO = True`: the screen runs while the kernel runs, and the next cell plays one session through the functions of `layout.py` that the screen calls.
 
 ## Tests
 
