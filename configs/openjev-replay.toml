@@ -10,13 +10,15 @@ port = 3000
 start_timeout_seconds = 300
 request_timeout_seconds = 60
 
-# The CALL question only, asked in the 3 cyclic orders of `options` and averaged per label.
-# Each option carries a description made of policy 2.0 clauses, written before any run.
+# The CALL question only. It was asked in the 3 cyclic orders of `options` for the check, and
+# the declared rule of `scripts.replay_model_check score` kept one order: the first alone
+# reached the validation agreement of the three. Each option carries a description made of
+# policy 2.0 clauses, written before any run.
 [questions.call]
 type = "choice"
 instructions = "Which call does policy 2.0 give in reply to the latest user message?"
 options = ["BOX", "STAY OUT", "NO CALL"]
-orders = 3
+orders = 1
 
 [questions.call.descriptions]
 BOX = "Policy 2.0 calls the stop: the tyre is at or above its second wear limit (BOX whatever the traffic), or a mandatory dry stop is still to make under a safety car or virtual safety car, or a stop is open (between the two limits with the car ahead within undercut reach on green, or a slick on a wet surface, or a wet tyre on a dry one) and the rejoin test passes: no car in the pit window under a safety car, or no car behind, or a known gap behind that covers the pit cost plus 2.0 seconds."
@@ -24,8 +26,10 @@ BOX = "Policy 2.0 calls the stop: the tyre is at or above its second wear limit 
 "NO CALL" = "Policy 2.0 cannot assess the stop: the card does not confirm a completed race, a valid lap and cutoff, a dry or wet surface, a green, SC or VSC status, a known compound or a valid tyre age, or a gap claim is malformed, or a field the step reached needs is missing: the gap ahead on green inside the wear window, the cars in the pit window under a safety car, the gap behind under green or a virtual safety car, or a valid pit-loss estimate beside a known gap behind."
 
 # The threshold of `scripts.replay_model_check score`, chosen on validation with the rule of
-# #35. Without `tau`, the Replay shows the most probable option.
+# #35 (run 2026-10-23_replay-model-check-quick). Without `tau`, the Replay shows the most
+# probable option.
 [replay]
+tau = 0.52
 
 [model]
 repo = "openjev/OpenJev-Flash-9B-MLX-4bit"

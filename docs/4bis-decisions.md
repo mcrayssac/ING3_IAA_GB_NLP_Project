@@ -135,11 +135,33 @@ Check: on the evaluation races the adopted policy gives a recall of 53.6% and a 
 
 On the same races the age-only rule gives 51.6% and 14.8%, and policy 1.1 gives 3.4% and 5.8%. The policy holds on races no version had seen, at 1.4 to 2.9 times the precision of chance. It misses most stops at Malaysia, a race of two and three stops on very abrasive asphalt, where cars stopped before their tyres reached the limits learned elsewhere. Three races are few, so each race is reported on its own.
 
+## D14. Ask the model on the Replay
+
+The Replay showed the rule's call only, and no trained model can read a 2.0 card: adapters A and B were trained on 1.0 cards with a policy 1.1 prompt. A zero-shot model with a policy 2.0 prompt is the quickest way to put a model reading on the Replay, so we start there, with OpenJev Flash 9B and the pinned server of task 3.4 (#70). OpenJev scores the three options and writes no text, so the tile shows probabilities and no WHY. A button asks one question per click, so the replay clock never waits for the model. The tile sits beside the rule's call and says whether the two agree. The Replay now reads only 2.0 cards.
+
+The prompt (`boxbox/model/policy2_prompt.py`, hash `84e9778d…`) follows the order of the code: the scope, the tyres with the wear limits and the age fallback, the mandatory stop under SC or VSC, the undercut, the rejoin test, and the meaning of null, UNKNOWN and NONE. It names the fields that are display only. Its numbers come from the rule's constants, so they cannot drift. It was written once and not tuned on the sample. The question is the CALL question of the 3.4 upgrade round, with each option described by policy 2.0 clauses (`configs/openjev-replay.toml`). A NaN in a card, which 173 cards of 2026 have as their compound, reads as null.
+
+Check: `scripts/replay_model_check.py` asks the model about cards of `validation` and `mini_test` of `data/splits-v2.json`, by cell, a cell being the call of policy 2.0 and the track condition (green, SC, VSC, wet), in the order of a SHA-256 of the card id. `final` and `test_2026` stay closed. The rule was declared before the run: tau is chosen on validation with the rule of #35, `mini_test` is read once, and there is no pass mark. A second declared rule picks the number of orders: the three orders of the upgrade round stay, unless the first order alone reaches at least their validation agreement, each at its own tau.
+
+The sample has 3 cards per cell, 30 in validation and 27 in `mini_test`, run `2026-10-23_replay-model-check-quick`. We first planned 25 per cell, 413 cards. We stopped that run after 113 cards, because it needed more than an hour at about 12 s a card and writes its answers only at the end, so none was kept. With 27 to 30 cards the uncertainty is wide, about 16 points for a rate near 0.7.
+
+| Reading | Validation | `mini_test` |
+|---|---:|---:|
+| Agreement with policy 2.0, first order, tau 0.52 | 22/30 | 17/27 |
+| Agreement, three orders averaged, tau 0.0 | 22/30 | 17/27 |
+
+- The two readings tie on validation, so the declared rule keeps one order, which is a third of the time. One order of the check gave the same counts on both splits.
+- Time: 11.6 s a card with three orders (mean over 57 cards, maximum 18.3 s, no request error).
+- By call of the rule, correct answers over cards. Validation: BOX 9 of 12, STAY OUT 7 of 9, NO CALL 6 of 9. `mini_test`: BOX 6 of 9, STAY OUT 7 of 9, NO CALL 4 of 9. The model answered BOX on 5 of the 9 `mini_test` NO CALL cards.
+- Weakest cells, out of 3 cards each: validation BOX under WET 1 and STAY OUT under GREEN 1; `mini_test` NO CALL under GREEN 0, NO CALL under SC 1, BOX under WET 1 and STAY OUT under GREEN 1.
+
+The model agrees with policy 2.0 on 63% to 73% of a sample balanced by call and condition. This is not the share of race laps, where STAY OUT dominates. The reference is the rule, so the agreement shows consistency with policy 2.0 and not the best real strategy. At tau 0.52 chosen on 30 cards, the threshold is itself uncertain. The model has not been compared with adapters A and B, which read 1.0 cards. The tile prints these two numbers in its foot, and nothing hides a disagreement: on its first click, at lap 2 of Las Vegas 2024, it said BOX (0.75) where the rule said STAY OUT.
+
 ## Known limits at the merge
 
 Found in the review of the merge into `main` (PR #69). The line numbers are those of commit `56ad538`. None of them touches the frozen versions, their results or the policy 1.1 calls. They are listed to be fixed later, not fixed in the merge.
 
-- Models: the adapters A and B, and every result of the study, are trained and scored on 1.0 cards with policy 1.1. No trained model has read a 2.0 card or policy 2.0. The Replay tab shows the rule engine's calls and has no model chat. Training on 2.0 cards is future work.
+- Models: the adapters A and B, and every result of the study, are trained and scored on 1.0 cards with policy 1.1. No trained model has read a 2.0 card or policy 2.0. The Replay tab shows the rule engine's calls and, on a click, a zero-shot OpenJev reading of the 2.0 card (D14). It has no model chat. Training on 2.0 cards is future work.
 - 1.0 rebuild: `rebuild_data cards` now gives 65,674 cards, not the 65,904 behind the frozen corpus, and `validation_cases` refuses them with `V-001: card differs from its recorded source/transformation`. A fresh clone cannot run the steps that compare rebuilt cards with the committed corpus. The frozen cards rebuild exactly only from commit `631b783`.
 - D6, `boxbox/data/cards_v2.py:115`: `_inflation` reads only laps known at the leader's crossing, so at most one car of the cutoff lap is present and the 110% pace rule never fires. The track is then WET only from rain or from the share of wet tyres, the first-version behaviour that D6 says the pace rule replaced. The test that covers the rule passes the value by hand.
 - D3, `boxbox/data/openf1.py:228`: a formation-lap message "behind the safety car" arms the rule, and the race start then opens a safety-car window that nothing closes. At Great Britain 2025 (`2025-12`, a `mini_test` race) it gives a 35.4-minute SC window that overlaps two VSC windows. This is the only window of the 87 races that is longer than 25 minutes, so the D3 review claim holds for every other race. The 2.0 cards and the replay of this race are affected.
