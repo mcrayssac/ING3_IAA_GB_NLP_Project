@@ -3,7 +3,7 @@
 The text follows the order of `boxbox.rules.policy2.decide_v2`, and its numbers are
 the code's own constants, so the prompt cannot drift from the rule. It has no
 answer-format paragraph: the decision model chooses among three options and writes no
-text. It was never tested before task 4bis.4 (docs/4bis-decisions.md, D14).
+text. It was never tested before task 4bis.4 (docs/4bis-decisions.md, D15).
 """
 
 from __future__ import annotations

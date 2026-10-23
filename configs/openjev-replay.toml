@@ -1,6 +1,6 @@
 # OpenJev on the Replay tab (task 4bis.4). The same model, helper, pins and readout as
 # configs/openjev.toml; the CALL question reads policy 2.0 and a 2.0 card. See
-# docs/4bis-decisions.md, D14.
+# docs/4bis-decisions.md, D15.
 
 # The server runs from its own environment, bound to loopback.
 [server]

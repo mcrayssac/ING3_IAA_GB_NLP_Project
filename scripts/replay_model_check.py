@@ -65,6 +65,7 @@ CARDS_V2 = Path("data/cards-v2")
 RESULT = Path("data/reference/replay-model-check.json")
 SPLITS = ("validation", "mini_test")
 PER_CELL = 25
+CHECK_ORDERS = 3
 CALLS = ("BOX", "STAY OUT", "NO CALL")
 
 
@@ -119,6 +120,9 @@ def sample(per_cell: int = PER_CELL) -> list[dict[str, Any]]:
 def run(per_cell: int = PER_CELL, tag: str = "") -> Path:
     """Ask every sampled card once, with the server started and stopped around the run."""
     settings = load_settings(REPLAY_CONFIG)
+    # the check always asks three orders, so one run scores both readings; the config
+    # keeps the number of orders that `score` chose for the app
+    settings["questions"]["call"]["orders"] = CHECK_ORDERS
     policy = policy2_instructions()
     pins = verify_pins(settings)
     rows = sample(per_cell)
@@ -136,6 +140,7 @@ def run(per_cell: int = PER_CELL, tag: str = "") -> Path:
         "prompt_sha256": sha256(policy),
         "sample_sha256": sample_sha,
         "per_cell": per_cell,
+        "orders": CHECK_ORDERS,
         "cards": len(rows),
         "pins": pins,
         "environment": environment(),

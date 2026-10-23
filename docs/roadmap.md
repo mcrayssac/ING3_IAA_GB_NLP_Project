@@ -86,7 +86,7 @@ Categories are not exclusive responsibilities. **Anyone available may claim a re
 
 Use **planned → ready → in progress → review → done**, plus **blocked** and **deferred**. Keep one matching `status:` label on each issue. A task becomes ready only when its prerequisites are reviewed and integrated. Closing it requires acceptance evidence and an integrated change or accessible deliverable. See the [execution guide](roadmap-annexe.md#pick-up-deliver-and-review-a-task) for claim, review and handover details, and the [1.6 team register](team-workflow.md) for pending human confirmations. The dated task snapshots below are unchanged by preparation of that register.
 
-Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 6 unfinished tasks: 5.1 is ready, and 5.2 to 5.6 are planned. Tasks 1.1 to 4.5 and 4bis.1 to 4bis.3 are done.
+Ready and unassigned in this snapshot: **[5.1](https://github.com/mcrayssac/ING3_IAA_GB_NLP_Project/issues/25) draft French report and video outline**. Ready means claimable. The queue holds 6 unfinished tasks: 5.1 is ready, and 5.2 to 5.6 are planned. Tasks 1.1 to 4.5 and 4bis.1 to 4bis.4 are done.
 
 | Parallel opportunity | Prerequisite and capacity condition |
 |---|---|

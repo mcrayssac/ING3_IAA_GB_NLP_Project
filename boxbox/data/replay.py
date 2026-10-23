@@ -509,9 +509,11 @@ def tyre_at(timeline: Timeline, driver: str, t: float) -> tuple[str | None, int 
     seen = _seen(timeline.cars[driver], t)
     lap = int(seen.lap[-1]) + 1 if len(seen.lap) else 1
     compound, age = timeline.tyres.get((driver, lap), (None, None))
-    if compound is None:  # a lap without timing, as the lap a car stops on track
-        compound, age = timeline.tyres.get((driver, lap - 1), (None, None))
-    return compound, None if age is None else age - 1
+    if compound is not None:  # the age at the end of this lap, less the lap itself
+        return compound, None if age is None else age - 1
+    # a lap without timing, as the lap a car stops on track: the age at the end of the
+    # lap before is already the laps done
+    return timeline.tyres.get((driver, lap - 1), (None, None))
 
 
 def tyre_options(timeline: Timeline, driver: str, t: float) -> dict[str, Any]:

@@ -8,6 +8,7 @@ driver's tyre, the pit lane and the running order, each read at the clock.
 from __future__ import annotations
 
 import base64
+import hashlib
 import html
 import json
 import math
@@ -38,6 +39,7 @@ from boxbox.data.cards_v2 import weather_at
 from boxbox.data.openmeteo import forecast_at
 from boxbox.data.replay import race_lap
 from boxbox.data.splits import CLOSED_SPLITS, SPLITS_V2_FILE
+from boxbox.model.policy2_prompt import policy2_instructions
 from boxbox.rules import format_answer
 from boxbox.rules.policy2 import TYRE_LOSS_LIMITS
 
@@ -150,7 +152,9 @@ def _flag_tile(line: Timeline, driver: str, t: float) -> str:
         plural = "s" if len(yellow) > 1 else ""
         where = f"Yellow in sector{plural} {', '.join(map(str, yellow))}"
     if blue:
-        where += f"{'. ' if where else ''}Blue flag for {_name(line, driver)}"
+        where += (
+            f"{'. ' if where else ''}Blue flag for {html.escape(_name(line, driver))}"
+        )
     colour = I.FLAG_COLOURS.get(kind.removeprefix("DOUBLE "), "var(--bx-ink)")
     return (
         f'<div class="tile track" style="--flag:{colour}"><div class="head">Track</div>'
@@ -262,7 +266,7 @@ def tyre_tile(line: Timeline, driver: str, t: float) -> str:
         badge = ' <span class="best">Best</span>' if c == best else ""
         rows.append(
             f"<tr{on}><td>{I.tyre(c)}{c.title()}{badge}</td>"
-            f'<td class="mono">{f"+{slope:.3f} s" if slope else "?"}</td>'
+            f'<td class="mono">{f"+{slope:.3f} s" if slope and slope > 0 else "?"}</td>'
             f'<td class="mono">{f"~{life} laps" if life is not None else "?"}</td>'
             f'<td class="src">{source or ""}</td></tr>'
         )
@@ -527,12 +531,24 @@ def calls(
 
 
 def check_note(path: Path = CHECK_FILE) -> str:
-    """The foot of the model tile: the agreement with policy 2.0 that the check measured."""
+    """The foot of the model tile: the agreement with policy 2.0 that the check measured.
+
+    The figures are shown only for the prompt they were measured with, and the
+    validation one says that tau was chosen on those cards."""
     try:
-        agreement = json.loads(path.read_text(encoding="utf-8"))["agreement"]
+        check = json.loads(path.read_text(encoding="utf-8"))
+        if (
+            check["prompt_sha256"]
+            != hashlib.sha256(policy2_instructions().encode()).hexdigest()
+        ):
+            return (
+                "Zero-shot, no reason written. The measured agreement is for an "
+                "earlier prompt, so it is not shown."
+            )
         parts = [
             f"{100 * agreed / cards:.0f}% of {cards} {split.replace('_', '-')} cards"
-            for split, (agreed, cards) in agreement.items()
+            + (", where tau was chosen" if split == "validation" else "")
+            for split, (agreed, cards) in check["agreement"].items()
         ]
     except (OSError, ValueError, KeyError, TypeError, ZeroDivisionError):
         return "Zero-shot, no reason written. Agreement with policy 2.0 not measured."
@@ -567,9 +583,12 @@ def _bars(probabilities: dict[str, float]) -> str:
     return f'<div class="probs">{rows}</div>'
 
 
-def model_result(result: dict[str, Any], lap: int, rule: str, note: str) -> str:
+def model_result(
+    result: dict[str, Any], lap: int, rule: str, note: str, driver: str = ""
+) -> str:
     """The model's call, its three probabilities and whether it matches the rule's call."""
     call, tau = result["call"], result["tau"]
+    of_car = f" of car {html.escape(driver)}" if driver else ""
     how = f"threshold {tau:.2f}" if tau is not None else "most probable option"
     same = (
         "Agrees with policy 2.0"
@@ -579,7 +598,7 @@ def model_result(result: dict[str, Any], lap: int, rule: str, note: str) -> str:
     return model_tile(
         f'<div class="banner {STATE_CLASSES[call]}" role="status" aria-live="polite">'
         f'<div class="call">{call}</div>'
-        f'<div class="why">Lap {lap} card, {how}, {result["seconds"]:.1f} s</div></div>'
+        f'<div class="why">Lap {lap} card{of_car}, {how}, {result["seconds"]:.1f} s</div></div>'
         f"{_bars(result['probabilities'])}"
         f'<div class="agree">{html.escape(same)}</div>'
         f'<div class="note">{html.escape(note)}</div>'
@@ -594,7 +613,7 @@ def model_answer(
 ) -> str:
     """The tile for the card on screen. There is nothing to ask in the pit lane, on an
     out-lap, once retired or without a card; an answer is kept for its race, driver and
-    lap, and a failed request is shown and never retried."""
+    lap. A failed request is shown, not kept, and asked again on the next click."""
     if asker is None or not state:
         return model_message(READY_NOTE if asker else OFF_NOTE)
     line, driver = timeline(state["race"]), state["driver"]
@@ -610,7 +629,7 @@ def model_answer(
         except Exception as error:  # noqa: BLE001 - any failure is shown, none stops the replay
             gr.Warning(f"OpenJev did not answer: {error}")
             return model_message(f"No answer: {str(error)[:160]}", "bad")
-    return model_result(cache[key], lap, rule, note)
+    return model_result(cache[key], lap, rule, note, driver)
 
 
 def ask_model(
@@ -641,6 +660,8 @@ def _gap(gap: tuple[float | None, int] | None) -> str:
         return "?"
     seconds, down = gap
     if seconds is None:
+        if not down:  # no lap down, so the gap is a hole in the timing
+            return "?"
         return f"+{down} LAP{'S' if down > 1 else ''}"
     return f"+{seconds:.1f}"
 
@@ -660,7 +681,7 @@ def standings_table(
         compound, age = tyre_at(line, d, t)
         tyre = (
             f'{I.tyre(compound)}<span class="mono">{age}</span>'
-            f'<span class="sr-only"> {compound.lower()}</span>'
+            f'<span class="sr-only"> {html.escape(compound.lower())}</span>'
             if compound and age is not None
             else "?"
         )
@@ -848,8 +869,10 @@ def tick(state: dict[str, Any]) -> tuple:
     t = clock(state, time.monotonic())
     if t >= state["end"]:
         return pause(state)
-    state, bar = _follow(state, race_lap(timeline(state["race"]), t))
-    return state, gr.skip(), gr.skip(), bar, *view(state, t)
+    followed, bar = _follow(state, race_lap(timeline(state["race"]), t))
+    # an unchanged lap writes nothing: a click that ran meanwhile keeps its state
+    written = gr.skip() if followed is state else followed
+    return written, gr.skip(), gr.skip(), bar, *view(followed, t)
 
 
 def replay_tab(asker: Asker | None = None) -> tuple:

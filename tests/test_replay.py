@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import dataclasses
+import hashlib
 import itertools
 import json
 
@@ -533,7 +534,10 @@ def test_the_model_tile_shows_the_call_the_probabilities_and_the_agreement(monke
     asker, seen = _asked("BOX")
     tile = R.model_answer(state, asker, {}, "Foot note.")
     assert seen == [("CALL: BOX\nWHY: The window is open.", 2, "1")]
-    assert 'class="banner box"' in tile and "Lap 2 card, most probable option" in tile
+    assert (
+        'class="banner box"' in tile
+        and "Lap 2 card of car 1, most probable option" in tile
+    )
     assert "0.71" in tile and "0.09" in tile and "Foot note." in tile
     assert "Agrees with policy 2.0" in tile and "data-sound" not in tile
     other, _ = _asked("STAY OUT")
@@ -589,13 +593,79 @@ def test_the_ask_button_never_writes_the_state_and_shows_a_waiting_tile(monkeypa
     assert R.READY_NOTE in R.model_answer({}, asker, {})
 
 
+def _prompt_hash() -> str:
+    return hashlib.sha256(R.policy2_instructions().encode()).hexdigest()
+
+
 def test_the_foot_of_the_tile_reports_the_measured_agreement(tmp_path):
     file = tmp_path / "check.json"
+    agreement = {"validation": [60, 100], "mini_test": [45, 100]}
     file.write_text(
-        json.dumps({"agreement": {"validation": [60, 100], "mini_test": [45, 100]}})
+        json.dumps({"agreement": agreement, "prompt_sha256": _prompt_hash()})
     )
     note = R.check_note(file)
+    assert "60% of 100 validation cards, where tau was chosen" in note
     assert (
-        "60% of 100 validation cards" in note and "45% of 100 mini-test cards" in note
+        "45% of 100 mini-test cards" in note
+        and "where tau" not in note.split("mini")[1]
     )
     assert "not measured" in R.check_note(tmp_path / "missing.json")
+
+
+def test_the_foot_hides_figures_measured_with_another_prompt(tmp_path):
+    file = tmp_path / "check.json"
+    file.write_text(
+        json.dumps({"agreement": {"validation": [60, 100]}, "prompt_sha256": "0" * 64})
+    )
+    note = R.check_note(file)
+    assert "earlier prompt" in note and "60%" not in note
+
+
+def test_the_committed_check_was_measured_with_the_current_prompt():
+    note = R.check_note()
+    assert "mini-test cards" in note and "earlier prompt" not in note
+    assert "not measured" not in note
+
+
+def test_a_tick_that_changes_nothing_writes_no_state(monkeypatch) -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    monkeypatch.setattr(R, "timeline", lambda race_id: line)
+    monkeypatch.setattr(R, "view", lambda state, t: ("c", "s", "d", "o", "r"))
+    base = {"race": "r", "driver": "1", "t": 100.0, "end": 400.0, "wall": None}
+    lap = R.race_lap(line, 100.0)
+    same = R.tick({**base, "speed": "x1", "lap": lap})
+    assert same[0] == gr.skip() and same[3] == gr.skip()  # state and slider untouched
+    moved = R.tick({**base, "speed": "x1", "lap": lap + 5})
+    assert moved[0]["lap"] == lap  # a changed lap does write the state
+
+
+def test_a_gap_with_a_hole_is_a_question_mark_not_a_lap_down() -> None:
+    assert R._gap((None, 0)) == "?" and R._gap(None) == "?"
+    assert R._gap((None, 1)) == "+1 LAP" and R._gap((None, 2)) == "+2 LAPS"
+    assert R._gap((5.04, 0)) == "+5.0"
+
+
+def test_the_tyre_age_after_a_lap_without_timing_is_the_laps_done() -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    # the lap being driven at 300 s is 4, with no row; lap 3 ended on 20 laps of age
+    line = dataclasses.replace(line, tyres={("1", 3): ("MEDIUM", 20)})
+    assert tyre_at(line, "1", 300.0) == ("MEDIUM", 20)
+    line = dataclasses.replace(line, tyres={("1", 4): ("MEDIUM", 21)})
+    assert tyre_at(line, "1", 300.0) == ("MEDIUM", 20)  # age at the end, less the lap
+
+
+def test_a_negative_prior_slope_reads_as_unknown_in_the_tyre_tile(monkeypatch) -> None:
+    line = race({"1": (0.0, [EVEN] * 5)})
+    options = {
+        "slopes": {
+            "SOFT": (-0.006, "circuit"),
+            "MEDIUM": (0.05, "race"),
+            "HARD": (None, None),
+        },
+        "laps_left": 20,
+        "used": {"MEDIUM", "HARD"},
+        "wet": False,
+    }
+    monkeypatch.setattr(R, "tyre_options", lambda *args: options)
+    tile = R.tyre_tile(line, "1", 300.0)
+    assert "+-" not in tile and "+0.050 s" in tile

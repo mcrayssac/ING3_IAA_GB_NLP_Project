@@ -217,7 +217,7 @@ shows, beside the rule's call, its call, its three probabilities and whether it
 agrees with the rule. It is zero-shot and writes no reason, an answer takes
 about four seconds (one order), and its agreement with policy 2.0 on a
 sample of validation and mini-test cards is measured by
-scripts/replay_model_check.py (docs/4bis-decisions.md, D14). The race list holds the races of the open splits of
+scripts/replay_model_check.py (docs/4bis-decisions.md, D15). The race list holds the races of the open splits of
 data/splits-v2.json, so final and test_2026 stay out. Choosing a race rebuilds
 its cards in memory in a few seconds. The tab needs:
 
@@ -593,6 +593,6 @@ and stopped by the script; final and test_2026 stay closed:
   caffeinate -i .venv/bin/python -m scripts.replay_model_check run
   .venv/bin/python -m scripts.replay_model_check score runs/<date>_replay-model-check --write
 score chooses tau on validation with the rule of #35, applies it once to mini-test, keeps
-three orders unless the first alone does as well, and writes
+three orders (the check always asks three) unless the first alone does as well, and writes
 data/reference/replay-model-check.json, which the tile reads. Targeted checks:
   .venv/bin/python -m pytest -q tests/test_replay_model_check.py tests/test_policy2_prompt.py tests/test_openjev.py
